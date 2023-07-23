@@ -146,13 +146,15 @@ This explicity feature is the most attractive one for me.
 ## Explicity
 
 It has mandatory type hints for function arguments that make the API specification very straightforward, and easy to write, read and maintain.
+
 ```python
 @api.post("/books/", response=BookOut)
 def create_book(request, payload: BookIn):
     book = Book.objects.create(**payload.dict())
     return {"id": book.id}
 ```
-From the feature, we could
+
+Rely on this explicit declaration, Django-ninja could generate precisely Swagger API documentation.
 
 ## Boilerplate
 We don't need to write these extra lines to validate the payloads when using django-ninja:
