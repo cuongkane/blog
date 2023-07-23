@@ -1,0 +1,63 @@
+body {
+  background-color: #333;
+  color: #f0f2f5;
+}
+
+.header,
+.footer {
+  background-color: #222;
+  color: #aaa;
+}
+
+.home {
+  background-color: #333;
+}
+
+.home-button a {
+  background-color: #4a4a4a;
+}
+
+.post-list-item,
+.post-list-date,
+.post-list-summary {
+  color: lightgray;
+}
+
+.post-list-item {
+  border-bottom: 1px solid #5e4a5d;
+}
+
+.markdown {
+  background: #333;
+  color: #f0f2f5;
+}
+
+.markdown a {
+  color: #63a969;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.markdown a:hover {
+  color: #0d603b;
+  text-decoration: underline;
+}
+
+.markdown code {
+  background-color: #282c34;
+  padding: 0.2rem;
+}
+
+.move {
+  background-color: #5c5b5b;
+  color: white;
+}
+
+.loading {
+  background-color: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.416);
+}
+
+.loading-dots::after {
+  color: #fff;
+}
