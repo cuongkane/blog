@@ -75,15 +75,17 @@ To get used to it, you could follow my proposal roadmap:
 1. Firstly, to get used To with Neovim, you could walk around with the command: `vimtutor`. After getting familiar with the Neovim style, you could switch to using NeoVim officially.
 ![Vimtutor](/blog/images/neovim_is_not_just_an_editor/vimtutor.jpeg)
 
-2. Secondly, I highly recommend you try using Vim mode in your existing IDE. It could help you avoid being overwhelmed by the Neovim world.
+2. The second step, try using Vim mode in your existing IDE. It could help you avoid being overwhelmed by the Neovim world.
+
 ![Vim VS Code Extension](/blog/images/neovim_is_not_just_an_editor/vim-vscode.png)
 
-3. Try with a Nvim Pre-configured Project.
+3. Next step, try with a Nvim Pre-configured Project.
+
 - There are 2 most popular Neovim pre-configured projects: NVChad and LunarNeovim.
 (I prefer the NVChad because its structure is simple and easy to extend with detailed docs)
 ![NVChad](/blog/images/neovim_is_not_just_an_editor/nvchad.png)
 
-4. Learn Lua and build your customized Neovim configuration. Here is step by step to configure your customized Neovim:
+4. Eventually, learn Lua and build your customized Neovim configuration. Here is step by step to configure your customized Neovim:
 
 - Plugins Managemer (Lazy Nvim, Packer,...)
 
