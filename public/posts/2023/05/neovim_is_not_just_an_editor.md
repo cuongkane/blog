@@ -24,18 +24,18 @@ My thoughts about using Neovim and some hands-on practices to start with it.
 Vim is an improved version of Vi with more features.
 Vim is a command line text editor on Linux, macOS, and Windows. Vim is the most popular editor in the world.
 
-![Compare Vi and Vim](/assets/images/neovim_is_not_just_an_editor/vi_n_vim.avif)
+![Compare Vi and Vim](/images/neovim_is_not_just_an_editor/vi_n_vim.avif)
 
 
 Outstanding points of Vim compared to other similar tools:
 1. The most vital mindset of Neovim is all needed keyboards on the Alpha area (with `h`, `j`, `k`, and `l` for movement).
 It avoids moving from the alpha area to the arrow area on the keyboard and vice versa (similar to moving from the keyboard to the mouse).
-![keyboard areas](/assets/images/neovim_is_not_just_an_editor/keyboard-area.png)
+![keyboard areas](/images/neovim_is_not_just_an_editor/keyboard-area.png)
 
 2. Vim is lightweight and can run on many environments. (on different kinds of machines: Server, Local Machine, or different kinds of operating systems Linux macOS Windows)
 
 3. Fast and aligned shortcuts by the community. We don't need to create a lot of shortcuts by ourselves, just need to learn Neovim shortcuts by default.
-![Vim shortcut](/assets/images/neovim_is_not_just_an_editor/vim-shortcut.webp)
+![Vim shortcut](/images/neovim_is_not_just_an_editor/vim-shortcut.webp)
 
 4. When you are familiar with the Vim movement, you can use tools inspired by Vim to enhance productivity:
 - LazyGit for Git Version Control.
@@ -46,7 +46,7 @@ It avoids moving from the alpha area to the arrow area on the keyboard and vice 
 
 - Vimimum Extension on Chrome.
 
-![Vimium](/assets/images/neovim_is_not_just_an_editor/vimium.png)
+![Vimium](/images/neovim_is_not_just_an_editor/vimium.png)
 ## Vim to Neovim
 NeoVim is an open-source project that forked from Vim to resolve Vim's headache issues.
 Therefore, the NeoVim movement behaviors are the same as Vim.
@@ -54,7 +54,7 @@ Neovim has the following improvement points over Vim:
 - Configure in Lua with awesome plugins and features: lsp-config, nvim-treesiter, telescope... Lua is simple and comprehensive like Python.
 
 - The community support from Neovim is better than Vim: Neovim has 66.8 Github stars (On Jun 18, 2023) and 1000 contributors while Vim has 30.5k with 195 contributors.
-![Neovim is popular as Vim](/assets/images/neovim_is_not_just_an_editor/best_editor_survey.jpg)
+![Neovim is popular as Vim](/images/neovim_is_not_just_an_editor/best_editor_survey.jpg)
 
 - Floating UI support to allow plugins to create smart UI/UX on the terminal environment.
 
@@ -65,19 +65,19 @@ Neovim has the following improvement points over Vim:
 
 ## Kickstart with Neovim
 For beginners, Neovim or Vim is really hard at the beginning time.
-![Vim learning curve](/assets/images/neovim_is_not_just_an_editor/vim_learning_curve.png)
+![Vim learning curve](/images/neovim_is_not_just_an_editor/vim_learning_curve.png)
 
 To get used to it, you could follow my proposal roadmap:
 1. Firstly, to get used To with Neovim, you could walk around with the command: `vimtutor`. After getting familiar with the Neovim style, you could switch to using NeoVim officially.
-![Vimtutor](/assets/images/neovim_is_not_just_an_editor/vimtutor.jpeg)
+![Vimtutor](/images/neovim_is_not_just_an_editor/vimtutor.jpeg)
 
 2. Secondly, I highly recommend you try using Vim mode in your existing IDE. It could help you avoid being overwhelmed by the Neovim world.
-![Vim VS Code Extension](/assets/images/neovim_is_not_just_an_editor/vim-vscode.png)
+![Vim VS Code Extension](/images/neovim_is_not_just_an_editor/vim-vscode.png)
 
 3. Try with a Nvim Pre-configured Project.
 - There are 2 most popular Neovim pre-configured projects: NVChad and LunarNeovim.
 (I prefer the NVChad because its structure is simple and easy to extend with detailed docs)
-![NVChad](/assets/images/neovim_is_not_just_an_editor/nvchad.png)
+![NVChad](/images/neovim_is_not_just_an_editor/nvchad.png)
 
 4. Learn Lua and build your customized Neovim configuration. Here is step by step to configure your customized Neovim:
 
@@ -99,27 +99,27 @@ To get used to it, you could follow my proposal roadmap:
 You already knew the Neovim with a lot of great features in the previous part.
 In this part, I will show Neovim plugins that you could install to make Neovim work as an IDE.
 - Nvim-tree: A File Explorer For Neovim Written In Lua
-![Nvim-tree](/assets/images/neovim_is_not_just_an_editor/nvim-tree.png)
+![Nvim-tree](/images/neovim_is_not_just_an_editor/nvim-tree.png)
 
 - nvim-treesiter for Syntax Highlighting.
-![Gitsign](/assets/images/neovim_is_not_just_an_editor/treesitter.png)
+![Gitsign](/images/neovim_is_not_just_an_editor/treesitter.png)
 
 - LSP-config for integrating with LSP and Nvim-cmp for auto-completion.
 The Language Server Protocol (LSP) defines the protocol used between an editor or IDE and a language server that provides language features like auto complete, go to definition, find all references, etc.
 
 - Telescope for searching, and previewing files, and words.
 
-| ![Telescope Demo](/assets/images/neovim_is_not_just_an_editor/telescope.gif) |
+| ![Telescope Demo](/images/neovim_is_not_just_an_editor/telescope.gif) |
 |:--:|
 | *(source: Telescope Github Repo)* |
 
 - Git signs for Git Integration.
 https://github.com/lewis6991/gitsigns.nvim
 
-![Gitsign](/assets/images/neovim_is_not_just_an_editor/gitsigns.gif)
+![Gitsign](/images/neovim_is_not_just_an_editor/gitsigns.gif)
 
 - Hop.nvim to quickly move the cursor to anywhere on the current view.
-![Hop](/assets/images/neovim_is_not_just_an_editor/hop.png)
+![Hop](/images/neovim_is_not_just_an_editor/hop.png)
 
 - Null-ls for code auto-formating.
 
@@ -133,7 +133,7 @@ I don't use any debugger plugin with Neovim in Python. In case, you need a debug
 Challenges with NeoVim:
 1. Take a lot of time and effort at the beginning time.
 
-| ![Vim learning curve with others](/assets/images/neovim_is_not_just_an_editor/vim_learning_curve_with_others.webp) |
+| ![Vim learning curve with others](/images/neovim_is_not_just_an_editor/vim_learning_curve_with_others.webp) |
 |:--:|
 | *Vim learning curve with other tools (source: Internet)* |
 
@@ -141,14 +141,14 @@ Challenges with NeoVim:
 
 2. Need a big motivation and an open mindset to bare with Neovim at the beginning time and effort to get familiar with it day by day.
 
-|![We are too busy](/assets/images/neovim_is_not_just_an_editor/weel-too-busy.png)|
+|![We are too busy](/images/neovim_is_not_just_an_editor/weel-too-busy.png)|
 |:--:|
 | *Need an optimized work mindset (source: Steen Schledermann)* |
 
 ## Conclusion
 - With a lot of benefits for productivity, Vim or Neovim is recommended by many famous universities for programming students or software engineers and developers.
-![CS107 from Standford](/assets/images/neovim_is_not_just_an_editor/standford_cs107.png)
-![MIT missing semester course](/assets/images/neovim_is_not_just_an_editor/mit_missing_course.png)
+![CS107 from Standford](/images/neovim_is_not_just_an_editor/standford_cs107.png)
+![MIT missing semester course](/images/neovim_is_not_just_an_editor/mit_missing_course.png)
 
 NeoVim is not just an editor:
 - It is the way to help you suffer and get used to strict rules.
