@@ -109,9 +109,9 @@ The Language Server Protocol (LSP) defines the protocol used between an editor o
 
 - Telescope for searching, and previewing files, and words.
 
-| ![Telescope Demo](/blog/images/neovim_is_not_just_an_editor/telescope.gif) |
+![Telescope Demo](/blog/images/neovim_is_not_just_an_editor/telescope.gif)
 
-| *(source: Telescope Github Repo)* |
+*(source: Telescope Github Repo)*
 
 - Git signs for Git Integration.
 https://github.com/lewis6991/gitsigns.nvim
@@ -133,16 +133,15 @@ I don't use any debugger plugin with Neovim in Python. In case, you need a debug
 Challenges with NeoVim:
 1. Take a lot of time and effort at the beginning time.
 
-| ![Vim learning curve with others](/blog/images/neovim_is_not_just_an_editor/vim_learning_curve_with_others.webp) |
-
-| *Vim learning curve with other tools (source: Internet)* |
+![Vim learning curve with others](/blog/images/neovim_is_not_just_an_editor/vim_learning_curve_with_others.webp)
+*Vim learning curve with other tools (source: Internet)*
 
 *Vim learning curve with other tools*
 
 2. Need a big motivation and an open mindset to bare with Neovim at the beginning time and effort to get familiar with it day by day.
 
-|![We are too busy](/blog/images/neovim_is_not_just_an_editor/weel-too-busy.png)|
-| *Need an optimized work mindset (source: Steen Schledermann)* |
+![We are too busy](/blog/images/neovim_is_not_just_an_editor/weel-too-busy.png)
+*Need an optimized work mindset (source: Steen Schledermann)*
 
 ## Conclusion
 - With a lot of benefits for productivity, Vim or Neovim is recommended by many famous universities for programming students or software engineers and developers.
