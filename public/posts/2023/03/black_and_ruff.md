@@ -24,21 +24,13 @@ Code formatter is a tool/library that converts source code from one format style
 
 Common code formatter in Python:
 
-- autopep8
+- autopep8: Format Python code to conform to the PEP 8 style guide.
 
-Format Python code to conform to the PEP 8 style guide.
+- black: Uncompromising Python code formatter.
 
-- black
+- prettier: Opinionated code formatter, not only for Python.
 
-Uncompromising Python code formatter.
-
-- prettier
-
-Opinionated code formatter, not only for Python.
-
-- yapf
-
-Yet another Python code formatter from Google.
+- yapf: Yet another Python code formatter from Google.
 
 ### Linter
 
@@ -46,21 +38,13 @@ Linter is a software tool that analyzes static code and then reports errors, bug
 
 There are many lines in Python:
 
-- Pylint
+- Pylint: Checks for errors try to enforce a coding standard and looks for code smells.
 
-Checks for errors try to enforce a coding standard and looks for code smells.
+- PyFlakes: Analyzes programs and detects various errors.
 
-- PyFlakes
+- pycodestyle: Checks against some of the style conventions in PEP 8.
 
-Analyzes programs and detects various errors.
-
-- pycodestyle
-
-Checks against some of the style conventions in PEP 8.
-
-- Bandit
-
-Analyzes code to find common security issues.
+- Bandit: Analyzes code to find common security issues.
 
 ### Why do we need Code Formatter and Linter?
 
@@ -272,8 +256,10 @@ Ruff supports well with both `pyproject.toml` or `ruff.toml`
   ```
     ruff rule {error_code}
   ```
+
   For example:
-  ```
+
+  ```text
     ╰─ ruff rule F522
         # string-dot-format-extra-named-arguments (F522)
 
@@ -287,19 +273,19 @@ Ruff supports well with both `pyproject.toml` or `ruff.toml`
   ```
 
 ### Ruff Feature
-1. PLW2901 `for` loop variable `column` overwritten by assignment target
+1. Detect a loop with mutatated value item (with error code PLW2901)
 ```py
 for column, query in filter.items():
-  column = column.split(".")
+  column = column.split(".") # <- column is incorrectly changed here
 ```
 
-2. E741 Ambiguous variable name: `l`
+2. Report ambiguous variable names
 ```py
 for l in data:
   ...
 ```
 
-3. F821 Undefined name `err`
+3. Report undefined name `err`
 ```py
 try:
     do_sth()
@@ -307,18 +293,18 @@ except Exception as exc:
     print(f"Failed to precess because {err}")
 ```
 
-4. f-string without any placeholders
+4. Report f-string without any placeholders
 ```py
 dummy_string = f"foo bar"
 ```
 
-5. Argument `format` is shadowing a python builtin
+5. Spot argument `format` is shadowing a python builtin
 ```py
 def do_sth(format: Optional[str] = None)
   ...
 ```
 
-6. B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+6. Within an `except` clause, need raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling (with error code B904)
 ```py
 try:
   do_sth()
@@ -326,7 +312,7 @@ except Exception as err:
   raise ValueError('')
 ```
 
-7. E722 Do not use bare `except`
+7. Do not use bare `except` (error code E722)
 ```py
 try:
   do_sth()
@@ -334,12 +320,12 @@ except:
   print('Failed to process')
 ```
 
-8. C408 [*] Unnecessary `dict` call (rewrite as a literal)
+8. Report unnecessary `dict` call (rewrite as a literal) (Error code C408)
 ```py
 sth = dict(foo=10, bar=10)
 ```
 
-9. B006 Do not use mutable data structures for argument defaults
+9. Warning when setting a mutable data structures for argument defaults (B006)
 ```py
 def bookmark_info(only: list = []):
 ```
