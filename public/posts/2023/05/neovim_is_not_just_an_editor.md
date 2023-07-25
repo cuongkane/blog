@@ -1,12 +1,14 @@
 # NEOVIM IS NOT JUST AN EDITOR
 My thoughts about using Neovim and some hands-on practices to start with it.
 
+---
+
 ## Outline
-1. **[Overview](#overview)**
+1. **Overview**
 - Vim introduction
 - Outstanding points of Vim
 
-2. **[Vim to Neovim](#vim-to-neovim)**
+2. **Vim to Neovim**
 - The evolution from Vim to Neovim
 
 3. **Kickstart with Neovim**
@@ -19,6 +21,8 @@ My thoughts about using Neovim and some hands-on practices to start with it.
 - The Neovim World is not pink.
 
 6. **Conclusion**
+
+---
 
 ## Overview
 Vim is an improved version of Vi with more features.
@@ -98,30 +102,36 @@ To get used to it, you could follow my proposal roadmap:
 ## Neovim Plugins
 You already knew the Neovim with a lot of great features in the previous part.
 In this part, I will show Neovim plugins that you could install to make Neovim work as an IDE.
-- Nvim-tree: A File Explorer For Neovim Written In Lua
+
+### nvim-tree: A File Explorer For Neovim Written In Lua
+
 ![Nvim-tree](/blog/images/neovim_is_not_just_an_editor/nvim-tree.png)
 
-- nvim-treesiter for Syntax Highlighting.
+### nvim-treesiter: Syntax Highlighting
+
 ![Gitsign](/blog/images/neovim_is_not_just_an_editor/treesitter.png)
 
-- LSP-config for integrating with LSP and Nvim-cmp for auto-completion.
+### lsp-config: Integrating with LSP and Nvim-cmp for auto-completion
+
 The Language Server Protocol (LSP) defines the protocol used between an editor or IDE and a language server that provides language features like auto complete, go to definition, find all references, etc.
 
-- Telescope for searching, and previewing files, and words.
+### telescope: for searching, and previewing files, and words
 
 ![Telescope Demo](/blog/images/neovim_is_not_just_an_editor/telescope.gif)
 
 *(source: Telescope Github Repo)*
 
-- Git signs for Git Integration.
+### gitsigns: Git Integration
+
 https://github.com/lewis6991/gitsigns.nvim
 
 ![Gitsign](/blog/images/neovim_is_not_just_an_editor/gitsigns.gif)
 
-- Hop.nvim to quickly move the cursor to anywhere on the current view.
+### hop.nvim: Quickly move the cursor to anywhere on the current view
+
 ![Hop](/blog/images/neovim_is_not_just_an_editor/hop.png)
 
-- Null-ls for code auto-formating.
+### null-ls: Code auto-formating
 
 Awesome plugins list:
 https://github.com/rockerBOO/awesome-neovim
@@ -131,14 +141,12 @@ I don't use any debugger plugin with Neovim in Python. In case, you need a debug
 
 ## Neovim Challenges
 Challenges with NeoVim:
-1. Take a lot of time and effort at the beginning time.
+### Take a lot of time and effort at the beginning time.
 
 ![Vim learning curve with others](/blog/images/neovim_is_not_just_an_editor/vim_learning_curve_with_others.webp)
-*Vim learning curve with other tools (source: Internet)*
+Vim learning curve with other tools (source: Internet)
 
-*Vim learning curve with other tools*
-
-2. Need a big motivation and an open mindset to bare with Neovim at the beginning time and effort to get familiar with it day by day.
+### Need a big motivation and an open mindset to bare with Neovim at the beginning time and effort to get familiar with it day by day.
 
 ![We are too busy](/blog/images/neovim_is_not_just_an_editor/weel-too-busy.png)
 *Need an optimized work mindset (source: Steen Schledermann)*
@@ -157,7 +165,8 @@ For choosing an IDE, there is no best solution, just go ahead with your most sui
 
 Take everything with a grain of salt. Just be yourself.
 
-## Appendix:
+## Appendix
+
 Vim quick guide:
 
 It is a lightweight editor with 4 main modes: Normal, Insert, Visual, and Command with these usages:
