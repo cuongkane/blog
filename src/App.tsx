@@ -20,7 +20,7 @@ function App() {
       },
     });
     const data = await response.json();
-    setPosts(data);
+    setPosts(data.reverse());
   };
 
   useEffect(() => {
