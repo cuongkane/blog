@@ -15,7 +15,7 @@ function Header() {
         >
           Kane
         </div>
-        <div onClick={toggleTheme}>{!isDarkMode ? "[To Dark]" : "[To Light]"}</div>
+        <div onClick={toggleTheme}>{!isDarkMode ? "🌙" : "🔆"}</div>
       </div>
 
       <div
