@@ -103,7 +103,7 @@ To get used to it, you could follow my proposal roadmap:
 
 ## Neovim Plugins
 You already knew the Neovim with a lot of great features in the previous part.
-In this part, I will show Neovim plugins that you could install to make Neovim work as an IDE.
+In this part, I will show Neovim plugins that you could install to make your customized Neovim work as an IDE.
 
 ### nvim-tree: A File Explorer For Neovim Written In Lua
 
