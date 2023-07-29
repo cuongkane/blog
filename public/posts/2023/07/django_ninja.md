@@ -3,7 +3,7 @@ A new framework for building APIs with Python and Django could beat DRF?
 
 # 1. Overview
 
-Recently, buidling Rest API application is a common task in internet industry.
+Recently, buidling Rest API application is a common task in software industry.
 
 There are many frameworks and libraries support implementation these applications.
 
@@ -24,8 +24,8 @@ But there are some painful point when dealing with DRF so that we need another a
 ## Philosophy
 
 ## CRUD API applicatin
-Here is a simple CRUD application with Django Ninja.
 
+Import needed modules from django-ninja and the declared Book models
 ```python
 from datetime import date
 from typing import List
@@ -34,7 +34,11 @@ from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI, Schema
 
 from books.models import Book
+```
 
+Initialize the Ninja API Application and request/response schemas
+
+```python
 api = NinjaAPI()
 
 class BookIn(Schema):
@@ -46,7 +50,10 @@ class BookOut(Schema):
     name: str
     author: str
     created_date: datetime
+```
 
+Define CRUD API function in functional programing styles
+```python
 @api.post("/books/", response=BookOut)
 def create_book(request, payload: BookIn):
     book = Book.objects.create(**payload.dict())
@@ -77,14 +84,16 @@ def delete_book(request, book_id: int):
 ```
 
 From the sample code, we could recognize that the simplicity without magic implementation of Django Ninja.
+
 All request and response class was define concretely and specify on every endpoint.
-They are automatically visulized on the Open Swagger UI of this web application.
+
+They are automatically visualized on the Open Swagger UI of this web application.
 
 We will dive into all outstanding points of Django Ninja in the next part.
 
 # 3. Django-Ninja vs DRF
 ## Performance
-Django-ninja's performance is significantly higher than DRF (parsing, validating, exporting,...) based on Pydantic.
+Django-ninja's performance is significantly higher than DRF (parsing, validating, exporting,...) based on Pydantic powerful.
 
 There are a benchmark for Django, DRF and Flask+Marshmallow. With these API endpoint:
 For DRF:
