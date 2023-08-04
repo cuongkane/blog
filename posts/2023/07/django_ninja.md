@@ -9,7 +9,7 @@ There are many frameworks and libraries that support the implementation of these
 Django has been known as the oldest web framework in the Python world (since 2005).
 Django provides rapid development, clean and pragmatic design.
 
-To avoid boilerplate code and speed up repeated tasks when building Rest API Applications, the most known tool is Django Rest Framework.
+To avoid boilerplate code and speed up repeated tasks when building Rest API Applications with Django, the most known tool is Django Rest Framework.
 Django Rest Framework is well-mature and has been chosen by many companies and people.
 
 But there are some painful points when dealing with DRF, so we need another alternative candidate - Django Ninja was born.
