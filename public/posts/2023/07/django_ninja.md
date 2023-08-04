@@ -1,36 +1,33 @@
 # Django-Ninja: Is DRF over?
 A new framework for building APIs with Python and Django could beat DRF.
 
-# 1. Overview
+## 1. Overview
 
-Building Rest API applications has recently been a common task in the software industry.
-There are many frameworks and libraries that support the implementation of these applications.
+Creating Rest API applications has become a frequent task in the software industry. Thankfully, there are many frameworks and libraries available to support their implementation.
 
-Django has been known as the oldest web framework in the Python world (since 2005).
-Django provides rapid development, clean and pragmatic design.
+[Django](https://github.com/django/django) is the oldest web framework in the Python world, having been around since 2005. It offers rapid development and a clean and pragmatic design.
 
-To avoid boilerplate code and speed up repeated tasks when building Rest API Applications with Django, the most known tool is Django Rest Framework.
-Django Rest Framework is well-mature and has been chosen by many companies and people.
+In development, to avoid writing boilerplate code and speed up the process of building Rest API applications with Django, the most popular tool is Django Rest Framework.
 
-But there are some painful points when dealing with DRF, so we need another alternative candidate - Django Ninja was born.
+While it is a well-established tool and has been utilized by many companies and individuals, there are some drawbacks to using DRF. One alternative option is Django Ninja, which was created to address these pain points.
 
-# 2. Django Ninja Introduction
+## 2. Django Ninja Introduction
 
-## Motivation
+### Motivation
 
-Django-Ninja works almost like FastAPI. FastAPI is loved because of its modern(far from boilerplate code), explicit API function interface, and excellent documentation.
+[Django-Ninja](https://django-ninja.rest-framework.com/) works almost like FastAPI. FastAPI is loved because of its modern(far from boilerplate code), explicit API function interface, and excellent documentation.
 
 FastAPI doesn't support ORM by default; developers need to coordinate FastAPI with query tools like Sqlalchemy or Django ORM.
 
 But Django is built with a lot of awesome features, so Django-Ninja is tried to bring the most loved features from FastAPI to Django.
 
-## Philosophy
+### Philosophy
 
 Like FastAPI, Django Ninja has been designated forward functional programming.
 
 Django-Ninja's API functions are expected to be declared with pure function with the specified interface and its core logic.
 
-## CRUD API application
+### CRUD API application
 
 Import needed modules from Django-ninja and the declared Book models
 
@@ -92,7 +89,6 @@ def delete_book(request, book_id: int):
     return {"success": True}
 ```
 
-
 From the sample code, we could recognize the simplicity without the magic implementation of Django Ninja.
 
 All request and response class was defined concretely and specified on every endpoint.
@@ -101,8 +97,8 @@ They are automatically visualized on the Open Swagger UI of this web application
 
 We will dive into all the outstanding points of Django Ninja in the next part.
 
-# 3. Django-Ninja vs. DRF
-## Performance
+## 3. Django-Ninja vs. DRF
+### Performance
 Django-ninja's performance is significantly higher than DRF (parsing, validating, exporting,...) based on Pydantic powerful.
 
 There is a benchmark for Django, DRF, and Flask+Marshmallow. With this API endpoint:
@@ -136,7 +132,7 @@ def create():
 Eventually, Django-ninja is faster 2 times than DRF at serializing tasks.
 ![benchmark](/blog/images/django_ninja/benchmarks.png)
 
-## Syntax
+### Syntax
 
 Django-ninja defines schemas as similar to Pydantic or FastAPI.
 
@@ -162,7 +158,7 @@ class UserRequest(drf_serializers.Serializer):
 
 This explicit feature is the most attractive one for me.
 
-## Explicity
+### Explicity
 
 It has mandatory type hints for function arguments, making the API specification straightforward to write, read and maintain.
 
@@ -175,7 +171,7 @@ def create_book(request, payload: BookIn):
 
 Relying on this explicit declaration, Django-ninja could generate precisely Swagger API documentation.
 
-## Boilerplate
+### Boilerplate
 We don't need to write these extra lines to validate the payloads when using Django-ninja:
 ```python
     input_serializer = ShipmentIdentifierRequestSerializer(data=request.query_params)
@@ -185,11 +181,11 @@ We don't need to write these extra lines to validate the payloads when using Dja
 These DRF's boilerplate code makes the application so complicated.
 This will help us have more concise code. In typical cases, the more line of code we have, the more risks we must face. (obey DRY principles)
 
-## API Documentation
+### API Documentation
 
-Django-ninja supports automatically generating interactive Swagger API documentation from the application API endpoints' API specifications.
+Django-ninja supports automatically generating interactive Swagger API documentation from the application Python functions for API endpoints.
 
-![Swagger API documentation generated by django-ninja](TODO define it)
+![Swagger API documentation generated by django-ninja](/blog/images/django_ninja/swagger-api.png)
 
 With DRF, we need to install an external library [drf-yasg](https://github.com/axnsan12/drf-yasg) to generate the Swagger API docs.
 
@@ -203,7 +199,7 @@ def create(request):
     validated_data = data.validated_data
 ```
 
-## Library Documentation
+### Library Documentation
 
 DRF is older than Django-ninja (Django-ninja is just 3 years old).
 DRF has a lot of documentation, blog posts, answers on StackOverflow, etc.
@@ -212,15 +208,51 @@ But Django-ninja is minimalist, and the documentation is easy to learn.
 
 (It took me around 40 minutes to read all of the Django-ninja documentation. For DRF, it took me a lot of days to go through all of its features (these things that I haven't used at this moment))
 
-# 4. Usage
+## 4. Usage
 
-## Project Structure
+### Project Structure
 
 You could follow my fine-tuned project structure to build up an API application. It is pretty explicit and follows common architectural principles.
 
-## Tips
-The order of installed apps decides the correctness of the application.
+```text
+  > migrations          # Contain migration files to migrate ORM classes to DB
+  > models              # Define ORM classes
+    > book.py           # Define ORM classes for `book` table
+  > views               # Contain API functions with associated endpoint and interface
+    > v1                # Everything are related to API version `v1`
+      > endpoints       # Contain all python files with utilizing v1's requests and responses
+        > book.py       # Define endpoints related to `book` table
+        > mock.py       # Mock endpoints for testing purpose - for example
+      > requests        # Define the expected requests payload structure of endpoints
+        > book.py       # Request payload structure of `book` table
+      > responses       # Explicitly define the response schema that will be returned
+        > book.py       # Response schemas of endpoints related to `book` table
+    > v2                # Everything are related to API version `v1`
+      > endpoints
+      > requests
+      > responses
+    urls.py
+```
+
+### Tips
+
+1. The order of installed apps decides the correctness of the application.
 The main app should be standing before other Django default installed apps.
 
+```py
+# settings.py
+INSTALLED_APPS = [
+    'api',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.messages',
+    'django.contrib.sessions',
+    'django.contrib.staticfiles',
+]
+```
 
-# 5. Conclusion
+## 5. Conclusion
+Django-ninja offers numerous superior features when compared to DRF.
+
+However, migrating from DRF to Django-ninja requires time, effort, and a willingness to embrace this innovative change.

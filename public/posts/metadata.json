@@ -12,7 +12,7 @@
     "slug": "neovim_is_not_just_an_editor"
   },
   {
-    "title": "[WIP] Django-Ninja: Is DRF over?",
+    "title": "Django-Ninja: Is DRF over?",
     "summary": "A new framework for building APIs with Python and Django could beat DRF?",
     "date": "2023-07-23",
     "slug": "django_ninja"
