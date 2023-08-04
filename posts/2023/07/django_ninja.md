@@ -138,7 +138,7 @@ Eventually, Django-ninja is faster 2 times than DRF at serializing tasks.
 
 ## Syntax
 
-Django-ninja writes and defines schemas is the same as Pydantic.
+Django-ninja defines schemas as similar to Pydantic or FastAPI.
 
 So, like Pydantic, schema classes follow the [PEP 484](https://peps.python.org/pep-0484/): `variable_name: type`.
 
