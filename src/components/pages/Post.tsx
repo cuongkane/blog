@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
+import remarkGfm from "remark-gfm";
 
 type PostProps = {
   year: string;
@@ -43,7 +44,11 @@ export const Post: React.FC = () => {
         </div>
       ) : mdSource ? (
         <>
-          <ReactMarkdown className="markdown" rehypePlugins={[rehypeHighlight]}>
+          <ReactMarkdown
+            className="markdown"
+            rehypePlugins={[rehypeHighlight]}
+            remarkPlugins={[remarkGfm]}
+          >
             {mdSource}
           </ReactMarkdown>
           <div className="home-button">

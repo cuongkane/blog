@@ -231,3 +231,11 @@ a {
   height: 1px;
   margin: 1em 0;
 }
+
+.markdown table {
+  border-collapse: collapse;
+}
+.markdown td {
+  padding: 6px 13px;
+  border: 1px solid black;
+}
