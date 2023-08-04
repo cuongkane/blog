@@ -7,7 +7,7 @@ Creating Rest API applications has become a frequent task in the software indust
 
 [Django](https://github.com/django/django) is the oldest web framework in the Python world, having been around since 2005. It offers rapid development and a clean and pragmatic design.
 
-With Django, to avoid writing boilerplate code and speed up the process of building Rest API applications with Django, the most popular tool is Django Rest Framework.
+In development, to avoid writing boilerplate code and speed up the process of building Rest API applications with Django, the most popular tool is Django Rest Framework.
 
 While it is a well-established tool and has been utilized by many companies and individuals, there are some drawbacks to using DRF. One alternative option is Django Ninja, which was created to address these pain points.
 
