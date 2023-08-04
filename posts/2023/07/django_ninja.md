@@ -21,7 +21,17 @@ But there are some painful point when dealing with DRF so that we need another a
 
 ## Motivation
 
+Django-Ninja works almost like FastAPI. FastAPI is loved because of its modern(far away with boilerplate code), explicity for API function interface and nice documentations.
+
+FastAPI doesn't support ORM defautly, developers need to coordinate FastAPI with query tool like: Sqlalchemy or Django ORM.
+
+But Django is built with a lot of awesome features, so Django-Ninja is tried to bring the most loved features from FastAPI to Django.
+
 ## Philosophy
+
+Like FastAPI, Django Ninja has been designated forward functional programing.
+
+Django-Ninja's API functions are expected to be declared with pure function with specified interface and its core logic.
 
 ## CRUD API applicatin
 
@@ -124,7 +134,7 @@ def create():
 (Environment: The same WSGI with one currency and Hardware)
 
 Eventually, Django-ninja is faster 2 times than DRF at serializing task.
-![benchmark](/assets/images/django_ninja/benchmarks.png)
+![benchmark](/blog/images/django_ninja/benchmarks.png)
 
 ## Syntax
 
@@ -170,7 +180,7 @@ We don't need to write these extra lines to validate the payloads when using dja
 ```
     input_serializer = ShipmentIdentifierRequestSerializer(data=request.query_params)
     input_serializer.is_valid(raise_exception=True)
-    validated_data = input_serializer.validated_data # a dictionary
+    validated_data = input_serializer.validated_data # A wild dictionary object
 ```
 These DRF's boilerplate code make the application so complicated.
 This will help us have more concise code. In typical cases, the more line of code we have, the more risks we must face. (obey DRY principles)
@@ -193,7 +203,7 @@ def create(request):
     validated_data = data.validated_data
 ```
 
-## Maturity
+## Library Documentation
 
 DRF is older than Django-ninja (Django-ninja is just 3 years old).
 
@@ -203,8 +213,19 @@ But Django-ninja is minialist and the documentation that easily to learn from st
 
 (It just took me around 40 minutes to read all of Django-ninja documentation. For DRF, it took me a lot of days to fo through all of its features (these things that I haven't used at this moment))
 
-# 4. Project Structure
+## Innovate Flow
+
+QA, Product or other team members could testing directly the
+
+# 4. Usage
+
+## Project Structure
 
 To build up an API application, you could follow my fine-tuned project structure. It is quite explicit and follow common archiecture principles.
+
+## Tips
+The order of installed app decide the correctness of the application.
+The main app should be standing before other Django default installed app.
+
 
 # 5. Conclusion
