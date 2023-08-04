@@ -32,7 +32,7 @@ Vim is a command line text editor on Linux, macOS, and Windows. Vim is the most 
 
 
 Outstanding points of Vim compared to other similar tools:
-1. The most vital mindset of Neovim is all needed keyboards on the Alpha area (with `h`, `j`, `k`, and `l` for movement).
+1. The most vital mindset of Neovim is all needed keyboards on the Alpha area (`h`, `j`, `k`, and `l` combine with Escape keys for movement).
 It avoids moving from the alpha area to the arrow area on the keyboard and vice versa (similar to moving from the keyboard to the mouse).
 ![keyboard areas](/blog/images/neovim_is_not_just_an_editor/keyboard-area.png)
 
