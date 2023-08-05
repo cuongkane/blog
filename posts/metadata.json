@@ -1,5 +1,11 @@
 [
   {
+    "title": "Poetry: An alternative to Pip",
+    "summary": "Comparing Poetry, Pip and other tools to manage Python dependencies",
+    "date": "2022-09-13",
+    "slug": "poetry"
+  },
+  {
     "title": "Enhance code quality with Black(formatter) and Ruff(linter) in Python",
     "summary": "Utilize formatter and linter to speed up development and analysis errors",
     "date": "2023-03-13",
@@ -16,11 +22,5 @@
     "summary": "A new framework for building APIs with Python and Django could beat DRF?",
     "date": "2023-07-23",
     "slug": "django_ninja"
-  },
-  {
-    "title": "Poetry: An alternative to Pip",
-    "summary": "Comparing Poetry, Pip and other tools to manage Python dependencies",
-    "date": "2023-08-04",
-    "slug": "poetry"
   }
 ]
