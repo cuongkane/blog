@@ -34,7 +34,7 @@ export const PostList: React.FC<PostListProps> = ({ posts }) => {
         return (
           <div key={post.slug}>
             {isNewYear && (
-              <div className="post-list-year">{post.date.slice(0, 4)} Year</div>
+              <div className="post-list-year">{post.date.slice(0, 4)}</div>
             )}
             <Link
               to={`/blog/posts/${post.date.slice(0, 4)}/${post.date.slice(
