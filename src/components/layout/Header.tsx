@@ -21,7 +21,7 @@ function Header() {
       <div
         className="right"
         onClick={() => {
-          navigate(`/blog/posts/2022/12/about`);
+          navigate(`/blog/posts/2023/08/about`);
         }}
       >
         About
