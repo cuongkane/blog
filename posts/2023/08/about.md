@@ -10,7 +10,7 @@ Let's embark on this exciting journey together and explore the fascinating world
 
 ---
 
-Please contact me via my personal email: `cuongle.software@gmail.com`
+Please contact me or give me your feedback via my personal email: `cuongle.software@gmail.com`
 
 
 ![I love natural](/blog/images/about/cover.jpeg)
