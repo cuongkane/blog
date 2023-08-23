@@ -252,6 +252,26 @@ INSTALLED_APPS = [
 ]
 ```
 
+### Issues
+There are 2 existing issues of Django-ninja when compared with DRF:
+
+1. The latest stable version doesn't support some of Django decorators.
+
+```python
+from django.views.decorators.cache import cache_page
+from ninja.decorators import decorate_view
+
+@api.get("/some")
+@decorate_view(cache_page(60 * 15))  # <---- Cannot caching this API.
+def some_operation(request):
+     return {"hello": "World"}
+```
+
+2. Lack of the `context` feature.
+
+This issue is mainly from Pydantic. With version under 2.0, Pydantic doesn't support passing context into the class model.
+Pydantic 2.0+ supported these features and Django-ninja is moving forward this Pydantic version with Django-ninja v1.0.
+
 ## 5. Conclusion
 Django-ninja offers numerous superior features when compared to DRF.
 
