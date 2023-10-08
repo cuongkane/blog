@@ -132,6 +132,14 @@ def create():
 Eventually, Django-ninja is faster 2 times than DRF at serializing tasks.
 ![benchmark](/blog/images/django_ninja/benchmarks.png)
 
+### Async support
+
+If you're utilizing ASGI, you should be aware that Django 3.0 and above provides support for the development of asynchronous ("async") views and an async-capable request stack.
+
+Nonetheless, it is not currently feasible to use `async` for I/O bound tasks in DRF 3.14-. This topic has been debated (https://github.com/encode/django-rest-framework/issues/7260), and for the time being, the application of async to DRF 3.14- is not possible.
+
+Django-ninja supports async features from first releases, and it is a well-known feature of this library now.
+
 ### Syntax
 
 Django-ninja defines schemas as similar to Pydantic or FastAPI.
