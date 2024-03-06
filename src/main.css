@@ -11,10 +11,6 @@ body {
   width: 100%;
 }
 
-div {
-  word-break: break-all;
-}
-
 .header,
 .footer {
   align-items: center;
