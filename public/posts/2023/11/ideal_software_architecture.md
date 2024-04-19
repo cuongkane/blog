@@ -1,7 +1,7 @@
 # Building Ideal Software Architectures
 
 ## Ideal Software Architecture Metrics
-When starting the process of crafting a software architecture tailored to a particular project, it's not just about making sure it meets the project's needs.
+When you begin designing a software architecture for a specific project, it's not only about ensuring it fulfills the project's requirements.
 
 It's equally important to consider 5 non-functional requirements:
 
@@ -16,7 +16,7 @@ Whether it's integrating new features, optimizing existing logic, or even transi
 
 - **Testability**: A testable architecture lays the foundation for comprehensive testing methodologies, enabling the creation of unit tests and integration tests for all components and features. Clear interfaces and component integration facilitate thorough testing, ensuring the robustness of the system.
 
-In this post, I will address the evolution of architectures and evaluate them following these 4 non-functional requirements.
+In this post, I will address the evolution of architectures and evaluate them following these 5 non-functional requirements.
 
 ## Evolution of Software Architectures
 
@@ -42,7 +42,7 @@ Layered architecture, prevalent in web development, segregates components with s
 #### Summary
 The layered approach organizes modules into horizontal layers, each serving a specific role within the application. Emphasizing the separation of concerns, this architecture fosters clarity in understanding individual layers and their interrelationships.
 
-![General Layered architecture diagram](/blog/images/software_architecture/layered_architecture.png)
+![General Layered architecture diagram](/blog/images/ideal_software_architecture/layered_architecture.png)
 
 MVC (Model-View-Controller) stands as a prominent variant of the layered structure.
 
@@ -67,7 +67,7 @@ Introduced by Alistair Cockburn in 2005, the Hexagonal Architecture aims to deco
 
 This abstraction facilitates seamless testing and refactoring, empowering developers to adapt to evolving requirements effortlessly.
 
-![Hexagonal architecture diagram (Source: Internet)](/blog/images/software_architecture/layered_architecture.png)
+![Hexagonal architecture diagram (Source: Internet)](/blog/images/ideal_software_architecture/hexagonal.png)
 
 Hexagonal architecture inherits the mindset of DDD (Which was Introduced by Eric Evan in 2003) in design all things go inward central domain: Domain Model (The part that the author believes is the least changed part and the heart of the system)
 
