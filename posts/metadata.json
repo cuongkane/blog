@@ -22,5 +22,11 @@
     "summary": "A new framework for building APIs with Python and Django could beat DRF?",
     "date": "2023-07-23",
     "slug": "django_ninja"
+  },
+  {
+    "title": "Building Ideal Software Architectures",
+    "summary": "ideal software architecture metrics and evolution of software architectures",
+    "date": "2023-11-13",
+    "slug": "ideal_software_architecture"
   }
 ]
