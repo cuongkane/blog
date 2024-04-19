@@ -67,7 +67,7 @@ Introduced by Alistair Cockburn in 2005, the Hexagonal Architecture aims to deco
 
 This abstraction facilitates seamless testing and refactoring, empowering developers to adapt to evolving requirements effortlessly.
 
-![Hexagonal architecture diagram (Source: Internet)](/blog/images/ideal_software_architecture/hexagonal.png)
+![Hexagonal architecture diagram (Source: Internet)](/blog/images/ideal_software_architecture/hexagon.png)
 
 Hexagonal architecture inherits the mindset of DDD (Which was Introduced by Eric Evan in 2003) in design all things go inward central domain: Domain Model (The part that the author believes is the least changed part and the heart of the system)
 
