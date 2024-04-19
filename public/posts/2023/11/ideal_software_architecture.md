@@ -1,6 +1,6 @@
-# Exploring Software Architecture: A Guide to Building Robust Systems
+# Building Ideal Software Architectures
 
-## Good software architecture metrics
+## Ideal Software Architecture Metrics
 When starting the process of crafting a software architecture tailored to a particular project, it's not just about making sure it meets the project's needs.
 
 It's equally important to consider 5 non-functional requirements:
