@@ -31,7 +31,7 @@
   },
   {
     "title": "Django Architecture based on DDD in MicroServices System",
-    "summary": "My journey in finding an appropriate project architecture for Django backend service in a micro-services system.",
+    "summary": "An appropriate project architecture for Django backend service in a microservices system",
     "date": "2024-05-19",
     "slug": "django_project_architecture"
   }
