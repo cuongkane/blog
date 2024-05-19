@@ -28,5 +28,11 @@
     "summary": "ideal software architecture metrics and evolution of software architectures",
     "date": "2023-11-13",
     "slug": "ideal_software_architecture"
+  },
+  {
+    "title": "Django Architecture based on DDD in MicroServices System",
+    "summary": "My journey in finding an appropriate project architecture for Django backend service in a micro-services system.",
+    "date": "2024-05-19",
+    "slug": "django_project_architecture"
   }
 ]
