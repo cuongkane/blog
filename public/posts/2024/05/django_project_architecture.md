@@ -21,7 +21,7 @@ It is hard for maintainance and mocking in testing will be difficult to follow t
 
 - Coupling to unmanaged dependencies (out-of-process dependencies that the service doesn't fully control) can create challenges.
 At some point, you might want to replace Redis with another system (like [KeyDB](https://github.com/Snapchat/KeyDB)). 
-However, making this switch requires significant effort because many parts of your codebase (utils, views, models, etc.) call Redis directly and also have corresponding mock setups in unit tests.
+However, making this switch requires significant effort because many parts of your codebase (utils, views, models,...) call Redis directly and also have corresponding mock setups in unit tests.
 This widespread dependency can stop you from migrating.
 
 ## Literature Review
@@ -51,7 +51,8 @@ Based on well-matured architectures such as Hexagonal, Clean Architecture, and a
 
 Like physical scaling for infrastructure, there are also 2 kinds of seperation in a software project: Horizontal and Vertical.
 
-1. Separate Horizontally(aka Bounded Context)
+1. Separate Horizontally (aka Bounded Context)
+
 This seperation is usually used for splitting a big project into several applications.
 The strategy is usually Domain-Driven Design.
 
@@ -65,6 +66,7 @@ And then charts and alerts will talk with each other via `services` interface.
 It creates room for migrating the `charts` or `alerts` into different micro services when the logic become bigger.
 
 2. Separate Vertically
+
 There are merely 3 layers in an application: Application, Business and Infrastructure layer.
 
 - Application layer: Validate incoming requests and ensure outgoing responses follow service interface (for Rest API or Event Processing).
@@ -325,7 +327,7 @@ It is better for scaling and maintaining processing by that way.
 Instead of mocking modules based on path, we could pass it directly into the input.
 
 Before:
-```
+```python
 class TestEvaluateAlertAndSendReportService(SimpleTestCase):
     @patch('abc.xyz.email_client')
     @patch('abc.xyz.service_a_client')
@@ -344,7 +346,7 @@ class TestEvaluateAlertAndSendReportService(SimpleTestCase):
 ```
 
 After:
-```
+```python
 class TestCalculateTotalValueService(SimpleTestCase):
     def test_should_send_email_when_meet_the_condition_to_trigger(self):
         self.mock_service_a_client.get_value.return_value = fake.pystr(6)
@@ -364,7 +366,7 @@ It is straightforward to declare the input and the expected output.
 It is more readable and maintainable (resistence to refactoring).
 
 ## Drawbacks
-- Dependency Injection Violation: As you can see, I didn't introduce interfaces (repository and client) for these layers.
+- Dependency Injection Violation: As you can see, I don't introduce interfaces (repository and clients) for infrastructure layer.
 Therefore, we wouldn't have dependency injection features, other layers depend on the Repository's implementation details instead of an interface class.
 But we accept this drawback because:
     - Duration with Django: Django ORM works as a repository and we decided to stick with Django. So, it is unnecessary to declare interfaces for the repository layer.
