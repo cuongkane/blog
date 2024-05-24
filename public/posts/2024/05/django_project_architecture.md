@@ -161,7 +161,7 @@ Explaination:
 
 - `core/clients` (Infra layer): Contains client modules for interacting with external services such as Kafka, Redis, or other third-party services.
 
-- `core/utils`: Contains utility modules with commonly used functions such as string manipulation, Celery utility functions, or array manipulation.
+- `core/utils`: Contains utility modules with commonly used functions such as string modifications, Celery helper functions, or array manipulations...
 
 - `core/tests`: Contains unit tests for client modules and utilities.
 
