@@ -307,7 +307,6 @@ This one deals with Celery task cronjob definition instead of business logic.
 from celery import shared_task
 from alerts.services import EvaluateAlertsAndSendReportService
 
-# Could add retry options...
 @shared_task()
 def evaluate_alerts_and_send_report(chart_id: int):
     logging.info('Some debug log for this cron job ...')
