@@ -51,7 +51,7 @@ Based on well-matured architectures such as Hexagonal, Clean Architecture, and a
 
 Like physical scaling for infrastructure, there are also 2 kinds of seperation in a software project: Horizontal and Vertical.
 
-1. Separate Horizontally (aka Bounded Context)
+1. **Separate Horizontally** (aka Bounded Context)
 
 This seperation is usually used for splitting a big project into several applications.
 The strategy is usually Domain-Driven Design.
@@ -65,7 +65,7 @@ And then charts and alerts will talk with each other via `services` interface.
 
 It creates room for migrating the `charts` or `alerts` into different micro services when the logic become bigger.
 
-2. Separate Vertically
+2. **Separate Vertically**
 
 There are merely 3 layers in an application: Application, Business and Infrastructure layer.
 
@@ -92,9 +92,9 @@ Continue with the sample problem that I mentioned in the previous part.
 
 We have a service with 2 smaller applications: `charts` and `alerts`.
 
-`charts` will have Rest APIs to get/list/create/update/delete chart objects.
+- `charts` will have Rest APIs to get/list/create/update/delete chart objects.
 
-`alert` will have Rest APIs to get/list/create/update/delete alert objects and a cron job to evaluate data and send alert if needed.
+- `alert` will have Rest APIs to get/list/create/update/delete alert objects and a cron job to evaluate data and send alert if needed.
 
 The folder structure for this application will be:
 
@@ -183,7 +183,7 @@ This layer works as a unit of works in DDD.
 
 This project architecture follows a modular approach, organizing codebase into separate components (applications) based on their functionalities (charts, alerts) and reusability (core, clients, utils).
 
-## Example Project
+## Example
 Let's make an example to fulfill the requirement following the above architecture:
 - A chart could have multiple alerts.
 - An alert could be muted and unmuted by customers.
@@ -377,7 +377,7 @@ But we accept this drawback because:
     - Non-Complex Applications: We would like to apply this application for microservices, as the service size is small.
     - Stable Dependencies: The third-party services or remote clients are stable and also mostly handled by the in-house team, so, the risk associated with direct dependency is reduced.
 
-## FAQ:
+## FAQ
 1. Is it necessary to have `repository` layer meanwhile Django ORM could take the duty of this layer?
 
 Basically, Django ORM could take the duty of `repository` layer.
