@@ -317,13 +317,16 @@ def evaluate_alerts_and_send_report(chart_id: int):
 ## Strengths
 Beyond solving pain points mentioned in the `Problem setup` part, the new project architecture has this strength:
 
-- Facilitate separating a big service into microservices: In the above example, we separated based the root entities: `chart` and `alert`.
+1. Facilitate separating a big service into microservices
+
+In the above example, we separated based the root entities: `chart` and `alert`.
 
 If the project can grow and be added new features, we could separate the service into micro services based on 2 isolated application to keep the service small.
 
 It is better for scaling and maintaining processing by that way.
 
-- Facilitate writing readable unit test.
+2. Facilitate writing readable unit tests.
+
 Instead of mocking modules based on path, we could pass it directly into the input.
 
 Before:
@@ -366,7 +369,7 @@ It is straightforward to declare the input and the expected output.
 It is more readable and maintainable (resistence to refactoring).
 
 ## Drawbacks
-- Dependency Injection Violation: As you can see, I don't introduce interfaces (repository and clients) for infrastructure layer.
+1. Dependency Injection Violation As you can see, I don't introduce interfaces (repository and clients) for infrastructure layer.
 Therefore, we wouldn't have dependency injection features, other layers depend on the Repository's implementation details instead of an interface class.
 But we accept this drawback because:
     - Duration with Django: Django ORM works as a repository and we decided to stick with Django. So, it is unnecessary to declare interfaces for the repository layer.
