@@ -62,7 +62,7 @@ The design architecture should separate that big service into 2 smaller applicat
 
 And then charts and alerts will talk with each other via `services` interface.
 
-It creates room for migrating the `charts` or `alerts` into smaller services when the logic become bigger.
+It creates room for migrating the `charts` or `alerts` into different micro services when the logic become bigger.
 
 2. Separate Vertically
 There are merely 3 layers in an application: Application, Business and Infrastructure layer.
