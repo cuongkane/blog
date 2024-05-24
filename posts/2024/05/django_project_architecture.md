@@ -247,6 +247,7 @@ class AlertRepository:
 3. Add email client for sending email stuff.
 
 ```python
+# core/clients/email_client.py
 class EmailClient:
     def send_email(subject, message, sender, recipients) -> bool:
         # Implement email sending logic using an external email service
