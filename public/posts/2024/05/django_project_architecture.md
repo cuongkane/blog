@@ -2,7 +2,7 @@
 My journey in finding an appropriate project architecture for Django backend service in a micro-services system.
 
 ## Overview
-Finding a suitable architecture to refactor a legacy Django backend project has been a challenging journey over the past two months.
+Finding a suitable architecture to refactor a legacy Django backend project has been a challenging journey.
 
 In this blog, I'm gonna share the most effective architecture for Django I've discovered so far and the insights gained along the way.
 
@@ -157,31 +157,27 @@ Explaination:
 
 2. `core/`: Contains core functionalities, utilities, and clients used across the project.
 
-- `core/clients`: Contains client modules for interacting with external services such as Kafka, Redis, or other third-party services.
+- `core/clients` (Infra layer): Contains client modules for interacting with external services such as Kafka, Redis, or other third-party services.
 
 - `core/utils`: Contains utility modules with commonly used functions such as string manipulation, Celery utility functions, or array manipulation.
 
 - `core/tests`: Contains unit tests for client modules and utilities.
 
 3. `charts/`: Represents the charts application.
-- `charts/models` (DDD's entities): Contains Django models related to charts.
+- `charts/models` (Domain layer): Contains Django models related to charts (DDD's entities).
 
-- `charts/services`: Contains service modules responsible for business logic related to charts (e.g., creating charts).
+- `charts/services` (Domain layer): Contains service modules responsible for business logic related to charts (e.g., creating charts).
 This layer works as a unit of works in DDD.
 
-- `charts/repositories`: Contains repository modules responsible for data access related to charts (e.g., fetching charts from the database).
-Basically, Django ORM could take the duty of `repository` layer.
-Because it supports 5 SQL databases and allows the use of in-memory databases for testing.
-But, I introduce repository layer to separate the saving/getting persistence data duty from Django models.
-So that, Django models could work as DDD's entities only (Single Responsibility).
+- `charts/repositories` (Infra layer): Contains repository modules responsible for data access related to charts (e.g., fetching charts from the database).
 
 - `charts/tests`: Contains unit tests for views and other components related to charts.
 
 4. `alerts/`: Represents the alerts application.
-- `alerts/models` (DDD's entities): Contains Django models related to alerts.
-- `alerts/services`: Contains service modules responsible for business logic related to alerts (e.g., creating alerts).
-- `alerts/views`: Contains view modules responsible for handling HTTP requests and responses related to alerts.
-- `alerts/tasks`: Contains Celery task modules responsible for periodic tasks related to alerts (e.g., evaluating alerts and sending notifications).
+- `alerts/models` (Domain layer): Contains Django models related to alerts (DDD's entities).
+- `alerts/services` (Domain layer): Contains service modules responsible for business logic related to alerts (e.g., creating alerts).
+- `alerts/views`(Application layer): Contains view modules responsible for handling HTTP requests and responses related to alerts.
+- `alerts/tasks`(Application layer): Contains Celery task modules responsible for periodic tasks related to alerts (e.g., evaluating alerts and sending notifications).
 
 This project architecture follows a modular approach, organizing codebase into separate components (applications) based on their functionalities (charts, alerts) and reusability (core, clients, utils).
 
@@ -244,16 +240,15 @@ class AlertRepository:
 
     def filter_by_chart(self, chart_id) -> QuerySet[Alert]:
         return Alert.objects.filter(chart_id=chart_id)
-
-chart_repository = AlertRepository()
 ```
 
 3. Add email client for sending email stuff.
 
 ```python
-def send_email(subject, message, sender, recipients) -> bool:
-    # Implement email sending logic using an external email service
-    pass
+class EmailClient:
+    def send_email(subject, message, sender, recipients) -> bool:
+        # Implement email sending logic using an external email service
+        pass
 ```
 
 4. Add chart service to get chart's data.
@@ -264,9 +259,12 @@ Facilitate migrating to new services when the complexity is increased.
 
 ```python
 # charts/services/get_chart_data_service.py
-def get_chart_data(self, chart_id: int) -> dict:
-    chart = chart_repository.get(chart_id=chart_id)
-    return chart.data
+@dataclass
+def GetChartDataService:
+    chart_repository: ChartRepository = field(default_factory=ChartRepository)
+    def excute(self, chart_id: int) -> dict:
+        chart = chart_repository.get(chart_id=chart_id)
+        return chart.data
 ```
 
 5. Add alert service to evaluate alert and send email.
@@ -274,26 +272,27 @@ def get_chart_data(self, chart_id: int) -> dict:
 ```python
 # charts/services/evaluate_alerts_and_send_report_service.py
 from alerts.models import Chart
-from alerts.repositories import alert_repository
+from alerts.repositories import AlertRepository
 from charts.services import get_chart_data
-from core.clients.email_client import send_email
+from core.clients.email_client import EmailClient
 
 class EvaluateAlertsAndSendReportService:
     def __init__(self, chart_id):
         self.chart_id = chart_id
-        self.alert_repository = alert_repository
+        self.alert_repository = AlertRepository()
+        self.email_client = EmailClient()
 
     def execute(self) -> bool:
         alerts = self.alert_repository.filter_by_chart(chart_id)
         unmuted_alerts = [alert for alert in alerts if not alert.muted_by_customer]
         if not unmuted_alerts:
             return False
-        data = get_chart_data(chart_id) or {}
+        data = GetChartDataService(chart_id).execute() or {}
         messages = [alert.generate_alert_message() for alert in unmuted_alerts if alert.should_send_alert(data)]
         accumulated_message = "\n".join(messages)
         sender = "from@example.com"
         recipients = ["to@example.com"]
-        send_email("Schedule Alert", accumulated_message, sender, recipients)
+        self.email_client.send_email("Schedule Alert", accumulated_message, sender, recipients)
         return True
 ```
 
@@ -327,38 +326,39 @@ Instead of mocking modules based on path, we could pass it directly into the inp
 
 Before:
 ```
-class TestCaculateTotalValueService(SimpleTestCase):
-    @patch('abc.xyz.redis_client')
+class TestEvaluateAlertAndSendReportService(SimpleTestCase):
+    @patch('abc.xyz.email_client')
     @patch('abc.xyz.service_a_client')
-    def test_get_total_value_and_save_to_redis_when_input_data_is_valid(
+    def test_should_send_email_when_meet_the_condition_to_trigger(
         self,
-        mock_redis_client,
+        mock_email_client,
         mock_service_a_client
     ):
         mock_service_a_client.get_value.return_value = fake.pystr(6)
-        mock_redis_client = self.mock_redis_client
+        self.mock_email_client.send_email.return_value = True
+        mock_email_client = self.mock_email_client
 
-        total_value = get_total_value_and_save_to_redis(data={'foo', 'bar'})
+        total_value = evalue_alert_and_send_report_util(data={'foo', 'bar'})
 
-        self.assertEqual(total_value, 10)
-        self.mock_redis_client.get('abc', total_value)
+        self.mock_email_client.send_email.assert_called_once()
 ```
 
 After:
 ```
-    class TestCalculateTotalValueService(SimpleTestCase):
-        def test_get_total_value_and_save_to_redis_when_input_data_is_valid(self):
-            self.mock_service_a_client.get_value.return_value = fake.pystr(6)
-            service = CaculateTotalValueService(
-                data = {'foo': 'bar'}
-                redis_client=self.mock_redis_client,
-                service_a_client=self.mock_service_a_client,
-            )
+class TestCalculateTotalValueService(SimpleTestCase):
+    def test_should_send_email_when_meet_the_condition_to_trigger(self):
+        self.mock_service_a_client.get_value.return_value = fake.pystr(6)
+        self.mock_email_client.send_email.return_value = True
 
-            total_value = service.execute()
+        service = CaculateTotalValueService(
+            data = {'foo': 'bar'}
+            email_client=self.mock_email_client,
+            service_a_client=self.mock_service_a_client,
+        )
+        total_value = service.execute()
 
-            self.assertEqual(total_value, 10)
-            self.mock_redis_client.get('abc', total_value)
+        self.mock_email_client.send_email.assert_called_once()
+
 ```
 It is straightforward to declare the input and the expected output. 
 It is more readable and maintainable (resistence to refactoring).
@@ -373,7 +373,16 @@ But we accept this drawback because:
     - Stable Dependencies: The third-party services or remote clients are stable and also mostly handled by the in-house team, so, the risk associated with direct dependency is reduced.
 
 ## FAQ:
-1. When should we move logic from a view to a separate service?
+1. Is it necessary to have `repository` layer meanwhile Django ORM could take the duty of this layer?
+
+Basically, Django ORM could take the duty of `repository` layer.
+Because it supports 5 SQL databases and allows the use of in-memory databases for testing.
+But, I introduce repository layer in order to: 
+    - Separate the saving/getting persistence data duty from Django models. So that, Django models could work as DDD's entities only (Single Responsibility).
+    - Application layer could use repository layer for simple query logics. 
+    - Centralizing saving/getting DB records could be useful to manage queries to database. 
+
+2. When should we move logic from `views/` folder to a separate service (`services/` folder)?
 Here are the main points to consider when deciding whether to move logic from a view to a separate service:
 
 - Complexity: If the logic is becoming too complex for a view function to handle efficiently, consider moving it to a separate service.
