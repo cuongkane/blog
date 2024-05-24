@@ -2,14 +2,12 @@
 My journey in finding an appropriate project architecture for Django backend service in a micro-services system.
 
 ## Overview
-I've spent 2 months to find a suitable architecture for Django framework to refactor an Legacy Django backend project but it is not easy at all.
+Finding a suitable architecture to refactor a legacy Django backend project has been a challenging journey over the past two months.
 
-In this blog, I'll share with you my journey the most suitable one (up to now).
+In this blog, I'm gonna share the most effective architecture for Django I've discovered so far and the insights gained along the way.
 
 ## Problem setup
-All works should be derived from issues. There is also no exception for architecture migrating.
-
-There are some pain points about maintainability and scalability with the Legacy Django Project:
+All works should be derived from issues. There are some pain points about maintainability and scalability with the Legacy Django Project:
 
 - A huge application folder (`api/`, `main/`,..) or big files (`utils.py`, `models.py`) contains every things.
 It is hard for navigating between the project.
@@ -17,14 +15,14 @@ It is hard for navigating between the project.
 - Business logics are scattered on `utils` files.
 It is hard to aware of where a business logic is located and causes the big mud issue on those big files.
 
-- Changing data in owned DB/external data sources and requesting to external services are not centralized and aware.
+- Changing data in persistence DB or interaction with external services are not centralized and aware.
 It could from django models, utils, view folders, or anywhere in the project.
 It is hard for maintainance and mocking in testing will be difficult to follow that.
 
 - Coupling to unmanaged dependencies (out-of-process dependencies that the service doesn't fully control) can create challenges.
-At some point, you might want to replace Redis with another system, like [KeyDB](https://github.com/Snapchat/KeyDB). 
-However, making this switch could require significant effort because many parts of your codebase (utils, views, models, etc.) call Redis directly and also have corresponding mock setups in unit tests.
-This widespread dependency can make the migration away from Redis a daunting task.
+At some point, you might want to replace Redis with another system (like [KeyDB](https://github.com/Snapchat/KeyDB)). 
+However, making this switch requires significant effort because many parts of your codebase (utils, views, models, etc.) call Redis directly and also have corresponding mock setups in unit tests.
+This widespread dependency can stop you from migrating.
 
 ## Literature Review
 I did a survey on well-known architectures such as Hexagonal Architecture([Check out my blog: Building Ideal Software Architectures
@@ -54,30 +52,33 @@ Based on well-matured architectures such as Hexagonal, Clean Architecture, and a
 Like physical scaling for infrastructure, there are also 2 kinds of seperation in a software project: Horizontal and Vertical.
 
 1. Separate Horizontally(aka Bounded Context)
-This seperation is usually used for splitting a big project into several applications. The strategy is usually Domain-Driven Design.
+This seperation is usually used for splitting a big project into several applications.
+The strategy is usually Domain-Driven Design.
 
-Let's say you have a service to manipulate charts and follow alerts. There are surrounding logics related to charts and alerts. 
+Let's say you have a service to manipulate charts and follow alerts.
+There are surrounding logics related to charts and alerts. 
 
-The design architecture should separate that big service into 2 smaller applications: `charts` and `alerts`. (plural noun as the recommendation from Django)
+The design architecture should separate that big service into 2 smaller applications: `charts` and `alerts` (plural noun as the recommendation from Django).
 
-And then charts and alerts will talk with each other via public `services`.
+And then charts and alerts will talk with each other via `services` interface.
 
-It creates room for migrating the charts and alerts into smaller services when the logic become bigger.
+It creates room for migrating the `charts` or `alerts` into smaller services when the logic become bigger.
 
 2. Separate Vertically
-There are merely 3 layers in an application: Application, business and Dependency layer.
+There are merely 3 layers in an application: Application, Business and Infrastructure layer.
 
 - Application layer: Validate incoming requests and ensure outgoing responses follow service interface (for Rest API or Event Processing).
 
-- Infrastructure layer: Handle dependencies. In a micro-services system, there are 2 kind of dependencies: managed and unmanaged dependencies.
-Managed dependencies are mostly owned data sources (Database, disk storage,..).
-And unmanaged dependencies are data sources that shared with others.
+- Domain: The heart of your application. All business logics are located in this domain layer. Any side effect (change requests to infrastructure) are located from this layer.
 
-- business: The heart of your application. All business logics are located in this domain. Any side effect (change requests to infrastructure) are located from this layer.
+- Infrastructure layer: Handle dependencies. In a micro-services system, there are 2 kind of dependencies: managed and unmanaged dependencies.
+    - Managed dependencies are mostly owned data sources (Database, disk storage,..).
+    - And unmanaged dependencies are data sources that shared with others.
 
 With DDD, we have entity and aggregate objects to express the data schema for business layer.
 
-We use `django.db.models.Model` class to define these object. Based on that, Django also support generate migration files arccordingly. 
+We use `django.db.models.Model` class to define these objects.
+Based on that, Django also support generate DB migration files arccordingly. 
 
 Application and Infrastructure layers depend on business layer.
 
@@ -171,7 +172,7 @@ This layer works as a unit of works in DDD.
 - `charts/repositories`: Contains repository modules responsible for data access related to charts (e.g., fetching charts from the database).
 Basically, Django ORM could take the duty of `repository` layer.
 Because it supports 5 SQL databases and allows the use of in-memory databases for testing.
-But, I introduce a persistence layer to separate the saving/getting persistence data duty from Django models.
+But, I introduce repository layer to separate the saving/getting persistence data duty from Django models.
 So that, Django models could work as DDD's entities only (Single Responsibility).
 
 - `charts/tests`: Contains unit tests for views and other components related to charts.
@@ -271,7 +272,7 @@ def get_chart_data(self, chart_id: int) -> dict:
 5. Add alert service to evaluate alert and send email.
 
 ```python
-# charts/services/evaluate_alerts_and_report_service.py
+# charts/services/evaluate_alerts_and_send_report_service.py
 from alerts.models import Chart
 from alerts.repositories import alert_repository
 from charts.services import get_chart_data
@@ -281,6 +282,7 @@ class EvaluateAlertsAndSendReportService:
     def __init__(self, chart_id):
         self.chart_id = chart_id
         self.alert_repository = alert_repository
+
     def execute(self) -> bool:
         alerts = self.alert_repository.filter_by_chart(chart_id)
         unmuted_alerts = [alert for alert in alerts if not alert.muted_by_customer]
@@ -301,7 +303,7 @@ This one deals with Celery task cronjob definition instead of business logic.
 ```python
 # charts/tasks/evaluate_alerts_task.py
 from celery import shared_task
-from alerts.services import ChartService
+from alerts.services import EvaluateAlertsAndSendReportService
 
 # Could add retry options...
 @shared_task()
@@ -320,10 +322,55 @@ If the project can grow and be added new features, we could separate the service
 
 It is better for scaling and maintaining processing by that way.
 
+- Facilitate writing readable unit test.
+Instead of mocking modules based on path, we could pass it directly into the input.
+
+Before:
+```
+class TestCaculateTotalValueService(SimpleTestCase):
+    @patch('abc.xyz.redis_client')
+    @patch('abc.xyz.service_a_client')
+    def test_get_total_value_and_save_to_redis_when_input_data_is_valid(
+        self,
+        mock_redis_client,
+        mock_service_a_client
+    ):
+        mock_service_a_client.get_value.return_value = fake.pystr(6)
+        mock_redis_client = self.mock_redis_client
+
+        total_value = get_total_value_and_save_to_redis(data={'foo', 'bar'})
+
+        self.assertEqual(total_value, 10)
+        self.mock_redis_client.get('abc', total_value)
+```
+
+After:
+```
+    class TestCalculateTotalValueService(SimpleTestCase):
+        def test_get_total_value_and_save_to_redis_when_input_data_is_valid(self):
+            self.mock_service_a_client.get_value.return_value = fake.pystr(6)
+            service = CaculateTotalValueService(
+                data = {'foo': 'bar'}
+                redis_client=self.mock_redis_client,
+                service_a_client=self.mock_service_a_client,
+            )
+
+            total_value = service.execute()
+
+            self.assertEqual(total_value, 10)
+            self.mock_redis_client.get('abc', total_value)
+```
+It is straightforward to declare the input and the expected output. 
+It is more readable and maintainable (resistence to refactoring).
+
 ## Drawbacks
-- Dependency Injection Violation: As you can see, I didn't introduce Repository Interface for these layers.
+- Dependency Injection Violation: As you can see, I didn't introduce interfaces (repository and client) for these layers.
 Therefore, we wouldn't have dependency injection features, other layers depend on the Repository's implementation details instead of an interface class.
-But we accept this drawback because Django ORM works as repository and we decided to stick with Django.
+But we accept this drawback because:
+    - Duration with Django: Django ORM works as a repository and we decided to stick with Django. So, it is unnecessary to declare interfaces for the repository layer.
+    - Less Boilerplate: Avoiding interfaces can reduce the amount of boilerplate code, making the implementation more straightforward and reducing initial development time.
+    - Non-Complex Applications: We would like to apply this application for microservices, as the service size is small.
+    - Stable Dependencies: The third-party services or remote clients are stable and also mostly handled by the in-house team, so, the risk associated with direct dependency is reduced.
 
 ## FAQ:
 1. When should we move logic from a view to a separate service?
