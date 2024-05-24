@@ -90,7 +90,7 @@ Application and Infrastructure layers depend on business layer.
 
 Continue with the sample problem that I mentioned in the previous part.
 
-We have a service with 2 smaller applications: `charts` and `alerts`.
+We have a service contains smaller applications: `charts` and `alerts`.
 
 - `charts` will have Rest APIs to get/list/create/update/delete chart objects.
 
