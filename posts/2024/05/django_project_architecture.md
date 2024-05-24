@@ -366,7 +366,7 @@ It is straightforward to declare the input and the expected output.
 It is more readable and maintainable (resistence to refactoring).
 
 ## Drawbacks
-- Dependency Injection Violation: As you can see, I didn't introduce interfaces (repository and client) for these layers.
+- Dependency Injection Violation: As you can see, I don't introduce interfaces (repository and clients) for infrastructure layer.
 Therefore, we wouldn't have dependency injection features, other layers depend on the Repository's implementation details instead of an interface class.
 But we accept this drawback because:
     - Duration with Django: Django ORM works as a repository and we decided to stick with Django. So, it is unnecessary to declare interfaces for the repository layer.
