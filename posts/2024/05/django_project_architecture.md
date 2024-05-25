@@ -105,7 +105,6 @@ The folder structure for this application will be:
     ├── wsgi.py
     ├── urls.py
     ├── celery.py
-├── core
     ├── clients
         ├── kafka_client.py
         ├── redis_client.py
@@ -151,19 +150,18 @@ The folder structure for this application will be:
 
 ```
 Explaination:
-1. `project_name/`: Contains the main configuration files for the Django project.
+1. `project_name/`: Contains the main configuration files for the Django project, also core functionalities, utilities, and clients used across the project.
+(This folder takes the role as `shared kernels` in Domain-Driven Design).
 
 - `asgi.py`, `settings.py`, `wsgi.py`, and `urls.py` are standard Django files for ASGI configuration, project settings, WSGI configuration, and URL routing respectively.
 
 `celery.py` is a separate file used for configuring Celery within the Django project. The `CELERY_BEAT_SCHEDULE` is declared in this file to manage scheduled jobs.
 
-2. `core/`: Contains core functionalities, utilities, and clients used across the project.
+- `project_name/clients` (Infra layer): Contains client modules for interacting with external services such as Kafka, Redis, or other third-party services.
 
-- `core/clients` (Infra layer): Contains client modules for interacting with external services such as Kafka, Redis, or other third-party services.
+- `project_name/utils`: Contains utility modules with commonly used functions such as string modifications, Celery helper functions, or array manipulations...
 
-- `core/utils`: Contains utility modules with commonly used functions such as string modifications, Celery helper functions, or array manipulations...
-
-- `core/tests`: Contains unit tests for client modules and utilities.
+- `project_name/tests`: Contains unit tests for client modules and utilities.
 
 3. `charts/`: Represents the charts application.
 - `charts/models` (Domain layer): Contains Django models related to charts (DDD's entities).
@@ -181,7 +179,7 @@ This layer works as a unit of works in DDD.
 - `alerts/views`(Application layer): Contains view modules responsible for handling HTTP requests and responses related to alerts.
 - `alerts/tasks`(Application layer): Contains Celery task modules responsible for periodic tasks related to alerts (e.g., evaluating alerts and sending notifications).
 
-This project architecture follows a modular approach, organizing codebase into separate components (applications) based on their functionalities (charts, alerts) and reusability (core, clients, utils).
+This project architecture follows a modular approach, organizing codebase into separate components (applications) based on their functionalities (charts, alerts) and reusability (clients, utils).
 
 ## Example
 Let's make an example to fulfill the requirement following the above architecture:
@@ -247,7 +245,7 @@ class AlertRepository:
 3. Add email client for sending email stuff.
 
 ```python
-# core/clients/email_client.py
+# project_name/clients/email_client.py
 class EmailClient:
     def send_email(subject, message, sender, recipients) -> bool:
         # Implement email sending logic using an external email service
@@ -277,7 +275,7 @@ def GetChartDataService:
 from alerts.models import Chart
 from alerts.repositories import AlertRepository
 from charts.services import get_chart_data
-from core.clients.email_client import EmailClient
+from project_name.clients.email_client import EmailClient
 
 class EvaluateAlertsAndSendReportService:
     def __init__(self, chart_id):
