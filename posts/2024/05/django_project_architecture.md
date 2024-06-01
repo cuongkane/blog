@@ -367,13 +367,18 @@ It is straightforward to declare the input and the expected output.
 It is more readable and maintainable (resistence to refactoring).
 
 ## Drawbacks
-1. Dependency Injection Violation As you can see, I don't introduce interfaces (repository and clients) for infrastructure layer.
+1. **Dependency Injection Violation**
+
+As you can see, I don't introduce interfaces (repository and clients) for infrastructure layer.
+
 Therefore, we wouldn't have dependency injection features, other layers depend on the Repository's implementation details instead of an interface class.
+
 But we accept this drawback because:
-    - Duration with Django: Django ORM works as a repository and we decided to stick with Django. So, it is unnecessary to declare interfaces for the repository layer.
-    - Less Boilerplate: Avoiding interfaces can reduce the amount of boilerplate code, making the implementation more straightforward and reducing initial development time.
-    - Non-Complex Applications: We would like to apply this application for microservices, as the service size is small.
-    - Stable Dependencies: The third-party services or remote clients are stable and also mostly handled by the in-house team, so, the risk associated with direct dependency is reduced.
+
+- Duration with Django: Django ORM works as a repository and we decided to stick with Django. So, it is unnecessary to declare interfaces for the repository layer.
+- Less Boilerplate: Avoiding interfaces can reduce the amount of boilerplate code, making the implementation more straightforward and reducing initial development time.
+- Non-Complex Applications: We would like to apply this application for microservices, as the service size is small.
+- Stable Dependencies: The third-party services or remote clients are stable and also mostly handled by the in-house team, so, the risk associated with direct dependency is reduced.
 
 ## FAQ
 1. Is it necessary to have `repository` layer meanwhile Django ORM could take the duty of this layer?
@@ -381,11 +386,12 @@ But we accept this drawback because:
 Basically, Django ORM could take the duty of `repository` layer.
 Because it supports 5 SQL databases and allows the use of in-memory databases for testing.
 But, I introduce repository layer in order to: 
-    - Separate the saving/getting persistence data duty from Django models. So that, Django models could work as DDD's entities only (Single Responsibility).
-    - Application layer could use repository layer for simple query logics. 
-    - Centralizing saving/getting DB records could be useful to manage queries to database. 
+- Separate the saving/getting persistence data duty from Django models. So that, Django models could work as DDD's entities only (Single Responsibility).
+- Application layer could use repository layer for simple query logics. 
+- Centralizing saving/getting DB records could be useful to manage queries to database. 
 
 2. When should we move logic from `views/` folder to a separate service (`services/` folder)?
+
 Here are the main points to consider when deciding whether to move logic from a view to a separate service:
 
 - Complexity: If the logic is becoming too complex for a view function to handle efficiently, consider moving it to a separate service.
@@ -393,6 +399,13 @@ Here are the main points to consider when deciding whether to move logic from a 
 - Reusability: If the logic is likely to be reused in multiple parts of the application, extracting it into a service can promote code reuse and reduce redundancy.
 
 - Maintainability: Separating business logic into services improves code maintainability by adhering to the principle of separation of concerns.
+
+3. Do we need to write tests for `repository` layer?
+
+The `repository` layer handles the managed dependency, so it should be tested via integration tests.
+Writing unit tests for the `repository` layer doesn't bring back too much value but is a burden for maintenance.
+Instead, integration tests could verify the correctness of the repository well.
+
 
 ## Conclusion
 Aligning an architecture for the team is always a hard part.
