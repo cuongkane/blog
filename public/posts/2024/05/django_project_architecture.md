@@ -272,16 +272,17 @@ def GetChartDataService:
 
 ```python
 # charts/services/evaluate_alerts_and_send_report_service.py
+from dataclasses import dataclass, field
 from alerts.models import Chart
 from alerts.repositories import AlertRepository
 from charts.services import get_chart_data
 from project_name.clients.email_client import EmailClient
 
+@dataclass
 class EvaluateAlertsAndSendReportService:
-    def __init__(self, chart_id):
-        self.chart_id = chart_id
-        self.alert_repository = AlertRepository()
-        self.email_client = EmailClient()
+    chart_id: int
+    alert_repository: AlertRepository = field(default_factory=AlertRepository)
+    email_client: EmailClient = field(default_factory=EmailClient)
 
     def execute(self) -> bool:
         alerts = self.alert_repository.filter_by_chart(chart_id)
