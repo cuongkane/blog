@@ -34,5 +34,11 @@
     "summary": "An appropriate project architecture for Django backend service in a microservices system",
     "date": "2024-05-19",
     "slug": "django_project_architecture"
+  },
+  {
+    "title": "[WIP] Write valuable tests",
+    "summary": "[WIP] Make your tests valuable and useful for your project",
+    "date": "2024-06-26",
+    "slug": "write_valuable_tests"
   }
 ]

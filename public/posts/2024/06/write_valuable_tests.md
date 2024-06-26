@@ -1,7 +1,8 @@
-# Write valuable unit test
+# [WIP] Write valuable tests
 Sometime you aren't confident to deliver the ticket and need to ask QA for costly regression tests.
 Or the maintainance effort project's tests are too much and it usually provide false positive alerts.
-In this blog, I'll share with you some base knownedge to tackle those issues.
+In this blog, I'll share with you some fundamental knownedge to tackle those issues.
+
 Most of this blog's meterials are retrieved from the book `Unit Testing: Principles, Practices, and Patterns MEAP V03` of the beloved author `Vladimir Khorikov`.
 
 ## Overview
@@ -58,24 +59,26 @@ Tests in higher pyramid layers favor protection against regressions, while lower
 
 In modern system architectures, we have conditions that allow maximizing `fast feedback`:
 - The size of a micro-service is small
-- With docker orchestration technique (K8S, docker-compose), self-hosting managed dependencies (databases,...) are cheaper and faster.
+- With docker orchestration technique (K8S, docker-compose), self-hosting some out-of-process dependencies (databases,cache storage,...) are cheaper and faster.
 
 Due to speed up in test execution, we should prefer writing integrations tests over unit tests and end-to-end to make our tests near as much as possible with the ideal test.
 
-## Ideal Architecture
+## Ideal Architectures
 Depending on implementation details could create fragile tests and usually produce false positive alerts.
-There are some typical ideal architectures in which they encapsulate the implementation details and cleary expose observable behaviors faciliate writing end-behavior tests and avoid coupling to implementation details.
+There are some typical ideal architectures in which they encapsulate the implementation details and cleary expose observable behaviors.
+They faciliates writing end-behavior tests and avoid coupling to implementation details.
 
 1. Hexagonal Architecture
 There are two types of communications in a typical application: intra-system and inter-system.
 - Intra-system communications are communications between classes inside your application (implementation details).
 - Inter-system communications are when your application talks to other applications (observable behaviors).
+![Intra vs Inter communications](/blog/images/write_valuable_test/intra_vs_inter.png)
 
-Hexagonal architecture, (aka ports and adapters architecture) is a design pattern that structures applications as a collection of hexagons.
+Hexagonal architecture, (aka Ports and Adapters architecture) is a design pattern that structures applications as a collection of hexagons.
 Each hexagon represents a distinct application composed of two primary layers: the domain layer and the application services layer.
 This architecture emphasizes three key aspects:
 
-- Separation of Concerns: The domain layer handles business logic, while the application services layer manages interactions between the domain layer and external applications.
+- Separation of Concerns: The domain layer handles business logic, while the services layer manages interactions between the domain layer and external applications.
 
 - Depend inward domain layer: Dependencies flow from the application services layer to the domain layer, ensuring that classes in the domain layer depend only on each other and not on classes from the application services layer.
 
@@ -84,11 +87,12 @@ This architecture emphasizes three key aspects:
 With Hexagonal architecture, it is easy to write unit tests for domain layer and assert inter-system communications (via decoupled adapters).
 
 ![Hexagonal](/blog/images/write_valuable_test/hexagonal.png)
+(Source: Netflix)
 
 2. Functional Architecture
-The goal of functional programming is to separate business logic from side effects.
-The goal of functional programming is to introduce a separation between business logic and side effects.
-There are 2 layer in Functional Architecture: Functional Core (Core layer) and Mutable Shell (Shell layer).
+The goal of functional Architecture is to separate business logic from side effects.
+Functional Architecture introduces a separation between business logic and side effects.
+There are 2 layers in Functional Architecture: Functional Core (Core layer) and Mutable Shell (Shell layer).
 
 Core layer: All the bussiness logic will be implemented as pure functions in the `Functional Core layer`.
 Shell layer: Side effect or mutate data will be made base on Functional Core output.
@@ -131,7 +135,7 @@ class EvaluateAlertsAndSendReportService:
 ```
 
 1. Follow AAA pattern
-The AAA pattern stands for Arrange, Act, and Assert, and it's a common pattern for writing clean and understandable unit tests.
+The AAA pattern stands for Arrange, Act, and Assert, and it's a common pattern for writing clean and understandable unit tests. AAA stands for these steps:
 - Arrange: Set up any data needed for the test.
 - Act: Execute the function or method being tested.
 - Assert: Verify that the outcome is as expected.
@@ -153,20 +157,109 @@ class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
         self.assertFalse(service.execute())
 ```
 Seperating sections with empty lines could increase the readability of unit tests.
+
 2. Avoid if statements in tests
-Avoid `if` statements in any stage (Arrange, Act and Assert) of a test. It indicate your unittest having multiple scenarios in a single test case.
+Avoid `if` statements in any stage (Arrange, Act and Assert) of a test.
+
+It indicate your unittest having multiple scenarios in a single test case. 
+
+Bad example:
+```python
+class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
+    def test_execute(self):
+        scenario = "no_unmuted_alerts"
+
+        if scenario == "no_unmuted_alerts":
+            self.alert_repository.filter_by_chart.return_value = [
+                Alert(id=1, chart_id=self.chart_id, muted_by_customer=True),
+                Alert(id=2, chart_id=self.chart_id, muted_by_customer=True)
+            ]
+        elif scenario == "has_unmuted_alerts":
+            self.alert_repository.filter_by_chart.return_value = [
+                Alert(id=1, chart_id=self.chart_id, muted_by_customer=False),
+                Alert(id=2, chart_id=self.chart_id, muted_by_customer=True)
+            ]
+
+        result = self.service.execute()
+
+        if scenario == "no_unmuted_alerts":
+            self.assertFalse(result)
+            self.email_client.send_email.assert_not_called()
+        elif scenario == "has_unmuted_alerts":
+            self.assertTrue(result)
+            self.email_client.send_email.assert_called_once()
+
+```
+With if-esle blocks it increases the complexity of the test. It is a burden for maintainability.
+
+Good example:
+```python
+import unittest
+from unittest.mock import MagicMock
+from charts.services.evaluate_alerts_and_send_report_service import EvaluateAlertsAndSendReportService
+from alerts.models import Alert
+from alerts.repositories import AlertRepository
+from project_name.clients.email_client import EmailClient
+
+class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
+    def test_execute_with_no_unmuted_alerts(self):
+        self.alert_repository.filter_by_chart.return_value = [
+            Alert(id=1, chart_id=self.chart_id, muted_by_customer=True),
+            Alert(id=2, chart_id=self.chart_id, muted_by_customer=True)
+        ]
+
+        result = self.service.execute()
+
+        self.assertFalse(result)
+        self.email_client.send_email.assert_not_called()
+
+    def test_execute_with_unmuted_alerts(self):
+        self.alert_repository.filter_by_chart.return_value = [
+            Alert(id=1, chart_id=self.chart_id, muted_by_customer=False),
+            Alert(id=2, chart_id=self.chart_id, muted_by_customer=True)
+        ]
+
+        result = self.service.execute()
+
+        self.assertTrue(result)
+        self.email_client.send_email.assert_called_once()
+```
 
 3. Always prefer black box testing instead of whitebox testing
-- Aim at the end result instead of implementation details:
+```python
+from django.test import TestCase
+from django.db import connection
+from .models import Customer
+
+class CustomerQueryTest(TestCase):
+    def test_retrieve_all_customers(self):
+        with connection.cursor() as cursor:
+            customers = Customer.objects.all()
+            sql = str(customers.query)
+            self.assertEqual(
+                sql,
+                """
+                    SELECT "app_customer"."id", "app_customer"."first_name", 
+                    "app_customer"."last_name", "app_customer"."email", "app_customer"."created_at" 
+                    FROM "app_customer"
+                """
+            )
+```
+Follow this good practice, you could gain following benefits: 
+- Reduce the number of false positive your tests could produce (resistance to refactoring).
+- Target on the observable behavior. It make the test more readable (maintainability).
+
+4. Aim at the end result instead of implementation details
+
+Shouldn't assert Intra-system communications, this kind of communication is implementation detailed. 
+It is extremely fragile. It doesn't bring too much valuable things with the end-user who directly from observable behaviors. So that it increases the effort for writing tests and nightmare for maintainance in long term.
 ![Aim at the end result](/blog/images/write_valuable_test/aim_at_the_end_result.png)
 
-- Intra-system vs. inter-system communications:
-Intra-system communications are communications between modules inside your service. Inter-system communications are when your service talks to other services.
+Mocking is legitimate only when it’s used for inter-system communications that cross the application boundary.
+And only when the side effects of those communications are visible to the external world.
 
-![Intra vs Inter communications](/blog/images/write_valuable_test/intra_vs_inter.png)
-Shouldn't assert Intra-system communications, this kind of communication is implementation detailed. It is extremely fragile.
 
-4. Keep one behavior per test
+4. Each test method handles a single scenario
 
 5. Using multiple act sections in a test
 
@@ -176,17 +269,85 @@ Shouldn't assert Intra-system communications, this kind of communication is impl
 
 8. Shouldn't use mock database for testing when database is a managed dependency
 
-9. Using mocks to assert intra-system communications leads to fragile tests. Mocking is legitimate only when it’s used for inter-system communications — communications that cross the application boundary — and only when the side effects of those communications are visible to the external world.
+10. Avoid mixing test code with production code
+The problem with code pollution is that it mixes up test and production code and thereby increases the maintenance costs of the latter.
 
-10. Mix test code with production code
+```python
+def send_slack_message( name: str, text: str, channel: str):
+    if settings.TESTING:
+        return
+    ...
+
+```
+We should use fake the send_slack_message to get rid of this mixing.
+
 
 11. Should relies on number of covered behavior instead of executed line of code
 As you can see, the coverage metrics don't guarantee that the underlying code is tested, only that it has been executed at some point.
 
 12. Should test logging only when it is the crucial point for investigating
 
-dict
-if-else in online
+13. Always write tests for new features and bug fixes.
+Bug fixing deployments usually missed tests. But writing test for these kind of deployments is extreme important to ensure we are fixing the correct point and protected the fixed behavior.
+
+14. Shouldn't verify the private methods and test fragility.
+
+15. Avoid leaking domain knowledge
+Let's say we want to write code for this simple SUT:
+```python
+def add(value1, value2):
+    return value1 + values
+```
+
+Here is an example of bad code that leaks domain knowledge to tests.
+```python
+class CalculatorTests(unittest.TestCase):
+    @parameterized.expand(
+        (value1, value2)
+        [
+            (1, 3),
+            (11, 33),
+            (100, 500)
+        ]
+    )
+    def test_adding_two_numbers(self, value1, value2):
+        expected = value1 + value2  # ❶
+        actual = Calculator.add(value1, value2)
+        self.assertEqual(expected, actual)
+```
+This one is just an example of leaking domain knowledge. For more complicated issues, the problem will be more serious with thes pain points:
+
+- Fragile Tests: Tests break easily with minor implementation changes.
+- Poor Refactorability: Refactoring code becomes difficult as tests are tightly coupled to specific implementations.
+- Duplication of Logic: Leads to redundancy by replicating business logic in tests.
+
+Good:
+```python
+class CalculatorTests(unittest.TestCase):
+    @parameterized.expand(
+        (value1, value2, expected_output)
+        [
+            (1, 3, 4),
+            (11, 33, 44),
+            (100, 500, 600)
+        ]
+    )
+    def test_adding_two_numbers(self, value1, value2, expected_output):
+        actual = Calculator.add(value1, value2)
+        self.assertEqual(expected_output, actual)
+```
+16. Clearing data between test runs
+This item is crucial to keep the isolation between tests. This behavior ensures that each test runs with a clean state.
+So that, we could produce a good test result without causing flaky test or false negative alert.
+
+There are some framework that already support us with flushing data after testing, for example, it is `django.test.TestCase`.
+
+17. Avoid in-memory databases
+People usually use in-memory databases for testing repository layer because it is faster.
+
+But we should avoid using in-memory database because they do not have consistent functionality compared to regular databases.
+
+If the webframework or tool you are using doesn't support seamlessly using different database for unit test, the effort for setup in-memory database could be huge and later when your queries or schemas become more complex. The in-memory database could be break.
 
 ## Reference
 
@@ -277,3 +438,5 @@ It focuses on verifying the interactions and interfaces between modules, detecti
 - Integration tests cover controllers; unit tests cover algorithms and the domain model.
 - Integration tests provide better protection against regressions and resistance to refactoring; unit tests have better maintainability and feedback speed.
 When write integration test for a system requires database (managed dependency), we should use real database for integration tests (avoid using mock database like SQLite)
+
+The code base should be implemented with interfaces for unmanaged dependencies, so that it is easier to have mock objects for these dependencies in writing tests.
