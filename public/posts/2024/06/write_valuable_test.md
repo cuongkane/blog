@@ -1,0 +1,279 @@
+# Write valuable unit test
+Sometime you aren't confident to deliver the ticket and need to ask QA for costly regression tests.
+Or the maintainance effort project's tests are too much and it usually provide false positive alerts.
+In this blog, I'll share with you some base knownedge to tackle those issues.
+Most of this blog's meterials are retrieved from the book `Unit Testing: Principles, Practices, and Patterns MEAP V03` of the beloved author `Vladimir Khorikov`.
+
+## Overview
+Tests is the most crucial part of a software project in order to maintain sustainability through project development cycles.
+
+![The importance of good tests](/blog/images/write_valuable_test/test_importance.png)
+
+If the tests aren't written well, it could increase maintainance costs, demotivate the team and sequencialy decrease the productivity.
+
+I will go through these following sections to address technique to write good tests that bring most valuable:
+- Foundational Attributes: 4 metrics to measure the test quality.
+- Kind of Tests: Does it exist a sort of test that could have all 4 attributes?
+- 
+
+## Foundational Attributes
+In this section, I'll show you attributes to define a good test.
+
+1. Protectection against regressions
+
+A regression, also known as a software bug, occurs when a feature stops working as intended after a code modification. 
+Protectection against regression is the most important element to ensure the system are working as expected and follow awared behavior.
+Let's say you introduce a Rest API to change the state of your database, you need to write a unittest to ensure the state were changed properly after calling the Rest API.
+The behavior changing the state should be protected over adding/modifing other parts of that API. Protectection against regression are address this primarily purpose of unittest.
+
+2. Resistance to refactoring
+
+Refactoring in changing the code without changing the system/software behavior. The purpose of refactoring are mainly enhance code quality to maintain a good productivity for the team.
+Follow this definition, a good test shouldn't raise false positive (test fail but expected system behavior are unchanged) errors when refactoring. 
+
+3. Fast feedback
+
+The test execution should be fast so that the test could be run every time when you change the code without affecting the productivity.
+
+4. Easy maintainance
+
+The test are easy to understand for code readers and effortless to run.
+
+A good unit test must have at least 3/4 attributes.
+
+## Ideal Tests
+
+There are 3 kinds of tests that could sastify 3/4 attributes:
+- End-to-end tests: The test go through all of the system's components (including UI, database and external applications)
+- Trivial tests: Cover simple piece of code (small unit tests)
+- Brittle test: Verify whitebox testing (for example: verify the executed SQL script script script script script script script script script exactly match some strings)
+
+![Ideal test to sastify 4 attributes are impossible](/blog/images/write_valuable_test/unreachable_test.png)
+
+Look at the central, creating an ideal test to sastify all 4 attributes is impossible because of the inverse proportion of `fast feedback` and `protection against regression`.
+
+![Test pyramid](/blog/images/write_valuable_test/test_pyramid.png)
+
+Tests in higher pyramid layers favor protection against regressions, while lower layers focus on execution speed.
+
+In modern system architectures, we have conditions that allow maximizing `fast feedback`:
+- The size of a micro-service is small
+- With docker orchestration technique (K8S, docker-compose), self-hosting managed dependencies (databases,...) are cheaper and faster.
+
+Due to speed up in test execution, we should prefer writing integrations tests over unit tests and end-to-end to make our tests near as much as possible with the ideal test.
+
+## Ideal Architecture
+Depending on implementation details could create fragile tests and usually produce false positive alerts.
+There are some typical ideal architectures in which they encapsulate the implementation details and cleary expose observable behaviors faciliate writing end-behavior tests and avoid coupling to implementation details.
+
+1. Hexagonal Architecture
+There are two types of communications in a typical application: intra-system and inter-system.
+- Intra-system communications are communications between classes inside your application (implementation details).
+- Inter-system communications are when your application talks to other applications (observable behaviors).
+
+Hexagonal architecture, (aka ports and adapters architecture) is a design pattern that structures applications as a collection of hexagons.
+Each hexagon represents a distinct application composed of two primary layers: the domain layer and the application services layer.
+This architecture emphasizes three key aspects:
+
+- Separation of Concerns: The domain layer handles business logic, while the application services layer manages interactions between the domain layer and external applications.
+
+- Depend inward domain layer: Dependencies flow from the application services layer to the domain layer, ensuring that classes in the domain layer depend only on each other and not on classes from the application services layer.
+
+- External Connections via Interface: External applications interact with the system through a common interface provided by the application services layer, preventing direct access to the domain layer.
+
+With Hexagonal architecture, it is easy to write unit tests for domain layer and assert inter-system communications (via decoupled adapters).
+
+![Hexagonal](/blog/images/write_valuable_test/hexagonal.png)
+
+2. Functional Architecture
+The goal of functional programming is to separate business logic from side effects.
+The goal of functional programming is to introduce a separation between business logic and side effects.
+There are 2 layer in Functional Architecture: Functional Core (Core layer) and Mutable Shell (Shell layer).
+
+Core layer: All the bussiness logic will be implemented as pure functions in the `Functional Core layer`.
+Shell layer: Side effect or mutate data will be made base on Functional Core output.
+
+![Functional Core Mutable Shell](/blog/images/write_valuable_test/functional_core_mutable_shell.png)
+
+Functional Architecture in an extreme version of Hexagonal Architecture. In which it maximizes writing unit tests and unit tests with output-based style for the Core layer.
+
+With this architecture, the number of unit tests is significantly more than integration tests.
+
+## Good Practices
+I made an example about `EvaluateAlertsAndSendReportService` in the previous [Django Project Architecture](https://lexuancuong.github.io/blog/posts/2024/05/django_project_architecture), in this section, I'll make examples based on that example:
+
+```python
+# charts/services/evaluate_alerts_and_send_report_service.py
+from dataclasses import dataclass, field
+from alerts.models import Chart
+from alerts.repositories import AlertRepository
+from charts.services import get_chart_data
+from project_name.clients.email_client import EmailClient
+
+@dataclass
+class EvaluateAlertsAndSendReportService:
+    chart_id: int
+    alert_repository: AlertRepository = field(default_factory=AlertRepository)
+    email_client: EmailClient = field(default_factory=EmailClient)
+
+    def execute(self) -> bool:
+        alerts = self.alert_repository.filter_by_chart(chart_id)
+        unmuted_alerts = [alert for alert in alerts if not alert.muted_by_customer]
+        if not unmuted_alerts:
+            return False
+        data = GetChartDataService(chart_id).execute() or {}
+        messages = [alert.generate_alert_message() for alert in unmuted_alerts if alert.should_send_alert(data)]
+        accumulated_message = "\n".join(messages)
+        sender = "from@example.com"
+        recipients = ["to@example.com"]
+        self.email_client.send_email("Schedule Alert", accumulated_message, sender, recipients)
+        return True
+```
+
+1. Follow AAA pattern
+The AAA pattern stands for Arrange, Act, and Assert, and it's a common pattern for writing clean and understandable unit tests.
+- Arrange: Set up any data needed for the test.
+- Act: Execute the function or method being tested.
+- Assert: Verify that the outcome is as expected.
+
+Let's make a common bad example of violating AAA pattern.
+```python
+from django.test import TestCase
+
+class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
+    def test_execute(self):
+        mock_email_client = MagicMock()
+        chart = ChartFactory.create(1)
+        alerts = AlertFactory.create_batch(5, chart=chart)
+        service = EvaluateAlertsAndSendReportService(chart_id=chart.id, email_client=mock_email_client)
+        self.assertTrue(service.execute())
+        for alert in alerts:
+            alert.delete()
+        service = EvaluateAlertsAndSendReportService(chart_id=chart.id, email_client=mock_email_client)
+        self.assertFalse(service.execute())
+```
+Seperating sections with empty lines could increase the readability of unit tests.
+2. Avoid if statements in tests
+Avoid `if` statements in any stage (Arrange, Act and Assert) of a test. It indicate your unittest having multiple scenarios in a single test case.
+
+3. Always prefer black box testing instead of whitebox testing
+- Aim at the end result instead of implementation details:
+![Aim at the end result](/blog/images/write_valuable_test/aim_at_the_end_result.png)
+
+- Intra-system vs. inter-system communications:
+Intra-system communications are communications between modules inside your service. Inter-system communications are when your service talks to other services.
+
+![Intra vs Inter communications](/blog/images/write_valuable_test/intra_vs_inter.png)
+Shouldn't assert Intra-system communications, this kind of communication is implementation detailed. It is extremely fragile.
+
+4. Keep one behavior per test
+
+5. Using multiple act sections in a test
+
+6. How to test logging functionality?
+
+7. Don’t rely on production code when making assertions
+
+8. Shouldn't use mock database for testing when database is a managed dependency
+
+9. Using mocks to assert intra-system communications leads to fragile tests. Mocking is legitimate only when it’s used for inter-system communications — communications that cross the application boundary — and only when the side effects of those communications are visible to the external world.
+
+10. Mix test code with production code
+
+11. Should relies on number of covered behavior instead of executed line of code
+As you can see, the coverage metrics don't guarantee that the underlying code is tested, only that it has been executed at some point.
+
+12. Should test logging only when it is the crucial point for investigating
+
+dict
+if-else in online
+
+## Reference
+
+## Apendix
+nice-to-know stuffs related to unit tests and integration tests.
+### Unit tests
+Unit tests are tests covered smallest unit of the system. Unit tests targets the domain model (main bussiness)
+#### Classical school vs London school
+There are 2 approaches to write mocks unit tests:
+- Classical School: Focuses on testing the actual behavior of the unit with minimal use of mocks. Dependencies are typically real objects.
+- London School: Focuses on testing the interactions between the unit under test and its collaborators using mocks or stubs to isolate the unit.
+
+Let's make an example with this simple `Calculator` class:
+```python
+class Logger:
+    def log(self, message):
+        print(message)
+
+class Calculator:
+    def __init__(self, logger):
+        self.logger = logger
+
+    def add(self, a, b):
+        result = a + b
+        self.logger.log(f"Adding {a} and {b} to get {result}")
+        return result
+```
+
+Classical school: Tests the Calculator with a real Logger (test doubles), focusing on overall behavior.
+```python
+class TestCalculatorClassical(unittest.TestCase):
+    def test_add(self):
+        fake_logger = FakeLogger()
+        calculator = Calculator(fake_logger)
+
+        result = self.calculator.add(2, 3)
+
+        self.assertEqual(result, 5)
+```
+
+London School: Tests the Calculator with a mock Logger, focusing on interactions.
+```python
+class TestCalculatorLondon(unittest.TestCase):
+    def setUp(self):
+        mock_logger = Mock()
+        calculator = Calculator(mock_logger)
+
+        result = self.calculator.add(2, 3)
+        
+        mock_logger.log.assert_called_once_with("Adding 2 and 3 to get 5") # Not sure this one
+        self.assertEqual(result, 5)
+```
+While the London school's benefits seem appealing, they introduce issues. 
+
+- The focus should be on verifying behavior, not individual classes. Difficulty in unit testing often indicates poor code design, which test doubles only mask. 
+
+- Although identifying which functionality has a bug after a test failure is useful, it's often unnecessary since the cause is usually the most recent change.
+
+- Finally, the biggest issue with the London school of unit testing is the problem of over-specification — coupling tests to the SUT’s implementation details.
+
+So, should prefer Classical school in writing unit tests, London school just stands out for unit tests for large graphs of interconnected classes.
+
+#### Three Styles
+There are 3 styles of unit tests: output based, state-based and communication-based.
+- Output-based testing (a.k.a result-based testing): Verifies that system outputs match expected results, treating the system under testing (SUT) as a black box and focusing on the correctness of final outputs given specific inputs.
+This style only works for SUTs that don’t generate side effects.
+
+![Output-based](/blog/images/write_valuable_test/output_based.png)
+
+- State-based testing: Verify the state the SUT after the operation is completed. This style is useful for testing objects where the state changes over time due to operations.
+![State-based](/blog/images/write_valuable_test/state_based.png)
+
+- Communication-based testing: Verify all communications are initiated in the correct order and with the correct parameters. This style is ideal for ensuring that units interact correctly with their dependencies.
+![Communication-based](/blog/images/write_valuable_test/state_based.png)
+
+Compare to state-based and communication-based testing, output-based testing creates tests that are not tightly coupled to implementation details, making them easier to maintain and resistant to refactoring.
+
+But write unit tests follow output-based testing requires the SUT must be pure modules.
+Functional programing and architecture: `Functional programing as core, mutable objects as shell` faciliate writing unit tests follow output-based testing:
+![Functional core architecture](/blog/images/write_valuable_test/functional_core_architecture.png)
+
+If you find that code is hard to write unit tests, it is a strong indication that the codes need to be refactored.
+
+### Integration tests
+Integration testing is a level of software testing where individual units or components are combined and tested as a group to ensure they work together correctly.
+Integration tests verify how your system works in integration with out-of-process dependencies (database, file system, other services).
+It focuses on verifying the interactions and interfaces between modules, detecting any issues in their integration.
+- Integration tests cover controllers; unit tests cover algorithms and the domain model.
+- Integration tests provide better protection against regressions and resistance to refactoring; unit tests have better maintainability and feedback speed.
+When write integration test for a system requires database (managed dependency), we should use real database for integration tests (avoid using mock database like SQLite)
