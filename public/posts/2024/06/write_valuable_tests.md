@@ -1,7 +1,7 @@
 # [WIP] Write valuable tests
-Sometime you aren't confident to deliver the ticket and need to ask QA for costly regression tests.
-Or the maintainance effort project's tests are too much and it usually provide false positive alerts.
-In this blog, I'll share with you some fundamental knownedge to tackle those issues.
+Sometimes, you may lack confidence in delivering the ticket and need to ask QA for costly regression tests.
+Alternatively, the maintenance efforts for the project's tests may be excessive and usually result in false positive alerts. 
+In this blog, I will share some fundamental knowledge to address these issues.
 
 Most of this blog's meterials are retrieved from the book `Unit Testing: Principles, Practices, and Patterns MEAP V03` of the beloved author `Vladimir Khorikov`.
 
@@ -14,8 +14,9 @@ If the tests aren't written well, it could increase maintainance costs, demotiva
 
 I will go through these following sections to address technique to write good tests that bring most valuable:
 - Foundational Attributes: 4 metrics to measure the test quality.
-- Kind of Tests: Does it exist a sort of test that could have all 4 attributes?
-- 
+- Ideal tests: Does it exist a sort of test that could have all 4 attributes?
+- Ideal architecture: Project architecture to facilitate writing ideal tests.
+- Good practices: Principle and practices to write good tests.
 
 ## Foundational Attributes
 In this section, I'll show you attributes to define a good test.
@@ -47,13 +48,17 @@ A good unit test must have at least 3/4 attributes.
 There are 3 kinds of tests that could sastify 3/4 attributes:
 - End-to-end tests: The test go through all of the system's components (including UI, database and external applications)
 - Trivial tests: Cover simple piece of code (small unit tests)
-- Brittle test: Verify whitebox testing (for example: verify the executed SQL script script script script script script script script script exactly match some strings)
+- Brittle test: Verify whitebox testing (for example: verify the executed SQL script exactly matches some strings)
 
 ![Ideal test to sastify 4 attributes are impossible](/blog/images/write_valuable_test/unreachable_test.png)
 
-Look at the central, creating an ideal test to sastify all 4 attributes is impossible because of the inverse proportion of `fast feedback` and `protection against regression`.
+Look at the central, creating an ideal test to sastify all 4 attributes is impossible because of the inverse proportion of `fast feedback` and `protection against regression`. Here is the diagram describes that inverse proportion:
 
 ![Test pyramid](/blog/images/write_valuable_test/test_pyramid.png)
+
+- Unit tests are tests covered smallest unit of the system. Unit tests targets the domain model (main bussiness)
+- Integration tests verify how your system works in integration with out-of-process dependencies (database, file system, other services).
+- End-to-end testing verifies that all components of a system can run under real-world scenarios
 
 Tests in higher pyramid layers favor protection against regressions, while lower layers focus on execution speed.
 
@@ -69,10 +74,11 @@ There are some typical ideal architectures in which they encapsulate the impleme
 They faciliates writing end-behavior tests and avoid coupling to implementation details.
 
 1. Hexagonal Architecture
+
 There are two types of communications in a typical application: intra-system and inter-system.
 - Intra-system communications are communications between classes inside your application (implementation details).
 - Inter-system communications are when your application talks to other applications (observable behaviors).
-![Intra vs Inter communications](/blog/images/write_valuable_test/intra_vs_inter.png)
+![Intra vs Inter communications](/blog/images/write_valuable_test/inter_vs_intra.png)
 
 Hexagonal architecture, (aka Ports and Adapters architecture) is a design pattern that structures applications as a collection of hexagons.
 Each hexagon represents a distinct application composed of two primary layers: the domain layer and the application services layer.
@@ -90,6 +96,7 @@ With Hexagonal architecture, it is easy to write unit tests for domain layer and
 (Source: Netflix)
 
 2. Functional Architecture
+
 The goal of functional Architecture is to separate business logic from side effects.
 Functional Architecture introduces a separation between business logic and side effects.
 There are 2 layers in Functional Architecture: Functional Core (Core layer) and Mutable Shell (Shell layer).
