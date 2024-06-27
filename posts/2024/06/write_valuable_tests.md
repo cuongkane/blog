@@ -266,17 +266,16 @@ Mocking is legitimate only when it’s used for inter-system communications th
 And only when the side effects of those communications are visible to the external world.
 
 
-4. Each test method handles a single scenario
+5. Each test method handles a single scenario
 
-5. Using multiple act sections in a test
+6. Using multiple act sections in a test
 
-6. How to test logging functionality?
-
-7. Don’t rely on production code when making assertions
+7. Only test logging when it is crucial
 
 8. Shouldn't use mock database for testing when database is a managed dependency
 
 10. Avoid mixing test code with production code
+
 The problem with code pollution is that it mixes up test and production code and thereby increases the maintenance costs of the latter.
 
 ```python
