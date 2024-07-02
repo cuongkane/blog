@@ -1,7 +1,8 @@
 # [WIP] Write valuable tests
 Sometimes, you may lack confidence in delivering the ticket and need to ask QA for costly regression tests.
-Alternatively, the maintenance efforts for the project's tests may be excessive and usually result in false positive alerts. 
-In this blog, I will share some fundamental knowledge to address these issues.
+Or the maintenance efforts for the project's tests may be excessive and usually result in false positive alerts. 
+
+In this blog, I'm gonna share some fundamental knowledge to tackle these issues.
 
 Most of this blog's meterials are retrieved from the book `Unit Testing: Principles, Practices, and Patterns MEAP V03` of the beloved author `Vladimir Khorikov`.
 
@@ -33,9 +34,9 @@ The behavior changing the state should be protected over adding/modifing other p
 Refactoring in changing the code without changing the system/software behavior. The purpose of refactoring are mainly enhance code quality to maintain a good productivity for the team.
 Follow this definition, a good test shouldn't raise false positive (test fail but expected system behavior are unchanged) errors when refactoring. 
 
-3. Fast feedback
+3. Fast testing execution
 
-The test execution should be fast so that the test could be run every time when you change the code without affecting the productivity.
+The testing execution time should be quick so that the test could be run every time when you change the code without affecting the productivity.
 
 4. Easy maintainance
 
@@ -52,7 +53,9 @@ There are 3 kinds of tests that could sastify 3/4 attributes:
 
 ![Ideal test to sastify 4 attributes are impossible](/blog/images/write_valuable_test/unreachable_test.png)
 
-Look at the central, creating an ideal test to sastify all 4 attributes is impossible because of the inverse proportion of `fast feedback` and `protection against regression`. Here is the diagram describes that inverse proportion:
+Look at the central, creating an ideal test to sastify all 4 attributes is impossible because of the inverse proportion of `fast testing execution` and `protection against regression`.
+
+Here is the diagram describes that inverse proportion:
 
 ![Test pyramid](/blog/images/write_valuable_test/test_pyramid.png)
 
@@ -62,8 +65,8 @@ Look at the central, creating an ideal test to sastify all 4 attributes is impos
 
 Tests in higher pyramid layers favor protection against regressions, while lower layers focus on execution speed.
 
-In modern system architectures, we have conditions that allow maximizing `fast feedback`:
-- The size of a micro-service is small
+Nowadays, in modern system architectures, we have conditions that allow maximizing `fast feedback`:
+- The size of a micro-service is small.
 - With docker orchestration technique (K8S, docker-compose), self-hosting some out-of-process dependencies (databases,cache storage,...) are cheaper and faster.
 
 Due to speed up in test execution, we should prefer writing integrations tests over unit tests and end-to-end to make our tests near as much as possible with the ideal test.
@@ -142,7 +145,9 @@ class EvaluateAlertsAndSendReportService:
 ```
 
 1. Follow AAA pattern
-The AAA pattern stands for Arrange, Act, and Assert, and it's a common pattern for writing clean and understandable unit tests. AAA stands for these steps:
+
+The AAA pattern stands for Arrange, Act, and Assert, and it's a common pattern for writing clean and understandable unit tests.
+AAA stands for these steps:
 - Arrange: Set up any data needed for the test.
 - Act: Execute the function or method being tested.
 - Assert: Verify that the outcome is as expected.
@@ -166,9 +171,10 @@ class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
 Seperating sections with empty lines could increase the readability of unit tests.
 
 2. Avoid if statements in tests
+
 Avoid `if` statements in any stage (Arrange, Act and Assert) of a test.
 
-It indicate your unittest having multiple scenarios in a single test case. 
+It indicates your unittest having multiple scenarios in a single test case. 
 
 Bad example:
 ```python
@@ -233,22 +239,23 @@ class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
 ```
 
 3. Always prefer black box testing instead of whitebox testing
+
 ```python
 from django.test import TestCase
 from django.db import connection
 from .models import Customer
 
-class CustomerQueryTest(TestCase):
-    def test_retrieve_all_customers(self):
+class TestEvaluateAlertsAndSendReportService(TestCase):
+    def test_get_all_alert_correctly(self):
         with connection.cursor() as cursor:
-            customers = Customer.objects.all()
+            customers = Alert.objects.all()
             sql = str(customers.query)
             self.assertEqual(
                 sql,
                 """
                     SELECT "app_customer"."id", "app_customer"."first_name", 
                     "app_customer"."last_name", "app_customer"."email", "app_customer"."created_at" 
-                    FROM "app_customer"
+                    FROM "alert"
                 """
             )
 ```
@@ -258,43 +265,145 @@ Follow this good practice, you could gain following benefits:
 
 4. Aim at the end result instead of implementation details
 
-Shouldn't assert Intra-system communications, this kind of communication is implementation detailed. 
+Shouldn't assert intra-system communications, this kind of communication is implementation detailed. 
 It is extremely fragile. It doesn't bring too much valuable things with the end-user who directly from observable behaviors. So that it increases the effort for writing tests and nightmare for maintainance in long term.
 ![Aim at the end result](/blog/images/write_valuable_test/aim_at_the_end_result.png)
 
 Mocking is legitimate only when it’s used for inter-system communications that cross the application boundary.
-And only when the side effects of those communications are visible to the external world.
-
 
 5. Each test method handles a single scenario
 
-6. Using multiple act sections in a test
+When writing tests, each test should verify only one single scenario, it faciliates code reading and debugging.
+
+Bad example:
+```python
+from django.test import TestCase
+from django.db import connection
+from .models import Customer
+
+class TestEvaluateAlertsAndSendReportService(TestCase):
+    def test_evaluate_alerts_and_send_report(self):
+        alert = AlertFactory.create(chart_id=self.chart_id, muted_by_customer=True)
+        result = self.service.execute()
+        self.assertFalse(result)
+        self.email_client.send_email.assert_not_called()
+        alert.status = 'active'
+        result = self.service.execute()
+        self.assertTrue(result)
+        self.email_client.send_email.assert_called_once()
+```
+Good example:
+
+```python
+from django.test import TestCase
+from django.db import connection
+from .models import Customer
+
+class TestEvaluateAlertsAndSendReportService(TestCase):
+    def test_shouldnt_send_email_when_alerts_are_muted(self):
+        alerts = AlertFactory.create_batch(chart_id=self.chart_id, muted_by_customer=True),
+        result = self.service.execute()
+
+        self.assertFalse(result)
+
+        self.email_client.send_email.assert_not_called()
+
+    def test_should_send_email_when_alerts_are_muted(self):
+        alerts = AlertFactory.create(chart_id=self.chart_id),
+
+        result = self.service.execute()
+
+        self.assertTrue(result)
+        self.email_client.send_email.assert_called_once()
+```
 
 7. Only test logging when it is crucial
 
-8. Shouldn't use mock database for testing when database is a managed dependency
+Logging are treated as implementation details of the SUT.
 
-10. Avoid mixing test code with production code
+Most of the time, logging shouldn't be verified.
+
+Logging should only be tested when it take the crucial part in debugging issue or for analytic tasks.
+
+8. Avoid mixing test code with production code
 
 The problem with code pollution is that it mixes up test and production code and thereby increases the maintenance costs of the latter.
 
 ```python
-def send_slack_message( name: str, text: str, channel: str):
-    if settings.TESTING:
+def _send_slack_message( name: str, text: str, channel: str):
+    if settings.TESTING: # The more if-else we have, the more complexity we deal
         return
     ...
-
+@dataclass
+class EvaluateAlertsAndSendReportService:
+    def execute(self) -> bool:
+        ... # other lines of code
+        _send_slack_message(
+            name='alert_service',
+            text='Got error when executing the job',
+            channel='#alert'
+        )
+        return False
 ```
 We should use fake the send_slack_message to get rid of this mixing.
 
+In the python world, cleanly resolve this messy is challenging. It requires the team to design the code base faciliate using fake objects instead.
 
-11. Should relies on number of covered behavior instead of executed line of code
+With DDD Architecture, the resolution could be:
+
+```python
+# clients/slack_client.py
+class SlackClient(ISlackClient):
+    def send_slack_message(name: str, text: str, channel: str):
+        ...
+@dataclass
+class EvaluateAlertsAndSendReportService:
+    slack_client: ISlackClient = SlackClient()
+    def execute(self) -> bool:
+        ... # other lines of code
+        slack_client.send_slack_message(
+            name='alert_service',
+            text='Got error when executing the job',
+            channel='#alert'
+        )
+        return False
+```
+
+With the above structure, we could pass `FakeSlackClient` as a subclass of `ISlackClient` or merly a Mock instance to verify the SUT:
+
+```python
+class TestEvaluateAlertsAndSendReportService(TestCase):
+    def test_shouldnt_send_email_when_alerts_are_muted(self):
+        mock_email_client = MagicMock()
+        alerts = AlertFactory.create_batch(chart_id=self.chart_id, muted_by_customer=True),
+
+        result = EvaluateAlertsAndSendReportService(email_client=mock_email_client).execute()
+
+        self.assertFalse(result)
+        self.mock_email_client.send_slack_message.assert_called_once()
+```
+
+9. Should relies on number of covered behavior instead of executed line of code
+
 As you can see, the coverage metrics don't guarantee that the underlying code is tested, only that it has been executed at some point.
+
+For example, in Python we have the shortcut with `or` operator in the same line:
+```
+Line1: if a or b:
+Line2:    do c
+```
+If we have the unit test to cover `if a` the coverage will be 100% but actually we need to cover `if b` to cover all branches. 
+
+So we should relies on number of covered behavior instead of executed line of code.
+
+Alternatively, we should relied on branch coverage instead of code coverage. 
 
 12. Should test logging only when it is the crucial point for investigating
 
 13. Always write tests for new features and bug fixes.
-Bug fixing deployments usually missed tests. But writing test for these kind of deployments is extreme important to ensure we are fixing the correct point and protected the fixed behavior.
+
+Bug fixing deployments usually missed tests.
+But writing test for these kind of deployments is extreme important to ensure we are fixing the correct point and protected the fixed behavior.
 
 14. Shouldn't verify the private methods and test fragility.
 
@@ -343,18 +452,24 @@ class CalculatorTests(unittest.TestCase):
         self.assertEqual(expected_output, actual)
 ```
 16. Clearing data between test runs
+
 This item is crucial to keep the isolation between tests. This behavior ensures that each test runs with a clean state.
+
 So that, we could produce a good test result without causing flaky test or false negative alert.
 
 There are some framework that already support us with flushing data after testing, for example, it is `django.test.TestCase`.
 
 17. Avoid in-memory databases
+
 People usually use in-memory databases for testing repository layer because it is faster.
 
 But we should avoid using in-memory database because they do not have consistent functionality compared to regular databases.
 
 If the webframework or tool you are using doesn't support seamlessly using different database for unit test, the effort for setup in-memory database could be huge and later when your queries or schemas become more complex. The in-memory database could be break.
 
+18. Set response to the status assertion
+
+19. Avoid using big json file as input
 ## Reference
 
 ## Apendix
