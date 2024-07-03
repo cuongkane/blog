@@ -675,13 +675,13 @@ There are 3 styles of unit tests: output-based, state-based, and communication-b
 - Output-based testing (a.k.a result-based testing): Verifies that system outputs match expected results, treating the system under testing (SUT) as a black box and focusing on the correctness of final outputs given specific inputs.
 This style only works for SUTs that don’t generate side effects.
 
-![Output-based](/blog/images/write_valuable_test/output_based.png)
+![Output-based](/blog/images/write_valuable_test/output_based.jpeg)
 
 - State-based testing: Verify the state of the SUT after the operation is completed. This style is useful for testing objects where the state changes over time due to operations.
-![State-based](/blog/images/write_valuable_test/state_based.png)
+![State-based](/blog/images/write_valuable_test/state_based.jpeg)
 
 - Communication-based testing: Verify all communications are initiated in the correct order and with the correct parameters. This style is ideal for ensuring that units interact correctly with their dependencies.
-![Communication-based](/blog/images/write_valuable_test/state_based.png)
+![Communication-based](/blog/images/write_valuable_test/communication_based.jpeg)
 
 Compared to state-based and communication-based testing, output-based testing creates tests that are not tightly coupled to implementation details, making them easier to maintain and resistant to refactoring.
 
