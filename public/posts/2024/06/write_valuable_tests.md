@@ -119,8 +119,8 @@ I made an example about `EvaluateAlertsAndSendReportService` in the previous [Dj
 ```python
 # charts/services/evaluate_alerts_and_send_report_service.py
 from dataclasses import dataclass, field
-from alerts.models import Chart
-from alerts.repositories import AlertRepository
+from models import Alert
+from repositories import AlertRepository, ChartRepository
 from charts.services import get_chart_data
 from project_name.clients.email_client import EmailClient
 
@@ -128,20 +128,36 @@ from project_name.clients.email_client import EmailClient
 class EvaluateAlertsAndSendReportService:
     chart_id: int
     alert_repository: AlertRepository = field(default_factory=AlertRepository)
+    chart_repository: ChartRepository = field(default_factory=ChartRepository)
     email_client: EmailClient = field(default_factory=EmailClient)
 
     def execute(self) -> bool:
-        alerts = self.alert_repository.filter_by_chart(chart_id)
-        unmuted_alerts = [alert for alert in alerts if not alert.muted_by_customer]
-        if not unmuted_alerts:
+        self.unmuted_alerts = self._get_unmuted_alerts()
+        if not self.unmuted_alerts:
             return False
-        data = GetChartDataService(chart_id).execute() or {}
-        messages = [alert.generate_alert_message() for alert in unmuted_alerts if alert.should_send_alert(data)]
-        accumulated_message = "\n".join(messages)
-        sender = "from@example.com"
-        recipients = ["to@example.com"]
-        self.email_client.send_email("Schedule Alert", accumulated_message, sender, recipients)
+        self.data = self.chart_repository.get_data(self.chart_id)
+        alert_message = self._build_alert_message()
+        self.email_client.send_email(
+            title="Schedule Alert",
+            message=alert_message,
+            sender='from@example.com',
+            recipients=["to@example.com"],
+        )
         return True
+
+    def _get_unmuted_alerts(self) -> list[Alert]:
+        alerts = self.alert_repository.filter_by_chart(chart_id)
+        return [alert for alert in alerts if not alert.muted_by_customer]
+    
+    def _build_alert_message(self) -> str:
+        messages = []
+        for alert in self.unmuted_alerts:
+            if alert.should_send_alert(self.data):
+                messages = alert.generate_alert_message()
+        if not messages:
+            return "All good"
+        accumulated_message = "\n".join(messages)
+        return messages
 ```
 
 1. Follow AAA pattern
@@ -151,6 +167,8 @@ AAA stands for these steps:
 - Arrange: Set up any data needed for the test.
 - Act: Execute the function or method being tested.
 - Assert: Verify that the outcome is as expected.
+
+Only 1 section for each action and assertion is recommended with AAA pattern.
 
 Let's make a common bad example of violating AAA pattern.
 ```python
@@ -170,9 +188,9 @@ class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
 ```
 Seperating sections with empty lines could increase the readability of unit tests.
 
-2. Avoid if statements in tests
+2. Avoid branching logic in tests
 
-Avoid `if` statements in any stage (Arrange, Act and Assert) of a test.
+Avoid `if`-`else` statements in any stage (Arrange, Act and Assert) of a test.
 
 It indicates your unittest having multiple scenarios in a single test case. 
 
@@ -203,7 +221,7 @@ class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
             self.email_client.send_email.assert_called_once()
 
 ```
-With if-esle blocks it increases the complexity of the test. It is a burden for maintainability.
+With if-esle blocks it increases the complexity of the test. It reduce the readability and be burden for maintainability.
 
 Good example:
 ```python
@@ -240,6 +258,7 @@ class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
 
 3. Always prefer black box testing instead of whitebox testing
 
+Bad example:
 ```python
 from django.test import TestCase
 from django.db import connection
@@ -273,7 +292,7 @@ Mocking is legitimate only when it’s used for inter-system communications th
 
 5. Each test method handles a single scenario
 
-When writing tests, each test should verify only one single scenario, it faciliates code reading and debugging.
+When writing tests, each test should verify only one single scenario, it faciliates code reading and debugging. Also easier for other developers to extend with new test cases.
 
 Bad example:
 ```python
@@ -317,6 +336,21 @@ class TestEvaluateAlertsAndSendReportService(TestCase):
         self.email_client.send_email.assert_called_once()
 ```
 
+In the above example, one tip was used: We should attach the scenario and the expected behavior in the test name.
+
+6. Avoid in-memory databases
+
+People usually use in-memory databases for testing repository layer because it is faster.
+Or even using in-memory databases for all integration tests.
+
+But we should avoid using in-memory database because they do not have consistent functionality compared to regular databases.
+
+If the webframework or tool you are using doesn't support seamlessly using different database for unit test, the effort for setup in-memory database could be huge.
+But in development time, your queries or schemas become more complex. The in-memory database could be break.
+
+For example: PostgreSQL offers the JSONB data type for efficient storage and querying of JSON data, including indexing capabilities. But, we don't have it in SQLite.
+
+
 7. Only test logging when it is crucial
 
 Logging are treated as implementation details of the SUT.
@@ -345,7 +379,7 @@ class EvaluateAlertsAndSendReportService:
         )
         return False
 ```
-We should use fake the send_slack_message to get rid of this mixing.
+We should use a fake send_slack_message object to get rid of this mixing.
 
 In the python world, cleanly resolve this messy is challenging. It requires the team to design the code base faciliate using fake objects instead.
 
@@ -369,7 +403,7 @@ class EvaluateAlertsAndSendReportService:
         return False
 ```
 
-With the above structure, we could pass `FakeSlackClient` as a subclass of `ISlackClient` or merly a Mock instance to verify the SUT:
+With the above structure, we could pass `FakeSlackClient` as a subclass of `ISlackClient` or merly a `MagicMock` instance to verify the SUT:
 
 ```python
 class TestEvaluateAlertsAndSendReportService(TestCase):
@@ -383,7 +417,7 @@ class TestEvaluateAlertsAndSendReportService(TestCase):
         self.mock_email_client.send_slack_message.assert_called_once()
 ```
 
-9. Should relies on number of covered behavior instead of executed line of code
+9. Should relies on the number of covered behaviors instead of executed lines of code
 
 As you can see, the coverage metrics don't guarantee that the underlying code is tested, only that it has been executed at some point.
 
@@ -398,16 +432,53 @@ So we should relies on number of covered behavior instead of executed line of co
 
 Alternatively, we should relied on branch coverage instead of code coverage. 
 
-12. Should test logging only when it is the crucial point for investigating
-
-13. Always write tests for new features and bug fixes.
+10. Always write tests for new features and bug fixes.
 
 Bug fixing deployments usually missed tests.
+
 But writing test for these kind of deployments is extreme important to ensure we are fixing the correct point and protected the fixed behavior.
 
-14. Shouldn't verify the private methods and test fragility.
+11. Shouldn't verify the private methods and functions.
+Write tests for private methods or functions seriously damage the `resistance to refactoring`.
+Because private methods and functions are implementation details, they aren't protected and persisted things.
 
-15. Avoid leaking domain knowledge
+Write tests for these ones could create false positive alerts when we doing refactoring tasks. 
+
+Besides, writing test cases for private functions or methods confusing the test readers because it is quite different from product requirement. 
+
+For example: Product requirement doesn't care about the way we build message, it just addresses the way the email should be sent. This test case isn't sticked to the product requirement:
+
+```python
+class TestEvaluateAlertsAndSendReportService(TestCase):
+    def test_build_alert_message_should_return_ok_message_when_all_alerts_are_good(self):
+        service = EvaluateAlertsAndSendReportService(email_client=mock_email_client)
+        service.unmuted_alerts = AlertFactory.craete_batch(5)
+        service.data = []
+
+        result = service.execute()
+
+        self.assertEqual(result, 'All good')
+```
+
+Instead, the test should verify the expected behavior instead:
+
+```python
+class TestEvaluateAlertsAndSendReportService(TestCase):
+    def test_should_send_okay_email_when_all_alerts_are_good(self):
+        chart = ChartFactory.create()
+        AlertFactory.craete_batch(5, chart_id=chart.id)
+
+        result = EvaluateAlertsAndSendReportService(chart_id=chart.id, email_client=MagicMock()).execute()
+
+        self.assertTrue(result)
+        email_client.send_email.assert_called_once_with(message='All good')
+```
+
+There is a concern about reusing private methods or functions in many places, should we write test cases for all of those places?
+
+The answer will be: Private methods or functions shouldn't be reused.
+
+12. Avoid leaking domain knowledge
 Let's say we want to write code for this simple SUT:
 ```python
 def add(value1, value2):
@@ -430,11 +501,10 @@ class CalculatorTests(unittest.TestCase):
         actual = Calculator.add(value1, value2)
         self.assertEqual(expected, actual)
 ```
-This one is just an example of leaking domain knowledge. For more complicated issues, the problem will be more serious with thes pain points:
-
-- Fragile Tests: Tests break easily with minor implementation changes.
-- Poor Refactorability: Refactoring code becomes difficult as tests are tightly coupled to specific implementations.
-- Duplication of Logic: Leads to redundancy by replicating business logic in tests.
+This one is just an example of leaking domain knowledge.
+For more complicated issues, the problem will be more serious with these pain points:
+- Refactoring code becomes difficult as tests are tightly coupled to specific implementations (the adding logic in the above example)
+- Leads to redundancy by replicating business logic in tests.
 
 Good:
 ```python
@@ -451,25 +521,18 @@ class CalculatorTests(unittest.TestCase):
         actual = Calculator.add(value1, value2)
         self.assertEqual(expected_output, actual)
 ```
-16. Clearing data between test runs
+13. Clearing data between test runs
 
 This item is crucial to keep the isolation between tests. This behavior ensures that each test runs with a clean state.
 
 So that, we could produce a good test result without causing flaky test or false negative alert.
 
-There are some framework that already support us with flushing data after testing, for example, it is `django.test.TestCase`.
+There are some framework that already support us with flushing data after each test. For example, it is `django.test.TestCase` in Django.
 
-17. Avoid in-memory databases
+14. Set response to the status assertion
 
-People usually use in-memory databases for testing repository layer because it is faster.
+15. Avoid using big json file as an input for a test
 
-But we should avoid using in-memory database because they do not have consistent functionality compared to regular databases.
-
-If the webframework or tool you are using doesn't support seamlessly using different database for unit test, the effort for setup in-memory database could be huge and later when your queries or schemas become more complex. The in-memory database could be break.
-
-18. Set response to the status assertion
-
-19. Avoid using big json file as input
 ## Reference
 
 ## Apendix
