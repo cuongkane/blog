@@ -49,14 +49,7 @@ A good unit test must have at least 3/4 attributes.
 
 ## Ideal Tests
 
-There are 3 kinds of tests that could satisfy 3/4 of attributes:
-- End-to-end tests: The test goes through all of the system's components (including UI, database, and external applications)
-- Trivial tests: Cover simple pieces of code (small unit tests)
-- Brittle test: Verify whitebox testing (for example: verify the executed SQL script exactly matches some strings)
-
-![Ideal test to sastify 4 attributes are impossible](/blog/images/write_valuable_test/unreachable_test.png)
-
-Looking at the central, creating an ideal test to satisfy all 4 attributes is impossible because of the inverse proportion of `fast testing execution` and `protection against regression`.
+Creating an ideal test to satisfy all 4 attributes is impossible because of the inverse proportion of `fast testing execution` and `protection against regression`.
 
 Here is the diagram describing that inverse proportion:
 
@@ -611,7 +604,12 @@ class TestCreateAlertService(unittest.TestCase):
         self.assertEqual(resp.status_code, 400)
 ```
 
-## Reference
+## Conclusion
+Crafting high-quality tests requires significant time and practice, yet the rewards they yield are exceedingly valuable. 
+
+![The importance of good tests](/blog/images/write_valuable_test/test_importance.png)
+
+The last tip: When implementing Test-Driven Development (TDD) correctly, one has the potential to effectively adhere to almost all best practices.
 
 ## Apendix
 nice-to-know stuff related to unit tests and integration tests.
