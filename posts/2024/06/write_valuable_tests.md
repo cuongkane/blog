@@ -152,8 +152,7 @@ class EvaluateAlertsAndSendReportService:
                 messages = alert.generate_alert_message()
         if not messages:
             return "All good"
-        accumulated_message = "\n".join(messages)
-        return messages
+        return "\n".join(messages)
 ```
 
 1. Follow the AAA pattern
