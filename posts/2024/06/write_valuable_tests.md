@@ -19,11 +19,11 @@ I will go through the following sections to address techniques for writing good 
 - Ideal tests: Does it exist a sort of test that could have all 4 attributes?
 - Ideal architecture: Project architecture to facilitate writing ideal tests.
 - Good practices: Principles and practices to write good tests.
-- Conclusion: Some shorten sentences to drive your testing.
+- Conclusion: Some shorten sentences to encourage writing valuable tests.
 - Appendix: Popular stuffs in DEV testing worlds
 
 ## Foundational Attributes
-In this section, I'll show you attributes to define a good test.
+In this section, I'll show you attributes to define a valuable test.
 
 1. Protection against regressions
 
@@ -49,7 +49,7 @@ A good unit test must have at least 3/4 attributes.
 
 ## Ideal Tests
 
-Creating an ideal test to satisfy all 4 attributes is impossible because of the inverse proportion of `fast testing execution` and `protection against regression`.
+Creating an ideal test to satisfy all 4 attributes is extremely hard to achieve because of the inverse proportion of `fast testing execution` and `protection against regression`.
 
 Here is the diagram describing that inverse proportion:
 
@@ -541,7 +541,7 @@ So that, we could produce a good test result without causing flaky tests or fals
 
 There are some frameworks that already support us with flushing data after each test. For example, it is `django.test.TestCase` in Django.
 
-14. Set response to the message assertion
+14. Using API response as a message assertion
 
 This one is another tip to quickly know the error of Rest API testing.
 For example:
