@@ -1,65 +1,68 @@
-# [WIP] Write valuable tests
-Sometimes, you may lack confidence in delivering the ticket and need to ask QA for costly regression tests.
-Or the maintenance efforts for the project's tests may be excessive and usually result in false positive alerts. 
+# WRITE VALUABLE TESTS
+Sometimes, you may need more confidence in delivering the ticket and need to ask QA for costly regression tests.
+The maintenance efforts for the project's tests may be excessive and usually result in false positive alerts. 
 
-In this blog, I'm gonna share some fundamental knowledge to tackle these issues.
+In this blog, I will share some fundamental knowledge to tackle these issues.
 
-Most of this blog's meterials are retrieved from the book `Unit Testing: Principles, Practices, and Patterns MEAP V03` of the beloved author `Vladimir Khorikov`.
+(Most of this blog's images and ideas are retrieved from the book `Unit Testing: Principles, Practices, and Patterns MEAP V03` by the beloved author `Vladimir Khorikov`)
 
 ## Overview
-Tests is the most crucial part of a software project in order to maintain sustainability through project development cycles.
+Tests is the most crucial part of a software project to maintain sustainability through project development cycles.
 
 ![The importance of good tests](/blog/images/write_valuable_test/test_importance.png)
 
-If the tests aren't written well, it could increase maintainance costs, demotivate the team and sequencialy decrease the productivity.
+If the tests aren't written well, it could increase maintenance costs, demotivate the team, and sequentially decrease productivity.
 
-I will go through these following sections to address technique to write good tests that bring most valuable:
+I will go through the following sections to address techniques for writing good tests that bring the most value:
+
 - Foundational Attributes: 4 metrics to measure the test quality.
 - Ideal tests: Does it exist a sort of test that could have all 4 attributes?
 - Ideal architecture: Project architecture to facilitate writing ideal tests.
-- Good practices: Principle and practices to write good tests.
+- Good practices: Principles and practices to write good tests.
+- Conclusion: Some shorten sentences to drive your testing.
+- Appendix: Popular stuffs in DEV testing worlds
 
 ## Foundational Attributes
 In this section, I'll show you attributes to define a good test.
 
-1. Protectection against regressions
+1. Protection against regressions
 
 A regression, also known as a software bug, occurs when a feature stops working as intended after a code modification. 
-Protectection against regression is the most important element to ensure the system are working as expected and follow awared behavior.
-Let's say you introduce a Rest API to change the state of your database, you need to write a unittest to ensure the state were changed properly after calling the Rest API.
-The behavior changing the state should be protected over adding/modifing other parts of that API. Protectection against regression are address this primarily purpose of unittest.
+Protection against regression is the most important element to ensure the system is working as expected and following observed behavior.
+Let's say you introduce a Rest API to change the state of your database, you need to write a test to ensure the state was changed properly after calling the Rest API.
+The behavior changing the state should be protected over adding/modifying other parts of that API. Protection against regression addresses this primary purpose of unit tests.
 
 2. Resistance to refactoring
 
-Refactoring in changing the code without changing the system/software behavior. The purpose of refactoring are mainly enhance code quality to maintain a good productivity for the team.
-Follow this definition, a good test shouldn't raise false positive (test fail but expected system behavior are unchanged) errors when refactoring. 
+Refactoring in changing the code without changing the system/software behavior. The purpose of refactoring is mainly to enhance code quality to maintain good productivity for the team.
+Following this definition, a good test shouldn't raise false positive (test fails but expected system behavior is unchanged) errors when refactoring. 
 
 3. Fast testing execution
 
-The testing execution time should be quick so that the test could be run every time when you change the code without affecting the productivity.
+The testing execution time should be quick so that the test can be run whenever you change the code without affecting productivity.
 
-4. Easy maintainance
+4. Easy maintenance
 
-The test are easy to understand for code readers and effortless to run.
+The tests are easy to understand for code readers and effortless to run.
 
 A good unit test must have at least 3/4 attributes.
 
 ## Ideal Tests
 
-There are 3 kinds of tests that could sastify 3/4 attributes:
-- End-to-end tests: The test go through all of the system's components (including UI, database and external applications)
-- Trivial tests: Cover simple piece of code (small unit tests)
+There are 3 kinds of tests that could satisfy 3/4 of attributes:
+- End-to-end tests: The test goes through all of the system's components (including UI, database, and external applications)
+- Trivial tests: Cover simple pieces of code (small unit tests)
 - Brittle test: Verify whitebox testing (for example: verify the executed SQL script exactly matches some strings)
 
 ![Ideal test to sastify 4 attributes are impossible](/blog/images/write_valuable_test/unreachable_test.png)
 
-Look at the central, creating an ideal test to sastify all 4 attributes is impossible because of the inverse proportion of `fast testing execution` and `protection against regression`.
+Looking at the central, creating an ideal test to satisfy all 4 attributes is impossible because of the inverse proportion of `fast testing execution` and `protection against regression`.
 
-Here is the diagram describes that inverse proportion:
+Here is the diagram describing that inverse proportion:
 
 ![Test pyramid](/blog/images/write_valuable_test/test_pyramid.png)
 
-- Unit tests are tests covered smallest unit of the system. Unit tests targets the domain model (main bussiness)
+- Unit tests are tests that cover the smallest unit of the system. Unit tests target the domain model (main business)
 - Integration tests verify how your system works in integration with out-of-process dependencies (database, file system, other services).
 - End-to-end testing verifies that all components of a system can run under real-world scenarios
 
@@ -67,14 +70,14 @@ Tests in higher pyramid layers favor protection against regressions, while lower
 
 Nowadays, in modern system architectures, we have conditions that allow maximizing `fast feedback`:
 - The size of a micro-service is small.
-- With docker orchestration technique (K8S, docker-compose), self-hosting some out-of-process dependencies (databases,cache storage,...) are cheaper and faster.
+- With the docker orchestration technique (K8S, docker-compose), self-hosting some out-of-process dependencies (databases, cache storage,...) is cheaper and faster.
 
-Due to speed up in test execution, we should prefer writing integrations tests over unit tests and end-to-end to make our tests near as much as possible with the ideal test.
+Due to the speed up in test execution, we should prefer writing integration tests over unit tests and end-to-end to make our tests nearly as much as possible to the ideal test.
 
 ## Ideal Architectures
 Depending on implementation details could create fragile tests and usually produce false positive alerts.
-There are some typical ideal architectures in which they encapsulate the implementation details and cleary expose observable behaviors.
-They faciliates writing end-behavior tests and avoid coupling to implementation details.
+There are some typical ideal architectures in which they encapsulate the implementation details and clearly expose observable behaviors.
+They facilitate writing end-behavior tests and avoid coupling to implementation details.
 
 1. Hexagonal Architecture
 
@@ -93,7 +96,7 @@ This architecture emphasizes three key aspects:
 
 - External Connections via Interface: External applications interact with the system through a common interface provided by the application services layer, preventing direct access to the domain layer.
 
-With Hexagonal architecture, it is easy to write unit tests for domain layer and assert inter-system communications (via decoupled adapters).
+With Hexagonal architecture, it is easy to write unit tests for the domain layer and assert inter-system communications (via decoupled adapters).
 
 ![Hexagonal](/blog/images/write_valuable_test/hexagonal.png)
 (Source: Netflix)
@@ -104,12 +107,12 @@ The goal of functional Architecture is to separate business logic from side effe
 Functional Architecture introduces a separation between business logic and side effects.
 There are 2 layers in Functional Architecture: Functional Core (Core layer) and Mutable Shell (Shell layer).
 
-Core layer: All the bussiness logic will be implemented as pure functions in the `Functional Core layer`.
-Shell layer: Side effect or mutate data will be made base on Functional Core output.
+Core layer: All the business logic will be implemented as pure functions in the `Functional Core layer`.
+Shell layer: Side effects or mutated data will be made base on Functional Core output.
 
 ![Functional Core Mutable Shell](/blog/images/write_valuable_test/functional_core_mutable_shell.png)
 
-Functional Architecture in an extreme version of Hexagonal Architecture. In which it maximizes writing unit tests and unit tests with output-based style for the Core layer.
+Functional Architecture is an extreme version of Hexagonal Architecture. In which it maximizes writing unit tests and unit tests with output-based style for the Core layer.
 
 With this architecture, the number of unit tests is significantly more than integration tests.
 
@@ -160,7 +163,7 @@ class EvaluateAlertsAndSendReportService:
         return messages
 ```
 
-1. Follow AAA pattern
+1. Follow the AAA pattern
 
 The AAA pattern stands for Arrange, Act, and Assert, and it's a common pattern for writing clean and understandable unit tests.
 AAA stands for these steps:
@@ -168,9 +171,9 @@ AAA stands for these steps:
 - Act: Execute the function or method being tested.
 - Assert: Verify that the outcome is as expected.
 
-Only 1 section for each action and assertion is recommended with AAA pattern.
+Only 1 section for each action and assertion is recommended with the AAA pattern.
 
-Let's make a common bad example of violating AAA pattern.
+Let's make a common bad example of violating the AAA pattern.
 ```python
 from django.test import TestCase
 
@@ -186,13 +189,13 @@ class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
         service = EvaluateAlertsAndSendReportService(chart_id=chart.id, email_client=mock_email_client)
         self.assertFalse(service.execute())
 ```
-Seperating sections with empty lines could increase the readability of unit tests.
+Separating sections with empty lines could increase the readability of unit tests.
 
 2. Avoid branching logic in tests
 
-Avoid `if`-`else` statements in any stage (Arrange, Act and Assert) of a test.
+Avoid `if`-`else` statements in any stage (Arrange, Act, and Assert) of a test.
 
-It indicates your unittest having multiple scenarios in a single test case. 
+It indicates your test has multiple scenarios in a single test case. 
 
 Bad example:
 ```python
@@ -221,7 +224,7 @@ class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
             self.email_client.send_email.assert_called_once()
 
 ```
-With if-esle blocks it increases the complexity of the test. It reduce the readability and be burden for maintainability.
+With if-else blocks, it increases the complexity of the test. It reduces the readability and is a burden for maintainability.
 
 Good example:
 ```python
@@ -256,7 +259,7 @@ class TestEvaluateAlertsAndSendReportService(unittest.TestCase):
         self.email_client.send_email.assert_called_once()
 ```
 
-3. Always prefer black box testing instead of whitebox testing
+3. Always prefer black box testing instead of white box testing
 
 Bad example:
 ```python
@@ -278,21 +281,38 @@ class TestEvaluateAlertsAndSendReportService(TestCase):
                 """
             )
 ```
-Follow this good practice, you could gain following benefits: 
-- Reduce the number of false positive your tests could produce (resistance to refactoring).
-- Target on the observable behavior. It make the test more readable (maintainability).
+Following this good practice, you could gain the following benefits: 
+- Reduce the number of false positives your tests could produce (resistance to refactoring).
+- Target the observable behavior. It makes the test more readable (maintainability).
 
 4. Aim at the end result instead of implementation details
 
 Shouldn't assert intra-system communications, this kind of communication is implementation detailed. 
-It is extremely fragile. It doesn't bring too much valuable things with the end-user who directly from observable behaviors. So that it increases the effort for writing tests and nightmare for maintainance in long term.
+It is extremely fragile. It doesn't bring too many valuable things with the end-user who directly from observable behaviors. So that it increases the effort for writing tests and nightmares for maintenance in the long term.
 ![Aim at the end result](/blog/images/write_valuable_test/aim_at_the_end_result.png)
 
 Mocking is legitimate only when it’s used for inter-system communications that cross the application boundary.
 
+
+```python
+from django.test import TestCase
+from django.db import connection
+from .models import Customer
+
+class TestEvaluateAlertsAndSendReportService(TestCase):
+    @patch.object(TestEvaluateAlertsAndSendReportService, '_get_unmuted_alerts')
+    def test_execute(self, mock_get_unmuted_alerts):
+        alerts = AlertFactory.create_batch(chart_id=self.chart_id, muted_by_customer=True),
+
+        result = EvaluateAlertsAndSendReportService(chart_id=chart.id, email_client=mock_email_client).execute()
+
+        self.assertFalse(result)
+        self._get_unmuted_alerts.assert_called_once_with(self.chart_id)
+```
+
 5. Each test method handles a single scenario
 
-When writing tests, each test should verify only one single scenario, it faciliates code reading and debugging. Also easier for other developers to extend with new test cases.
+When writing tests, each test should verify only one single scenario, it facilitates code reading and debugging. Also easier for other developers to extend with new test cases.
 
 Bad example:
 ```python
@@ -340,24 +360,24 @@ In the above example, one tip was used: We should attach the scenario and the ex
 
 6. Avoid in-memory databases
 
-People usually use in-memory databases for testing repository layer because it is faster.
+People usually use in-memory databases for testing the repository layer because it is faster.
 Or even using in-memory databases for all integration tests.
 
-But we should avoid using in-memory database because they do not have consistent functionality compared to regular databases.
+However, we should avoid using in-memory databases because they do not have consistent functionality compared to regular databases.
 
-If the webframework or tool you are using doesn't support seamlessly using different database for unit test, the effort for setup in-memory database could be huge.
-But in development time, your queries or schemas become more complex. The in-memory database could be break.
+If the web framework or tool you are using doesn't support seamlessly using different databases for unit tests, the effort of setup an in-memory database could be huge.
+But in development time, your queries or schemas become more complex. The in-memory database could be broken.
 
 For example: PostgreSQL offers the JSONB data type for efficient storage and querying of JSON data, including indexing capabilities. But, we don't have it in SQLite.
 
 
 7. Only test logging when it is crucial
 
-Logging are treated as implementation details of the SUT.
+Logging is treated as an implementation detail of the SUT.
 
 Most of the time, logging shouldn't be verified.
 
-Logging should only be tested when it take the crucial part in debugging issue or for analytic tasks.
+Logging should only be tested when it takes the crucial part in debugging issues or for analytic tasks.
 
 8. Avoid mixing test code with production code
 
@@ -381,7 +401,7 @@ class EvaluateAlertsAndSendReportService:
 ```
 We should use a fake send_slack_message object to get rid of this mixing.
 
-In the python world, cleanly resolve this messy is challenging. It requires the team to design the code base faciliate using fake objects instead.
+In the Python world, cleanly resolving this messy is challenging. It requires the team to design the code base facilitate using fake objects instead.
 
 With DDD Architecture, the resolution could be:
 
@@ -403,7 +423,7 @@ class EvaluateAlertsAndSendReportService:
         return False
 ```
 
-With the above structure, we could pass `FakeSlackClient` as a subclass of `ISlackClient` or merly a `MagicMock` instance to verify the SUT:
+With the above structure, we could pass `FakeSlackClient` as a subclass of `ISlackClient` or merely a `MagicMock` instance to verify the SUT:
 
 ```python
 class TestEvaluateAlertsAndSendReportService(TestCase):
@@ -417,36 +437,36 @@ class TestEvaluateAlertsAndSendReportService(TestCase):
         self.mock_email_client.send_slack_message.assert_called_once()
 ```
 
-9. Should relies on the number of covered behaviors instead of executed lines of code
+9. Should rely on the number of covered behaviors instead of executed lines of code
 
 As you can see, the coverage metrics don't guarantee that the underlying code is tested, only that it has been executed at some point.
 
-For example, in Python we have the shortcut with `or` operator in the same line:
+For example, in Python, we have the shortcut with the `or` operator in the same line:
 ```
 Line1: if a or b:
 Line2:    do c
 ```
 If we have the unit test to cover `if a` the coverage will be 100% but actually we need to cover `if b` to cover all branches. 
 
-So we should relies on number of covered behavior instead of executed line of code.
+So we should rely on a number of covered behaviors instead of an executed line of code.
 
-Alternatively, we should relied on branch coverage instead of code coverage. 
+Alternatively, we should rely on branch coverage instead of code coverage. 
 
 10. Always write tests for new features and bug fixes.
 
-Bug fixing deployments usually missed tests.
+Bug-fixing deployments usually miss tests.
 
-But writing test for these kind of deployments is extreme important to ensure we are fixing the correct point and protected the fixed behavior.
+But writing tests for these kinds of deployments is extremely important to ensure we are fixing the correct point and protecting the fixed behavior.
 
 11. Shouldn't verify the private methods and functions.
-Write tests for private methods or functions seriously damage the `resistance to refactoring`.
-Because private methods and functions are implementation details, they aren't protected and persisted things.
+Writing tests for private methods or functions seriously damage the `resistance to refactoring`.
+Because private methods and functions are implementation details, they aren't protected and persist things.
 
-Write tests for these ones could create false positive alerts when we doing refactoring tasks. 
+Writing tests for these ones could create false positive alerts when we doing refactoring tasks. 
 
-Besides, writing test cases for private functions or methods confusing the test readers because it is quite different from product requirement. 
+Besides, writing test cases for private functions or methods confuse the test readers because it is quite different from product requirements. 
 
-For example: Product requirement doesn't care about the way we build message, it just addresses the way the email should be sent. This test case isn't sticked to the product requirement:
+For example: Product requirement doesn't care about the way we build messages, it just addresses the way the email should be sent. This test case isn't stuck to the product requirement:
 
 ```python
 class TestEvaluateAlertsAndSendReportService(TestCase):
@@ -460,7 +480,7 @@ class TestEvaluateAlertsAndSendReportService(TestCase):
         self.assertEqual(result, 'All good')
 ```
 
-Instead, the test should verify the expected behavior instead:
+Instead, the test should verify the expected behavior:
 
 ```python
 class TestEvaluateAlertsAndSendReportService(TestCase):
@@ -523,24 +543,82 @@ class CalculatorTests(unittest.TestCase):
 ```
 13. Clearing data between test runs
 
-This item is crucial to keep the isolation between tests. This behavior ensures that each test runs with a clean state.
+This item is crucial to keep the isolation between tests. This behavior ensures that each test runs in a clean state.
 
-So that, we could produce a good test result without causing flaky test or false negative alert.
+So that, we could produce a good test result without causing flaky tests or false negative alerts.
 
-There are some framework that already support us with flushing data after each test. For example, it is `django.test.TestCase` in Django.
+There are some frameworks that already support us with flushing data after each test. For example, it is `django.test.TestCase` in Django.
 
-14. Set response to the status assertion
+14. Set response to the message assertion
 
-15. Avoid using big json file as an input for a test
+This one is another tip to quickly know the error of Rest API testing.
+For example:
+```python
+class TestCreateAlertAPI(TestCase):
+    def test_create_alert_api_should_return_with_result_when_call_with_valid_param(self):
+        resp = self.client.get(
+            '/example',
+            content_type="application/json",
+            data={
+                "page": page,
+                "quantity": quantity,
+            }
+        )
+
+        self.assertEqual(resp.status_code, 200, resp.content) # resp.content should be put to the error message argument
+        self.assertIn('result' in resp.content)
+```
+
+15. Avoid using big JSON file as an input for a test
+Using a big JSON file causes these painful points:
+
+- Large JSON files are harder to read and understand, making it difficult to pinpoint issues or understand the test's purpose.
+- Large files are harder to maintain. Any change in the structure or data can be cumbersome to manage.
+- Tests should ideally be isolated and focused. Using a large JSON file might introduce unnecessary complexity and dependencies, making it harder to identify the root cause of failures.
+
+Bad practice:
+```python
+import json
+import unittest
+
+class TestCreateAlertService(unittest.TestCase):
+    def test_create_alert_with_missing_message_should_return_400_response(self):
+        # Arrange
+        with open('large_data.json') as f:
+            data = json.load(f)
+         
+        # Act
+        resp = self._make_request_to_create_alert(data)
+        self.assertEqual(resp.status_code, 400)
+```
+
+Instead of using a large JSON file, we can mock the data to keep the tests focused and efficient.
+
+We will have a base data and just add needed lines to modify the data according to the scenario:
+
+Good practice:
+```python
+import json
+import unittest
+
+class TestCreateAlertService(unittest.TestCase):
+    def test_create_alert_with_missing_message_should_return_400_response(self):
+        request_payload_missing_message = self._get_base_success_request_payload()
+        request_payload_missing_message['message'] = None
+         
+        resp = self._make_request_to_create_alert(data)
+        
+        self.assertEqual(resp.status_code, 400)
+```
 
 ## Reference
 
 ## Apendix
-nice-to-know stuffs related to unit tests and integration tests.
+nice-to-know stuff related to unit tests and integration tests.
 ### Unit tests
-Unit tests are tests covered smallest unit of the system. Unit tests targets the domain model (main bussiness)
+Unit tests are tests covering the smallest unit of the system. Unit tests target the domain model (main business)
 #### Classical school vs London school
-There are 2 approaches to write mocks unit tests:
+There are 2 approaches to writing mocks unit tests:
 - Classical School: Focuses on testing the actual behavior of the unit with minimal use of mocks. Dependencies are typically real objects.
 - London School: Focuses on testing the interactions between the unit under test and its collaborators using mocks or stubs to isolate the unit.
 
@@ -590,27 +668,27 @@ While the London school's benefits seem appealing, they introduce issues.
 
 - Although identifying which functionality has a bug after a test failure is useful, it's often unnecessary since the cause is usually the most recent change.
 
-- Finally, the biggest issue with the London school of unit testing is the problem of over-specification — coupling tests to the SUT’s implementation details.
+- Finally, the biggest issue with the London School of unit testing is the problem of over-specification — coupling tests to the SUT’s implementation details.
 
 So, should prefer Classical school in writing unit tests, London school just stands out for unit tests for large graphs of interconnected classes.
 
 #### Three Styles
-There are 3 styles of unit tests: output based, state-based and communication-based.
+There are 3 styles of unit tests: output-based, state-based, and communication-based.
 - Output-based testing (a.k.a result-based testing): Verifies that system outputs match expected results, treating the system under testing (SUT) as a black box and focusing on the correctness of final outputs given specific inputs.
 This style only works for SUTs that don’t generate side effects.
 
 ![Output-based](/blog/images/write_valuable_test/output_based.png)
 
-- State-based testing: Verify the state the SUT after the operation is completed. This style is useful for testing objects where the state changes over time due to operations.
+- State-based testing: Verify the state of the SUT after the operation is completed. This style is useful for testing objects where the state changes over time due to operations.
 ![State-based](/blog/images/write_valuable_test/state_based.png)
 
 - Communication-based testing: Verify all communications are initiated in the correct order and with the correct parameters. This style is ideal for ensuring that units interact correctly with their dependencies.
 ![Communication-based](/blog/images/write_valuable_test/state_based.png)
 
-Compare to state-based and communication-based testing, output-based testing creates tests that are not tightly coupled to implementation details, making them easier to maintain and resistant to refactoring.
+Compared to state-based and communication-based testing, output-based testing creates tests that are not tightly coupled to implementation details, making them easier to maintain and resistant to refactoring.
 
-But write unit tests follow output-based testing requires the SUT must be pure modules.
-Functional programing and architecture: `Functional programing as core, mutable objects as shell` faciliate writing unit tests follow output-based testing:
+However, writing unit tests following output-based testing requires the SUT must be pure modules.
+Functional programming and architecture: `Functional programming as core, mutable objects as shell` facilitates writing unit tests following output-based testing:
 ![Functional core architecture](/blog/images/write_valuable_test/functional_core_architecture.png)
 
 If you find that code is hard to write unit tests, it is a strong indication that the codes need to be refactored.
@@ -618,9 +696,9 @@ If you find that code is hard to write unit tests, it is a strong indication tha
 ### Integration tests
 Integration testing is a level of software testing where individual units or components are combined and tested as a group to ensure they work together correctly.
 Integration tests verify how your system works in integration with out-of-process dependencies (database, file system, other services).
-It focuses on verifying the interactions and interfaces between modules, detecting any issues in their integration.
+It focuses on verifying the interactions and interfaces between modules and detecting any issues in their integration.
 - Integration tests cover controllers; unit tests cover algorithms and the domain model.
 - Integration tests provide better protection against regressions and resistance to refactoring; unit tests have better maintainability and feedback speed.
-When write integration test for a system requires database (managed dependency), we should use real database for integration tests (avoid using mock database like SQLite)
+When writing integration tests for a system that requires database (managed dependency), we should use a real database for integration tests (avoid using mock databases like SQLite)
 
-The code base should be implemented with interfaces for unmanaged dependencies, so that it is easier to have mock objects for these dependencies in writing tests.
+The code base should be implemented with interfaces for unmanaged dependencies so that it is easier to have mock objects for these dependencies in writing tests.
