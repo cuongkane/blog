@@ -281,7 +281,7 @@ Following this good practice, you could gain the following benefits:
 
 Shouldn't assert intra-system communications, this kind of communication is implementation detailed. 
 It is extremely fragile. It doesn't bring too many valuable things with the end-user who directly from observable behaviors. So that it increases the effort for writing tests and nightmares for maintenance in the long term.
-![Aim at the end result](/blog/images/write_valuable_test/aim_at_the_end_result.png)
+![Aim at the end result](/blog/images/write_valuable_test/aim_at_end_result.png)
 
 Mocking is legitimate only when it’s used for inter-system communications that cross the application boundary.
 
