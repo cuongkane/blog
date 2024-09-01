@@ -1,6 +1,7 @@
 # WRITE VALUABLE TESTS
-Sometimes, you may need more confidence in delivering the ticket and need to ask QA for costly regression tests.
-The maintenance efforts for the project's tests may be excessive and usually result in false positive alerts. 
+Sometimes, you are not confidence in delivering the ticket so you involve QA for costly regression tests.
+
+Or the maintenance efforts for the project's tests are usually excessive and usually result in false positive alerts as well.
 
 In this blog, I will share some fundamental knowledge to tackle these issues.
 
@@ -15,33 +16,33 @@ If the tests aren't written well, it could increase maintenance costs, demotivat
 
 I will go through the following sections to address techniques for writing good tests that bring the most value:
 
-- Foundational Attributes: 4 metrics to measure the test quality.
-- Ideal tests: Does it exist a sort of test that could have all 4 attributes?
-- Ideal architecture: Project architecture to facilitate writing ideal tests.
-- Good practices: Principles and practices to write good tests.
-- Conclusion: Some shorten sentences to encourage writing valuable tests.
-- Appendix: Popular stuffs in DEV testing worlds
+- **Foundational Attributes**: 4 metrics to measure the test quality.
+- **Ideal tests**: Does it exist a sort of test that could have all 4 attributes?
+- **Ideal architecture**: Project architecture to facilitate writing ideal tests.
+- **Good practices**: Principles and practices to write good tests.
+- **Conclusion**: Some shorten sentences to encourage writing valuable tests.
+- **Appendix**: Popular stuffs in DEV testing worlds
 
 ## Foundational Attributes
 In this section, I'll show you attributes to define a valuable test.
 
-1. Protection against regressions
+1. **Protection against regressions**
 
 A regression, also known as a software bug, occurs when a feature stops working as intended after a code modification. 
 Protection against regression is the most important element to ensure the system is working as expected and following observed behavior.
 Let's say you introduce a Rest API to change the state of your database, you need to write a test to ensure the state was changed properly after calling the Rest API.
 The behavior changing the state should be protected over adding/modifying other parts of that API. Protection against regression addresses this primary purpose of unit tests.
 
-2. Resistance to refactoring
+2. **Resistance to refactoring**
 
 Refactoring in changing the code without changing the system/software behavior. The purpose of refactoring is mainly to enhance code quality to maintain good productivity for the team.
 Following this definition, a good test shouldn't raise false positive (test fails but expected system behavior is unchanged) errors when refactoring. 
 
-3. Fast testing execution
+3. **Fast testing execution**
 
 The testing execution time should be quick so that the test can be run whenever you change the code without affecting productivity.
 
-4. Easy maintenance
+4. **Easy maintenance**
 
 The tests are easy to understand for code readers and effortless to run.
 
@@ -363,15 +364,7 @@ But in development time, your queries or schemas become more complex. The in-mem
 For example: PostgreSQL offers the JSONB data type for efficient storage and querying of JSON data, including indexing capabilities. But, we don't have it in SQLite.
 
 
-7. Only test logging when it is crucial
-
-Logging is treated as an implementation detail of the SUT.
-
-Most of the time, logging shouldn't be verified.
-
-Logging should only be tested when it takes the crucial part in debugging issues or for analytic tasks.
-
-8. Avoid mixing test code with production code
+7. Avoid mixing test code with production code
 
 The problem with code pollution is that it mixes up test and production code and thereby increases the maintenance costs of the latter.
 
@@ -429,7 +422,7 @@ class TestEvaluateAlertsAndSendReportService(TestCase):
         self.mock_email_client.send_slack_message.assert_called_once()
 ```
 
-9. Should rely on the number of covered behaviors instead of executed lines of code
+8. Should rely on the number of covered behaviors instead of executed lines of code
 
 As you can see, the coverage metrics don't guarantee that the underlying code is tested, only that it has been executed at some point.
 
@@ -444,13 +437,13 @@ So we should rely on a number of covered behaviors instead of an executed line o
 
 Alternatively, we should rely on branch coverage instead of code coverage. 
 
-10. Always write tests for new features and bug fixes.
+9. Always write tests for new features and bug fixes.
 
 Bug-fixing deployments usually miss tests.
 
 But writing tests for these kinds of deployments is extremely important to ensure we are fixing the correct point and protecting the fixed behavior.
 
-11. Shouldn't verify the private methods and functions.
+10. Shouldn't verify the private methods and functions.
 Writing tests for private methods or functions seriously damage the `resistance to refactoring`.
 Because private methods and functions are implementation details, they aren't protected and persist things.
 
@@ -490,7 +483,7 @@ There is a concern about reusing private methods or functions in many places, sh
 
 The answer will be: Private methods or functions shouldn't be reused.
 
-12. Avoid leaking domain knowledge
+11. Avoid leaking domain knowledge
 Let's say we want to write code for this simple SUT:
 ```python
 def add(value1, value2):
@@ -533,7 +526,7 @@ class CalculatorTests(unittest.TestCase):
         actual = Calculator.add(value1, value2)
         self.assertEqual(expected_output, actual)
 ```
-13. Clearing data between test runs
+12. Clearing data between test runs
 
 This item is crucial to keep the isolation between tests. This behavior ensures that each test runs in a clean state.
 
@@ -541,27 +534,7 @@ So that, we could produce a good test result without causing flaky tests or fals
 
 There are some frameworks that already support us with flushing data after each test. For example, it is `django.test.TestCase` in Django.
 
-14. Using API response as a message assertion
-
-This one is another tip to quickly know the error of Rest API testing.
-For example:
-```python
-class TestCreateAlertAPI(TestCase):
-    def test_create_alert_api_should_return_with_result_when_call_with_valid_param(self):
-        resp = self.client.get(
-            '/example',
-            content_type="application/json",
-            data={
-                "page": page,
-                "quantity": quantity,
-            }
-        )
-
-        self.assertEqual(resp.status_code, 200, resp.content) # resp.content should be put to the error message argument
-        self.assertIn('result' in resp.content)
-```
-
-15. Avoid using big JSON file as an input for a test
+13. Avoid using big JSON file as an input for a test
 Using a big JSON file causes these painful points:
 
 - Large JSON files are harder to read and understand, making it difficult to pinpoint issues or understand the test's purpose.
