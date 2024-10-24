@@ -36,9 +36,15 @@
     "slug": "django_project_architecture"
   },
   {
-    "title": "Write valuable tests",
+    "title": "Write Valuable Tests",
     "summary": "Make your tests valuable and substantial to your project, not just for coverage",
     "date": "2024-06-26",
     "slug": "write_valuable_tests"
+  },
+  {
+    "title": "Database Normalizations In Practices",
+    "summary": "Database normalization is an important part of creating efficient databases...",
+    "date": "2024-10-24",
+    "slug": "database_normalizations_in_practices"
   }
 ]
