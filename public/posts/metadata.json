@@ -46,5 +46,11 @@
     "summary": "Database normalization is an important part of creating efficient databases...",
     "date": "2024-10-24",
     "slug": "database_normalizations_in_practices"
+  },
+  {
+    "title": "Asynchronous Communication",
+    "summary": "The Art of Asynchronous Communication in Software Development",
+    "date": "2025-01-07",
+    "slug": "the_art_of_asynchronous_communication"
   }
 ]
