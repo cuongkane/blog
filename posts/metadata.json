@@ -52,5 +52,11 @@
     "summary": "The Art of Asynchronous Communication in Software Development",
     "date": "2025-01-07",
     "slug": "the_art_of_asynchronous_communication"
+  },
+  {
+    "title": "Python to TypeScript: The Ultimate Migration Guide",
+    "summary": "Detail guideline for Python developerr to migrate to TypeScript",
+    "date": "2025-03-21",
+    "slug": "typescript_cheatsheat"
   }
 ]
