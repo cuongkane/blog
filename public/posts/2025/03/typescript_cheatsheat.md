@@ -11,7 +11,7 @@ TypeScript offers several advantages that might appeal to Python developers:
 - **Rich IDE support** with excellent autocompletion and error detection
 - **Seamless frontend integration** when working on full-stack applications
 
-## Cheatsheat
+## Cheatsheet
 | **Feature/Syntax**                | **Python**                                      | **TypeScript**                                  | **Notes**                                                                                   |
 |-----------------------------------|------------------------------------------------|------------------------------------------------|---------------------------------------------------------------------------------------------|
 | **Variable Declaration**          | `x = 5`                                        | `let x: number = 5;`                          | TypeScript uses `let` or `const`; `var` is legacy (hoisting issues).                       |
