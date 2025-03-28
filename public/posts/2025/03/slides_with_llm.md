@@ -39,6 +39,7 @@ Slides transform complex ideas into digestible visuals, keeping your audience en
 To unlock the full potential of LLMs for slide creation, pair them with “slides-as-code” tools. These platforms allow you to define presentations programmatically, and LLMs can generate the necessary code for you. Here are some popular options:
 
 - **RevealJS**: A powerful HTML-based framework for interactive, web-ready slides. LLMs can generate the HTML and JavaScript to build dynamic decks.
+- **Slidev**: A powerful slides framework based on **Vue.js** and Markdown, offering **live coding**, animations, and rich theming. LLMs can generate **Markdown with Vue components**, making it easy to build visually engaging presentations.
 - **LaTeX (Overleaf)**: Ideal for academic or professional slides that require precise formatting, especially if including equations or citations. LLMs can write Beamer (LaTeX’s presentation package) code for you.
 - **Mar Slides (maaslalani/slides)**: A lightweight, terminal-based tool for creating minimalist slides in Markdown, perfect for developers seeking simplicity and speed.
 - **Marp**: Converts Markdown into beautiful slides with minimal effort. Simply feed LLM-generated Markdown into Marp, and you’re done.
@@ -53,7 +54,9 @@ Let’s walk through the process of using an LLM to create slides instantly. For
 2. **Write as a document**: If you need to write down your ideas into a document first, a detailed document is recommended to feed enough data for LLM so that they can write appropriate slides based on that.
 3. **Prompt the LLM**: Ask the LLM to generate slide content in Markdown (or your tool’s format). For example:
    ```
-   Write a 5-slide Markdown presentation for a team meeting about project progress. Include a title slide, an overview, key milestones, challenges, and a next-steps slide.
+   Write a 5-slide Markdown presentation for a team meeting about project progress.
+
+   Include a title slide, an overview, key milestones, challenges, and a next-steps slide.
    ```
    **Generate the Output**: The LLM will produce something like this:
    ```
