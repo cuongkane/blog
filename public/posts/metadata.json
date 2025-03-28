@@ -58,5 +58,11 @@
     "summary": "Detail guideline for Python developerr to migrate to TypeScript",
     "date": "2025-03-21",
     "slug": "typescript_cheatsheet"
+  },
+  {
+    "title": "Instantly Create Slides with LLM Tools: A Game Changer for Communication",
+    "summary": "Explore how LLMs are transforming slide creation and how you can leverage them for more effective communication.",
+    "date": "2025-03-28",
+    "slug": "slides_with_llm"
   }
 ]
