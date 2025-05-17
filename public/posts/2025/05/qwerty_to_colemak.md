@@ -1,6 +1,7 @@
 # From Qwerty to Colemak: A Journey of Change
 
-If someone asked me about the most challenging migration I’ve undertaken in 2025, I’d confidently say it’s switching from Qwerty to Colemak. This change has been on my to-do list for quite some time, driven by several compelling reasons.
+If someone asked me about the most challenging migration I’ve undertaken in 2025, I’d confidently say it’s switching from Qwerty to Colemak.
+This change has been on my ToDo list for a year, driven by several compelling reasons.
 
 ## Rationales
 ### Wrist pain
@@ -52,6 +53,7 @@ Alternatively, we could gradually transition from the memory keyboard to the phy
 This approach reduces the complexity and risk of not having enough time for the transition.
 
 ## Conclusion
-The tangible benefits of this migration are evident. I’ve eliminated wrist pain, and I’ve found a satisfying way to overcome challenging tasks that previously made me extremely nervous.
+The tangible benefits of this migration are evident.
+I’ve eliminated wrist pain, and I’ve found a satisfying way to overcome challenging tasks that previously made me extremely nervous.
 In conclusion, switching to a different keyboard layout requires patience and time investment.
 However, it’s a worthwhile investment for your long-term well-being, especially for typists like developers.
