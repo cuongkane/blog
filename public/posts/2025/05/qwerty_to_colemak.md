@@ -24,6 +24,8 @@ Workman is another option that I considered. It’s also a good layout, but unfo
 
 Based on my evaluation, Colemak appears to be the most suitable choice at this stage. It’s a modern layout (first introduced in 2016) that is supported by a wide range of operating systems, including MacOS and Windows. The underlying concept is also commendable, as all your most frequently used keys will be located on the home row, minimizing the need for excessive finger movement compared to other layouts. 
 
+![Corne Layout](/blog/images/qwerty_to_colemak/layout.png)
+
 ## Migration Journey
 
 During the last holidays in Vietnam, I was fortunate to have 9 consecutive days off, which was perfect for transitioning to a new keyboard layout. I knew my productivity would significantly drop during the transition, and I needed to practice frequently to regain my typing speed (target will be 70% of my current typing speed and 95% accuracy).
@@ -52,6 +54,7 @@ I have nine days to learn the new layout, and the new layout itself seems like a
 Alternatively, we could gradually transition from the memory keyboard to the physical Corne keyboard.
 This approach reduces the complexity and risk of not having enough time for the transition.
 
+![Corne Keyboard Setup](/blog/images/qwerty_to_colemak/corne_setup.jpg)
 ## Conclusion
 The tangible benefits of this migration are evident.
 I’ve eliminated wrist pain, and I’ve found a satisfying way to overcome challenging tasks that previously made me extremely nervous.
