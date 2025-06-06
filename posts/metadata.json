@@ -70,5 +70,11 @@
     "summary": "My journey with many challenges from Qwerty to Colemak and the new Corne keyboard as well.",
     "date": "2025-05-17",
     "slug": "qwerty_to_colemak"
+  },
+  {
+    "title": "How to Write a Better User Story",
+    "summary": "User stories are fundamental building blocks of agile development, serving as simple descriptions of features from the end user's perspective. A well-written user story explains",
+    "date": "2025-06-06",
+    "slug": "how_to_write_a_good_user_story"
   }
 ]
