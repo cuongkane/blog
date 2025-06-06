@@ -189,14 +189,34 @@ a {
 }
 
 .markdown code {
-  border-radius: 3px;
-  padding: 0.5em;
-  overflow-x: auto;
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9rem;
   word-wrap: break-word;
 }
 
+.markdown :not(pre) > code {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 .markdown pre {
-  border-radius: 3px;
+  border-radius: 8px;
+  padding: 1.2rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  position: relative;
+}
+
+.markdown pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  display: block;
+  white-space: pre;
 }
 
 .markdown blockquote {

@@ -44,8 +44,20 @@ body {
 }
 
 .markdown code {
-  background-color: #282c34;
+  background-color: #2d3748;
   padding: 0.2rem;
+  color: #e2e8f0;
+}
+
+.markdown pre {
+  background-color: #1a202c;
+  border: 1px solid #4a5568;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.markdown pre code {
+  background: transparent;
+  color: #e2e8f0;
 }
 
 .move {
