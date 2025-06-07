@@ -76,5 +76,11 @@
     "summary": "User stories are fundamental building blocks of agile development, serving as simple descriptions of features from the end user's perspective. A well-written user story explains",
     "date": "2025-06-06",
     "slug": "how_to_write_a_good_user_story"
+  },
+  {
+    "title": "How Many Logs Are Enough? A Backend Engineer's Guide to Logging",
+    "summary": "Finding the right balance between having enough information to debug issues and avoiding log pollution that makes debugging harder.",
+    "date": "2025-06-07",
+    "slug": "how_many_logs_are_enough"
   }
 ]
