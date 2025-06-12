@@ -1,4 +1,4 @@
-# When and How to Split Microservices: A Real-World Case Study
+# Split Microservices: A Real-World Case Study
 
 Microservices architecture has become the gold standard for building scalable systems, but knowing when and how to split services is crucial for success. This post explores the strategic decisions behind microservice decomposition through a real-world case study of splitting an Alert service from an Analytics platform.
 
