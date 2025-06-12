@@ -82,5 +82,11 @@
     "summary": "Finding the right balance between having enough information to debug issues and avoiding log pollution that makes debugging harder.",
     "date": "2025-06-07",
     "slug": "how_many_logs_are_enough"
+  },
+  {
+    "title": "When and How to Split Microservices: A Real-World Case Study",
+    "summary": "Strategic decisions behind microservice decomposition through a real-world case study of splitting an Alert service from an Analytics platform.",
+    "date": "2025-12-06",
+    "slug": "splitting_microservices"
   }
 ]
