@@ -139,7 +139,11 @@ Switching with tool: Can use Kafka Web UI tools (i.e RedPanda if they support)
 
 **The Most Critical Phase**: Database migration should be the last step. Database migration requires extreme care to maintain data consistency and system availability.
 
-**Strategy**:
+We have two main strategies for database migration:
+
+#### Strategy 1: Backup and Restore (Minimal Downtime)
+
+**Steps**:
 1. **Database Preparation**: Create new database with identical schema
 2. **Service Preparation**: Configure service to use new database credentials
 3. **Traffic Halting**: Temporarily disable write operations (return 503 for non-GET requests and disable event consumer and background jobs)
@@ -147,6 +151,87 @@ Switching with tool: Can use Kafka Web UI tools (i.e RedPanda if they support)
 5. **Service Switch**: Enable new database and restore full functionality
 
 **Downtime Minimization**: By halting only write operations and maintaining read access, user experience impact is minimized during the brief migration window.
+
+#### Strategy 2: Dual-Write with Replica (Zero Downtime)
+
+**Objective**: Achieve true zero-downtime migration by duplicating writes to both databases during the transition period.
+
+**Prerequisites**: Requires DevOps team collaboration for database replication setup.
+
+**Steps**:
+1. **Replica Setup**: DevOps team creates a replica of the source database in the target environment
+2. **Dual-Write Implementation**: Modify application code to write to both original and replica databases
+3. **Data Consistency Verification**: Implement monitoring to ensure write operations succeed on both databases
+4. **Read Traffic Switch**: Gradually shift read operations to the new database while maintaining dual writes
+5. **Write Traffic Switch**: Once read operations are stable, switch write operations to target only the new database
+6. **Cleanup**: Remove dual-write logic and decommission the original database
+
+**Implementation Example**:
+```python
+class DualWriteRepository:
+    def __init__(self, primary_db, replica_db, migration_mode=True):
+        self.primary_db = primary_db
+        self.replica_db = replica_db
+        self.migration_mode = migration_mode
+        
+    def create_alert(self, alert_data):
+        # Always write to primary first
+        result = self.primary_db.create_alert(alert_data)
+        
+        if self.migration_mode:
+            try:
+                # Duplicate write to replica
+                self.replica_db.create_alert(alert_data)
+            except Exception as e:
+                # Log error but don't fail the operation
+                logger.error(f"Replica write failed: {e}")
+                # Could implement retry logic or dead letter queue
+                
+        return result
+        
+    def update_alert(self, alert_id, update_data):
+        result = self.primary_db.update_alert(alert_id, update_data)
+        
+        if self.migration_mode:
+            try:
+                self.replica_db.update_alert(alert_id, update_data)
+            except Exception as e:
+                logger.error(f"Replica update failed: {e}")
+                
+        return result
+```
+
+**Advantages of Dual-Write Approach**:
+- **True Zero Downtime**: No service interruption during migration
+- **Gradual Migration**: Can test and validate new database with real traffic
+- **Easy Rollback**: Can switch back to original database instantly if issues arise
+- **Data Validation**: Opportunity to verify data consistency before full cutover
+
+**Challenges and Considerations**:
+- **Code Complexity**: Requires implementing dual-write logic throughout the application
+- **Error Handling**: Must handle cases where writes succeed on one database but fail on another
+- **Data Consistency**: Need monitoring to ensure both databases stay in sync
+- **Performance Impact**: Dual writes can increase latency and resource usage
+- **DevOps Coordination**: Requires close collaboration with infrastructure team for replica setup
+
+**Monitoring During Dual-Write Phase**:
+```python
+class MigrationMonitor:
+    def __init__(self, metrics_client):
+        self.metrics = metrics_client
+        
+    def track_dual_write_success(self, operation_type):
+        self.metrics.increment(f'migration.dual_write.success.{operation_type}')
+        
+    def track_dual_write_failure(self, operation_type, database):
+        self.metrics.increment(f'migration.dual_write.failure.{operation_type}.{database}')
+        
+    def track_data_consistency_check(self, consistent: bool):
+        status = 'consistent' if consistent else 'inconsistent'
+        self.metrics.increment(f'migration.data_consistency.{status}')
+```
+
+**Recommendation**: Use Strategy 2 (Dual-Write) for production systems where downtime is not acceptable. Use Strategy 1 (Backup/Restore) for systems that can tolerate brief maintenance windows.
 
 ### Phase 5: Cleanup
 
