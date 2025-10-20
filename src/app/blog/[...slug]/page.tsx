@@ -66,9 +66,11 @@ export default async function BlogPageItem({ params }: BlogPageItemProps) {
     <article className="container max-w-[1400px] py-6 lg:py-10">
       <div className="flex w-full gap-8 lg:gap-10">
         {/* Desktop TOC Sidebar - sticky on left side */}
-        <aside className="hidden lg:block sticky top-20 h-fit w-64 shrink-0">
-          <div className="rounded-lg border bg-card p-6">
-            <TableOfContents toc={blog.toc} />
+        <aside className="hidden lg:block sticky top-20 w-64 shrink-0 self-start">
+          <div className="rounded-lg border bg-card max-h-[calc(100vh-6rem)] overflow-y-auto">
+            <div className="p-6">
+              <TableOfContents toc={blog.toc} />
+            </div>
           </div>
         </aside>
 

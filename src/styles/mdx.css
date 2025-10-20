@@ -71,3 +71,26 @@
 .prose th code {
   @apply text-xs md:text-sm;
 }
+
+/* Custom scrollbar styling for TOC */
+aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+aside::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+aside::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded-full;
+}
+
+aside::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* Firefox scrollbar */
+aside {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) transparent;
+}
