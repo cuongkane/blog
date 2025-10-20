@@ -20,6 +20,7 @@ const blogs = defineCollection({
       published: s.boolean().default(true),
       image: s.string().max(99),
       author: s.string(),
+      tags: s.array(s.string()).default([]),
       body: s.mdx(),
       toc: s.toc(),
     })
