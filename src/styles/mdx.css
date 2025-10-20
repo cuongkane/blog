@@ -37,3 +37,37 @@
 .subheading-anchor {
   @apply no-underline before:content-["#"] hover:before:content-["#"] -ml-4 before:text-background hover:before:text-primary transition-colors before:mr-1 before:text-lg;
 }
+
+/* Table styles for better display */
+.prose table {
+  @apply w-full border-collapse text-sm;
+  display: table;
+  table-layout: auto;
+}
+
+.prose thead {
+  @apply border-b;
+}
+
+.prose th {
+  @apply font-semibold text-left p-2 md:p-3;
+}
+
+.prose td {
+  @apply p-2 md:p-3 border-b;
+}
+
+.prose tr {
+  @apply border-b transition-colors hover:bg-muted/50;
+}
+
+/* Ensure tables don't overflow */
+.prose .table-wrapper {
+  @apply w-full overflow-x-auto;
+}
+
+/* Make code blocks within tables more compact */
+.prose td code,
+.prose th code {
+  @apply text-xs md:text-sm;
+}

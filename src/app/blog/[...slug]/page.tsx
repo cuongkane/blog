@@ -10,6 +10,7 @@ import { Mdx } from "@/components/mdx-component";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { TableOfContents } from "@/components/toc";
 
 interface BlogPageItemProps {
   params: {
@@ -62,55 +63,73 @@ export default async function BlogPageItem({ params }: BlogPageItemProps) {
   }
 
   return (
-    <article className="container relative max-w-3xl py-6 lg:py-10">
-      <div>
-        {blog.date && (
-          <time
-            dateTime={blog.date}
-            className="block text-sm text-muted-foreground"
-          >
-            Published on {formatDate(blog.date)}
-          </time>
-        )}
+    <article className="container max-w-[1400px] py-6 lg:py-10">
+      <div className="flex w-full gap-8 lg:gap-10">
+        {/* Desktop TOC Sidebar - sticky on left side */}
+        <aside className="hidden lg:block sticky top-20 h-fit w-64 shrink-0">
+          <div className="rounded-lg border bg-card p-6">
+            <TableOfContents toc={blog.toc} />
+          </div>
+        </aside>
 
-        <h1 className="mt-2 inline-block text-4xl font-bold capitalize leading-tight text-primary lg:text-5xl">
-          {blog.title}
-        </h1>
+        {/* Main Content */}
+        <div className="min-w-0 flex-1 w-full">
+          {blog.date && (
+            <time
+              dateTime={blog.date}
+              className="block text-sm text-muted-foreground"
+            >
+              Published on {formatDate(blog.date)}
+            </time>
+          )}
 
-        {blog.author && (
-          <div className="mt-4 flex space-x-4">
-            <div className="flex size-10 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
-              {blog.author.charAt(0).toUpperCase()}
+          <h1 className="mt-2 inline-block text-4xl font-bold capitalize leading-tight text-primary lg:text-5xl">
+            {blog.title}
+          </h1>
+
+          {blog.author && (
+            <div className="mt-4 flex space-x-4">
+              <div className="flex size-10 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+                {blog.author.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 text-left leading-tight">
+                <p className="font-medium">{blog.author}</p>
+                <p className="text-[12px] text-muted-foreground">
+                  @{blog.author}
+                </p>
+              </div>
             </div>
-            <div className="flex-1 text-left leading-tight">
-              <p className="font-medium">{blog.author}</p>
-              <p className="text-[12px] text-muted-foreground">
-                @{blog.author}
-              </p>
+          )}
+
+          {blog.image && (
+            <Image
+              src={blog.image}
+              alt={blog.title}
+              width={720}
+              height={405}
+              priority
+              className="my-8 border bg-muted transition-colors"
+            />
+          )}
+
+          {/* Mobile TOC - shown before content on smaller screens */}
+          <div className="lg:hidden mb-8">
+            <div className="rounded-lg border bg-card p-6">
+              <TableOfContents toc={blog.toc} />
             </div>
           </div>
-        )}
 
-        {blog.image && (
-          <Image
-            src={blog.image}
-            alt={blog.title}
-            width={720}
-            height={405}
-            priority
-            className="my-8 border bg-muted transition-colors"
-          />
-        )}
-        <Mdx code={blog.body} />
-        <hr className="mt-12" />
-        <div className="flex justify-center py-6 lg:py-10">
-          <Link
-            href="/blog"
-            className={cn(buttonVariants({ variant: "ghost" }))}
-          >
-            <ChevronLeft className="mr-2 size-4" />
-            See all Blogs
-          </Link>
+          <Mdx code={blog.body} />
+          <hr className="mt-12" />
+          <div className="flex justify-center py-6 lg:py-10">
+            <Link
+              href="/blog"
+              className={cn(buttonVariants({ variant: "ghost" }))}
+            >
+              <ChevronLeft className="mr-2 size-4" />
+              See all Blogs
+            </Link>
+          </div>
         </div>
       </div>
     </article>
