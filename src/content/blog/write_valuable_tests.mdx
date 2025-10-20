@@ -1,5 +1,11 @@
-# WRITE VALUABLE TESTS
-Sometimes, you are not confidence in delivering the ticket so you involve QA for costly regression tests.
+---
+title: "Write Valuable Tests"
+description: "Make your tests valuable and substantial to your project, not just for coverage"
+image: "/images/write_valuable_test/intro.webp"
+date: "2024-06-26"
+author: "cuongkane"
+published: true
+---
 
 Or the maintenance efforts for the project's tests are usually excessive and usually result in false positive alerts as well.
 
@@ -10,7 +16,7 @@ In this blog, I will share some fundamental knowledge to tackle these issues.
 ## Overview
 Tests is the most crucial part of a software project to maintain sustainability through project development cycles.
 
-![The importance of good tests](/blog/images/write_valuable_test/test_importance.png)
+![The importance of good tests](/images/write_valuable_test/test_importance.png)
 
 If the tests aren't written well, it could increase maintenance costs, demotivate the team, and sequentially decrease productivity.
 
@@ -54,7 +60,7 @@ Creating an ideal test to satisfy all 4 attributes is extremely hard to achieve 
 
 Here is the diagram describing that inverse proportion:
 
-![Test pyramid](/blog/images/write_valuable_test/test_pyramid.png)
+![Test pyramid](/images/write_valuable_test/test_pyramid.png)
 
 - Unit tests are tests that cover the smallest unit of the system. Unit tests target the domain model (main business)
 - Integration tests verify how your system works in integration with out-of-process dependencies (database, file system, other services).
@@ -78,7 +84,7 @@ They facilitate writing end-behavior tests and avoid coupling to implementation 
 There are two types of communications in a typical application: intra-system and inter-system.
 - Intra-system communications are communications between classes inside your application (implementation details).
 - Inter-system communications are when your application talks to other applications (observable behaviors).
-![Intra vs Inter communications](/blog/images/write_valuable_test/inter_vs_intra.png)
+![Intra vs Inter communications](/images/write_valuable_test/inter_vs_intra.png)
 
 Hexagonal architecture, (aka Ports and Adapters architecture) is a design pattern that structures applications as a collection of hexagons.
 Each hexagon represents a distinct application composed of two primary layers: the domain layer and the application services layer.
@@ -92,7 +98,7 @@ This architecture emphasizes three key aspects:
 
 With Hexagonal architecture, it is easy to write unit tests for the domain layer and assert inter-system communications (via decoupled adapters).
 
-![Hexagonal](/blog/images/write_valuable_test/hexagonal.png)
+![Hexagonal](/images/write_valuable_test/hexagonal.png)
 (Source: Netflix)
 
 2. Functional Architecture
@@ -104,7 +110,7 @@ There are 2 layers in Functional Architecture: Functional Core (Core layer) and 
 Core layer: All the business logic will be implemented as pure functions in the `Functional Core layer`.
 Shell layer: Side effects or mutated data will be made base on Functional Core output.
 
-![Functional Core Mutable Shell](/blog/images/write_valuable_test/functional_core_mutable_shell.png)
+![Functional Core Mutable Shell](/images/write_valuable_test/functional_core_mutable_shell.png)
 
 Functional Architecture is an extreme version of Hexagonal Architecture. In which it maximizes writing unit tests and unit tests with output-based style for the Core layer.
 
@@ -282,7 +288,7 @@ Following this good practice, you could gain the following benefits:
 
 Shouldn't assert intra-system communications, this kind of communication is implementation detailed. 
 It is extremely fragile. It doesn't bring too many valuable things with the end-user who directly from observable behaviors. So that it increases the effort for writing tests and nightmares for maintenance in the long term.
-![Aim at the end result](/blog/images/write_valuable_test/aim_at_end_result.png)
+![Aim at the end result](/images/write_valuable_test/aim_at_end_result.png)
 
 Mocking is legitimate only when it’s used for inter-system communications that cross the application boundary.
 
@@ -579,7 +585,7 @@ class TestCreateAlertService(unittest.TestCase):
 ## Conclusion
 Crafting high-quality tests requires significant time and practice, yet the rewards they yield are exceedingly valuable. 
 
-![The importance of good tests](/blog/images/write_valuable_test/test_importance.png)
+![The importance of good tests](/images/write_valuable_test/test_importance.png)
 
 The last tip: When implementing Test-Driven Development (TDD) correctly, one has the potential to effectively adhere to almost all best practices.
 
@@ -647,19 +653,19 @@ There are 3 styles of unit tests: output-based, state-based, and communication-b
 - Output-based testing (a.k.a result-based testing): Verifies that system outputs match expected results, treating the system under testing (SUT) as a black box and focusing on the correctness of final outputs given specific inputs.
 This style only works for SUTs that don’t generate side effects.
 
-![Output-based](/blog/images/write_valuable_test/output_based.jpeg)
+![Output-based](/images/write_valuable_test/output_based.jpeg)
 
 - State-based testing: Verify the state of the SUT after the operation is completed. This style is useful for testing objects where the state changes over time due to operations.
-![State-based](/blog/images/write_valuable_test/state_based.jpeg)
+![State-based](/images/write_valuable_test/state_based.jpeg)
 
 - Communication-based testing: Verify all communications are initiated in the correct order and with the correct parameters. This style is ideal for ensuring that units interact correctly with their dependencies.
-![Communication-based](/blog/images/write_valuable_test/communication_based.jpeg)
+![Communication-based](/images/write_valuable_test/communication_based.jpeg)
 
 Compared to state-based and communication-based testing, output-based testing creates tests that are not tightly coupled to implementation details, making them easier to maintain and resistant to refactoring.
 
 However, writing unit tests following output-based testing requires the SUT must be pure modules.
 Functional programming and architecture: `Functional programming as core, mutable objects as shell` facilitates writing unit tests following output-based testing:
-![Functional core architecture](/blog/images/write_valuable_test/functional_core_architecture.png)
+![Functional core architecture](/images/write_valuable_test/functional_core_architecture.png)
 
 If you find that code is hard to write unit tests, it is a strong indication that the codes need to be refactored.
 
