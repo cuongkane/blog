@@ -27,7 +27,7 @@ export function TableOfContents({ toc, className }: TocProps) {
   );
 }
 
-function Tree({ tree, level = 1 }: { tree: TocItem[]; level?: number }) {
+export function Tree({ tree, level = 1 }: { tree: TocItem[]; level?: number }) {
   return tree?.length && level < 3 ? (
     <ul className={cn("m-0 list-none", { "pl-4": level !== 1 })}>
       {tree.map((item, index) => {
