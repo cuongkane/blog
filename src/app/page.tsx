@@ -26,7 +26,7 @@ export default function Home() {
           ))}
         </div>
         <h1 className="text-3xl capitalize sm:text-5xl md:text-6xl lg:text-7xl">
-          Hi, I'm{" "}
+          Hi, I&apos;m{" "}
           <span className="font-code text-primary">{siteConfig.author}</span>
         </h1>
         <p className="max-w-2xl leading-normal text-muted-foreground sm:text-xl sm:leading-8">

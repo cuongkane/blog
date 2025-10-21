@@ -49,7 +49,7 @@ export default function AboutPage() {
         <p className="flex-1 text-center text-sm text-muted-foreground lg:text-start xl:text-base">
           Software engineer passionate about clean code, system architecture, and developer productivity.
           I write about my experiences with various technologies, best practices, and lessons learned
-          from building software systems. When I'm not coding, I enjoy exploring new tools and methodologies
+          from building software systems. When I&apos;m not coding, I enjoy exploring new tools and methodologies
           that can improve the development workflow.
         </p>
       </div>

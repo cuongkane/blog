@@ -5,7 +5,6 @@ import { cn, formatDate } from "@/lib/utils";
 import "@/styles/mdx.css";
 
 import Image from "next/image";
-import { siteConfig } from "@/config/site";
 import { Mdx } from "@/components/mdx-component";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
