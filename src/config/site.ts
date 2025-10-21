@@ -1,9 +1,9 @@
 export const siteConfig = {
-  name: "cuongkane",
+  name: "Cuong (Kane)",
   url: "https://cuongkane.com",
   description:
     "Personal blog about software engineering, programming experiences, and technology insights.",
-  author: "cuongkane",
+  author: "Cuong(Kane)",
   social: {
     github: "https://github.com/cuongkane",
   },
