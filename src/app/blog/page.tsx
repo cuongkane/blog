@@ -81,7 +81,7 @@ export default function BlogPage() {
       <div className="max-w-6xl mx-auto">
         <PageHeader
           title="Blog"
-          description="A blog using velite. Posts are written in MDX"
+          description="Speaking up, not speaking for. Because silence isn’t my style."
         />
         <hr className="my-8" />
 
