@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import { siteConfig } from "@/config/site";
 
+import type { ReactNode } from "react";
+
 export const metadata: Metadata = {
   title: "Blog",
   description:
@@ -32,7 +34,7 @@ export const metadata: Metadata = {
 export default function BlogLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return <>{children}</>;
 }
