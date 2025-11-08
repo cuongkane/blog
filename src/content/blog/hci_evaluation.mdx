@@ -40,7 +40,7 @@ It focuses on understanding the human side of the system:
 
 In the age of AI, HCI ensures that powerful technology becomes *useful* technology.
 
----
+***
 
 ## 2. Problem Setup: Why "Just Asking for Feedback" Isn't Enough
 
@@ -75,7 +75,7 @@ It turns casual feedback into **measurable evidence**—combining:
 - **Scientific rigor** (for research validity)
 - **Human understanding** (for usability insight)
 
----
+***
 
 ## 3. The HCI Evaluation Process: A Human-Centered Framework
 
@@ -115,7 +115,7 @@ These strategies make your results **trustworthy**—they ensure any performance
 - Fatigue
 - Task order bias
 
----
+***
 
 ### 📏 Layer 2: Measurement Instruments
 
@@ -172,7 +172,7 @@ Interviews → CAUSALITY (why these results?)
 
 Using only one metric can mislead—a tool might be fast but frustrating, or accurate but exhausting.
 
----
+***
 
 ### 🧩 Layer 3: Analysis Strategy
 
@@ -191,7 +191,7 @@ Using only one metric can mislead—a tool might be fast but frustrating, or acc
 - Visualizations (bar charts, box plots)
 
 **Example output**:
-> "Users rated my tool 20 points higher in usability (SUS: 78 vs 58, p<0.05) and 30% lower in workload (NASA-TLX: 45 vs 65, d=1.2) compared to baseline."
+> "Users rated my tool 20 points higher in usability (SUS: 78 vs 58, p < 0.05) and 30% lower in workload (NASA-TLX: 45 vs 65, d=1.2) compared to baseline."
 
 **Strengths**: Objective, replicable, statistically valid
 
@@ -227,7 +227,7 @@ Using only one metric can mislead—a tool might be fast but frustrating, or acc
 
 Together, these analyses help you explain both **what happened** and **why it happened**—the essence of HCI understanding.
 
----
+***
 
 ## 4. Example: Evaluating a Coding Onboarding Assistant
 
@@ -244,7 +244,7 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 
 **Research Question**: Does this tool reduce onboarding time and cognitive effort compared to traditional methods (README + IDE)?
 
----
+***
 
 ### 🧪 Pilot Testing (Formative Stage)
 
@@ -260,7 +260,7 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 
 **Outcome**: List of usability issues and improvement priorities
 
----
+***
 
 #### **Example Pilot Session**
 
@@ -269,13 +269,13 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 **Task Given**: "Use the tool to understand how user authentication works in this Flask application"
 
 **What Happened** (think-aloud observations):
-- ✅ 0:30 - "Oh cool, I can see a graph of the functions"
-- ✅ 1:15 - "Let me click on 'login'... okay, it shows me what it does"
-- ❌ 3:45 - "Wait, how do I go back? I'm stuck in this detail view"
-- ❌ 5:20 - "Is this loading or broken? There's no indicator"
-- ✅ 7:00 - "The AI summary is really helpful, I get the gist without reading all the code"
-- ❌ 8:30 - "I want to zoom out but can't find the button"
-- ❌ 9:15 - **Gave up and refreshed page** - "I'll just start over"
+- ✅ `0:30` - "Oh cool, I can see a graph of the functions"
+- ✅ `1:15` - "Let me click on 'login'... okay, it shows me what it does"
+- ❌ `3:45` - "Wait, how do I go back? I'm stuck in this detail view"
+- ❌ `5:20` - "Is this loading or broken? There's no indicator"
+- ✅ `7:00` - "The AI summary is really helpful, I get the gist without reading all the code"
+- ❌ `8:30` - "I want to zoom out but can't find the button"
+- ❌ `9:15` - **Gave up and refreshed page** - "I'll just start over"
 
 **Post-Session Interview**:
 - **What was most helpful?** "The visualization and summaries—way better than jumping between files"
@@ -283,7 +283,7 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 - **What did you expect but not find?** "A 'home' button, breadcrumbs showing where I am, zoom controls"
 - **Would you use this?** "Yes, but only after the navigation is fixed"
 
----
+***
 
 **Pilot Participant 2**: Senior developer (5 years experience)
 
@@ -291,12 +291,12 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 
 **What Happened**:
 - ✅ Completed task faster (6 minutes)
-- ❌ 2:30 - "Where's the search function? I want to jump to a specific file"
-- ❌ 4:00 - "The text is too small, I can't read function names on mobile view"
+- ❌ `2:30` - "Where's the search function? I want to jump to a specific file"
+- ❌ `4:00` - "The text is too small, I can't read function names on mobile view"
 - ✅ Didn't get lost like P1 (avoided clicking too deep into the graph)
 - ❌ Post-task: "I didn't realize I could ask questions in the chat box—maybe make that more obvious?"
 
----
+***
 
 #### **Issues Identified & Prioritization**
 
@@ -309,7 +309,7 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 | Chat box not discoverable | 1/2 | Medium | 🟡 **P1 - Should fix** |
 | Small text on mobile | 1/2 | Low | 🟢 **P2 - Nice to have** |
 
----
+***
 
 #### **Improvements Made Before Full Study**
 
@@ -327,7 +327,7 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 7. ⏸️ Search functionality (would require major refactoring)
 8. ⏸️ Mobile optimization (study will use desktop only)
 
----
+***
 
 #### **Validation: Second Pilot Test**
 
@@ -342,7 +342,7 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 
 **Decision**: Tool is ready for formal comparative evaluation
 
----
+***
 
 ### 📋 Study Setup
 
@@ -368,7 +368,7 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
   - **Trade-off**: Need twice as many participants for same statistical power
   - **Example**: 10 developers test your tool, 10 different developers test baseline
 
----
+***
 
 #### **Participants**
 - 5 software developers (2-8 years experience)
@@ -376,7 +376,7 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 - All familiar with Python and web development
 - None had seen the target codebase before
 
----
+***
 
 #### **Tasks** (same for both conditions)
 
@@ -396,7 +396,7 @@ Each participant completes 2 realistic code understanding scenarios:
 - Equivalent difficulty (both require similar reasoning steps)
 - Same tasks used for both conditions (fair comparison)
 
----
+***
 
 ### 📊 What to Measure & How
 
@@ -411,7 +411,7 @@ Collect these metrics for each participant in each condition:
 | **Preference** | Which method would you choose? | Direct comparison |
 | **Qualitative** | Post-task interview (15 min) | Why these results? |
 
----
+***
 
 ### 📋 Actual Survey Questions
 
@@ -434,7 +434,7 @@ After each task, participants rate on a scale of 0-100:
 - P1 with Tool: Mental=40, Physical=20, Temporal=35, Performance=20, Effort=45, Frustration=30 → **Average = 31.7**
 - P1 with Baseline: Mental=70, Physical=30, Temporal=60, Performance=40, Effort=75, Frustration=65 → **Average = 56.7**
 
----
+***
 
 #### **SUS (System Usability Scale)**
 
@@ -469,7 +469,7 @@ Participants rate 10 statements on a 5-point scale (1=Strongly Disagree, 5=Stron
 - 80-90: Excellent
 - Above 90: Best imaginable
 
----
+***
 
 #### **Post-Task Interview Questions**
 
@@ -493,7 +493,7 @@ Ask open-ended questions (15-20 minutes):
 
 **Record**: Audio/video + take notes on key quotes and observations
 
----
+***
 
 ### 📈 Example Results Table
 
@@ -514,7 +514,7 @@ After running your study, organize data like this:
 
 *P5 preferred baseline due to familiarity with IDE workflow
 
----
+***
 
 ### 🎯 Analysis Summary
 
@@ -528,11 +528,11 @@ After running your study, organize data like this:
 | **Success** | 85% | 75% | +10% | p=0.08 (n.s.) |
 | **Preference** | 80% (4/5) | 20% (1/5) | **+60%** | — |
 
-*p<0.05, **p<0.01, ***p<0.001
+*p < 0.05, **p < 0.01, ***p < 0.001
 
 **Key Insight**: Large, statistically significant improvements across all subjective and efficiency metrics.
 
----
+***
 
 ### 💬 Qualitative Themes
 
@@ -548,7 +548,7 @@ From post-task interviews, identify recurring patterns:
 - ❌ **Navigation breadcrumbs** (3/5): "Got lost in the graph, needed 'back' button"
 - ❌ **Q&A discoverability** (2/5): "Didn't realize I could ask follow-up questions"
 
----
+***
 
 ### 🎬 Final Synthesis
 
@@ -563,7 +563,7 @@ The tool achieves its goal—developers complete onboarding tasks 33% faster wit
 **Next Steps**: 
 Implement navigation improvements, then re-test with larger sample (n=15-20) across multiple codebases to validate generalizability.
 
----
+***
 
 ### 🤖 Using AI for Analysis
 
@@ -573,7 +573,7 @@ With your collected data table, you can prompt AI tools:
 > 1. Calculate means, standard deviations, and paired t-tests for each metric
 > 2. Compute effect sizes (Cohen's d)
 > 3. Generate a comparison visualization
-> 4. Identify which results are statistically significant (p<0.05)"
+> 4. Identify which results are statistically significant (p < 0.05)"
 
 This automates the statistical heavy lifting while you focus on interpreting what the numbers mean for your design.
 
