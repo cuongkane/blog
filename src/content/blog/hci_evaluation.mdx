@@ -183,56 +183,48 @@ Using only one metric can mislead—a tool might be fast but frustrating, or acc
 
 **What it is**: How you make sense of collected data and draw conclusions.
 
-**Why it matters**: Raw data means nothing without interpretation. Analysis transforms numbers and quotes into actionable insights.
+**Why it matters**: Raw data means nothing without interpretation. Analysis transforms numbers and quotes into actionable insights that can guide design decisions and validate research claims.
 
 #### Quantitative Analysis
 
-**What it does**: Compares numeric results statistically
+Quantitative analysis compares numeric results statistically to determine whether observed differences are real or due to chance. 
 
 **Common techniques**:
-- Descriptive statistics (means, standard deviations)
-- Paired t-tests (for within-subjects comparisons)
-- Effect sizes (Cohen's d—magnitude of difference)
-- Visualizations (bar charts, box plots)
+- **Descriptive statistics**: Calculate means and standard deviations to summarize your data.
+- **Paired t-tests**: Compare participants' performance across conditions to test if differences are statistically significant (p < 0.05).
+- **Effect sizes (Cohen's d)**: Measure the magnitude of difference—0.2 is small, 0.5 is medium, 0.8+ is large.
+- **Visualizations**: Use bar charts and box plots to make numbers interpretable at a glance.
 
-**Example output**:
+**Example output**: 
+
 > "Users rated my tool 20 points higher in usability (SUS: 78 vs 58, p < 0.05) and 30% lower in workload (NASA-TLX: 45 vs 65, d=1.2) compared to baseline."
 
-**Strengths**: Objective, replicable, statistically valid
+**Strengths**: Quantitative analysis is objective, replicable, and statistically valid—essential for research credibility.
 
-**Limitations**: Tells you *what* happened, not *why*
+**Limitations**: It tells you *what* happened, but not *why* it happened.
 
 #### Qualitative Analysis
 
-**What it does**: Identifies patterns and themes in text/observation data
+Qualitative analysis identifies patterns and themes in text and observation data to understand the "why" behind the numbers.
 
 **Common techniques**:
-- Thematic analysis (coding recurring topics)
-- Frequency counts (how many mentioned X?)
-- Quote selection (representative user voices)
-- Pattern matching across participants
+- **Thematic analysis**: Systematically code interview transcripts to identify recurring patterns and group them into broader themes.
+- **Frequency counts**: Count how many participants mentioned each theme to determine if it's a systematic issue.
+- **Quote selection**: Include representative user voices to bring findings to life with authentic examples.
+- **Pattern matching**: Look for relationships across participants—do experts mention different issues than novices?
 
-**Example output**:
+**Example output**: 
 > "4/5 developers appreciated contextual explanations (Theme: Helpful AI summaries) but wanted clearer dependency diagrams (Theme: Visual clarity issues). One developer suggested: 'Show me who calls this function, not just what it does.'"
 
-**Strengths**: Reveals causality, provides actionable fixes, captures unexpected insights
+**Strengths**: Qualitative analysis reveals causality, provides actionable fixes, and captures unexpected insights that quantitative metrics might miss.
 
-**Limitations**: Subjective interpretation, harder to generalize
+**Limitations**: It involves subjective interpretation and is harder to generalize beyond your study sample.
 
 #### Mixed Methods: The Best of Both Worlds
 
-**Integration strategy**:
-1. Use quantitative data to identify *what* worked/failed
-2. Use qualitative data to explain *why* it worked/failed
-3. Triangulate: Do numbers and interviews agree?
-4. Synthesize: Create unified narrative with evidence from both
+The most powerful HCI evaluations integrate both approaches. Use quantitative data to identify *what* worked/failed, then qualitative data to explain *why*. 
 
-**Example synthesis**:
-> "Our tool reduced task completion time by 35% (quantitative). Interview analysis revealed this was due to the interactive code visualization, which helped users 'see connections immediately' rather than 'hunting through files' (qualitative). This visualization feature should be prioritized in future development."
-
-Together, these analyses help you explain both **what happened** and **why it happened**—the essence of HCI understanding.
-
-***
+**Triangulation** checks whether findings agree—if task times are faster but interviews reveal frustration, investigate the discrepancy. When numbers and words align, conclusions are stronger. **Synthesis** weaves both into unified narratives: "Our tool reduced task time by 35% (quantitative). Interviews revealed this was due to the visualization, which helped users 'see connections immediately' rather than 'hunting through files' (qualitative). Prioritize this feature in future development."
 
 ## 4. Example: Evaluating a Coding Onboarding Assistant
 
