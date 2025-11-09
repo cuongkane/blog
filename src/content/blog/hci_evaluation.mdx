@@ -1,5 +1,5 @@
 ---
-title: "The HCI Evaluation Process: From Informal Feedback to Rigorous User Studies"
+title: "The HCI Evaluation Process: From Informal Feedback to Precise User Studies"
 description: "A comprehensive guide to systematically evaluating AI-powered applications through proper HCI methodology. Learn how to design studies, measure user experience, and turn intuition into scientific evidence."
 image: "/images/hci_evaluation/intro.webp"
 date: "2025-11-08"
@@ -8,7 +8,9 @@ published: true
 tags: ["hci", "user-research", "evaluation", "ai", "ux", "experiments", "methodology"]
 ---
 
-I have always had a strong interest in developing software solutions that address real-world challenges. However, I often find myself focused on enhancing technology to create the best tools possible, while it seems that the world increasingly emphasizes adding more features to user interfaces rather than prioritizing user feedback and evaluating the actual effectiveness of these tools. In this blog, I will provide a comprehensive guide on evaluation strategies within the field of Human-Computer Interaction (HCI) research, along with a practical example for your consideration.
+I have always had a strong interest in developing software solutions that address real-world challenges. However, I often find myself focused on enhancing technology to create the best tools possible, while it seems that the world increasingly emphasizes adding more features to user interfaces rather than prioritizing user feedback and evaluating the actual effectiveness of these tools.
+
+In this blog, I will provide a partial comprehensive guide on evaluation strategies within the field of Human-Computer Interaction (HCI) research, along with a practical example for your consideration.
 
 ## 1. Context: From Powerful AI to Meaningful Human Experience
 
@@ -79,9 +81,9 @@ It turns casual feedback into **measurable evidence**—combining:
 
 ## 3. The HCI Evaluation Process: A Human-Centered Framework
 
-When evaluating a system in HCI, we work across three key layers:
+When evaluating a system in HCI, we work across three stage:
 
-### 🧪 Layer 1: Study Design
+### 🧪 Stage 1: Study Design
 
 **What it is**: The structure and methodology of your experiment.
 
@@ -93,7 +95,7 @@ When evaluating a system in HCI, we work across three key layers:
 - Each participant tries **all** conditions (e.g., your tool AND a baseline)
 - **Advantage**: Controls for individual differences (skill, speed, style)
 - **Use when**: You have few participants (4-8) and want maximum statistical power
-- **Example**: 5 developers each test both your tool and traditional README approach
+- **Example**: 5 developers each test both your new tool and the base line tool (or without the tool).
 
 **Between-Subjects Design**
 - Each participant uses **only one** condition
@@ -117,7 +119,7 @@ These strategies make your results **trustworthy**—they ensure any performance
 
 ***
 
-### 📏 Layer 2: Measurement Instruments
+### 📏 Stage 2: Measurement Instruments
 
 **What it is**: The specific tools and metrics you use to collect data.
 
@@ -163,18 +165,19 @@ These strategies make your results **trustworthy**—they ensure any performance
 
 Each instrument targets a **different dimension** of user experience:
 
-```
-Task Metrics → EFFICIENCY (how fast/accurate?)
-NASA-TLX → COGNITIVE COST (how mentally taxing?)
-SUS → SATISFACTION (how pleasant to use?)
-Interviews → CAUSALITY (why these results?)
-```
+- Task Metrics → EFFICIENCY (how fast/accurate?)
+
+- NASA-TLX → COGNITIVE COST (how mentally taxing?)
+
+- SUS → SATISFACTION (how pleasant to use?)
+
+- Interviews → CAUSALITY (why these results?)
 
 Using only one metric can mislead—a tool might be fast but frustrating, or accurate but exhausting.
 
 ***
 
-### 🧩 Layer 3: Analysis Strategy
+### 🧩 Stage 3: Analysis Strategy
 
 **What it is**: How you make sense of collected data and draw conclusions.
 
@@ -274,14 +277,12 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 - ❌ `3:45` - "Wait, how do I go back? I'm stuck in this detail view"
 - ❌ `5:20` - "Is this loading or broken? There's no indicator"
 - ✅ `7:00` - "The AI summary is really helpful, I get the gist without reading all the code"
-- ❌ `8:30` - "I want to zoom out but can't find the button"
-- ❌ `9:15` - **Gave up and refreshed page** - "I'll just start over"
 
 **Post-Session Interview**:
-- **What was most helpful?** "The visualization and summaries—way better than jumping between files"
-- **What was frustrating?** "Getting lost in the graph. No way to backtrack. Had to refresh."
-- **What did you expect but not find?** "A 'home' button, breadcrumbs showing where I am, zoom controls"
-- **Would you use this?** "Yes, but only after the navigation is fixed"
+- **What was most helpful?** "i.e, The visualization and summaries—way better than jumping between files"
+- **What was frustrating?** "i.e, Getting lost in the graph. No way to backtrack. Had to refresh."
+- **What did you expect but not find?** "i.e, A 'home' button, breadcrumbs showing where I am, zoom controls"
+- **Would you use this?** "i.e, Yes, but only after the navigation is fixed"
 
 ***
 
@@ -347,26 +348,9 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 ### 📋 Study Setup
 
 #### **Design Choice: Within-Subjects with Counterbalancing**
-
-**Why this design?**
+Due to the limitation of the participant, we should only use the 2 designs:
 - **Within-subjects**: Each participant tries BOTH your tool AND baseline
-  - **Advantage**: Controls for individual differences (skill, coding speed, problem-solving style)
-  - **Best for**: Small samples (4-8 participants) where you need maximum statistical power
-  - **Trade-off**: Risk of learning effects (participants get better at second task just from practice)
-
 - **Counterbalancing**: Systematically alternate which condition comes first
-  - **Advantage**: Cancels out learning bias—if half start with Tool A and half with Tool B, any practice effects balance out
-  - **Implementation**: 
-    - P1, P3, P5: Tool → Baseline
-    - P2, P4: Baseline → Tool
-  - **Why critical**: Prevents unfair advantage (if everyone used Tool first, they'd already understand the codebase when trying Baseline)
-
-**Alternative design (not used here)**:
-- **Between-subjects**: Each participant uses ONLY one condition
-  - **Advantage**: No learning effects at all
-  - **Best for**: Large samples (20+ participants) or when learning effects are severe
-  - **Trade-off**: Need twice as many participants for same statistical power
-  - **Example**: 10 developers test your tool, 10 different developers test baseline
 
 ***
 
@@ -413,7 +397,7 @@ Collect these metrics for each participant in each condition:
 
 ***
 
-### 📋 Actual Survey Questions
+### 📋 Measurement Sections
 
 #### **NASA-TLX (Task Load Index)**
 
@@ -495,8 +479,9 @@ Ask open-ended questions (15-20 minutes):
 
 ***
 
-### 📈 Example Results Table
+### 📈 Analysis
 
+#### Quantitative Analysis
 After running your study, organize data like this:
 
 | Participant | Condition | Time (min) | Success (%) | NASA-TLX | SUS | Preferred |
@@ -514,13 +499,23 @@ After running your study, organize data like this:
 
 *P5 preferred baseline due to familiarity with IDE workflow
 
-***
+Then, you could use your awesome math capibility to calculate the summarize from the above table.
 
-### 🎯 Analysis Summary
+*Tips*: In case math forgets you, you can prompt AI tools:
 
-**Statistical Results** (let AI tools calculate these for you):
+```
+> "Here's my study data [paste table]. Please:
+> 1. Calculate means, standard deviations, and paired t-tests for each metric
+> 2. Compute effect sizes (Cohen's d)
+> 3. Generate a comparison visualization
+> 4. Identify which results are statistically significant (p < 0.05)"
+```
 
-| Metric | Tool (M±SD) | Baseline (M±SD) | Improvement | Significance |
+This automates the statistical heavy lifting while you focus on interpreting what the numbers mean for your design.
+
+The statistical results could be:
+
+| Metric | New Tool (M±SD) | Baseline (M±SD) | Improvement | Significance |
 |--------|-------------|-----------------|-------------|--------------|
 | **Time** | 9.58±1.17 min | 14.32±1.48 min | **33% faster** | p=0.006** |
 | **NASA-TLX** | 45.4±4.67 | 64.2±4.55 | **29% lower workload** | p=0.001*** |
@@ -528,13 +523,7 @@ After running your study, organize data like this:
 | **Success** | 85% | 75% | +10% | p=0.08 (n.s.) |
 | **Preference** | 80% (4/5) | 20% (1/5) | **+60%** | — |
 
-*p < 0.05, **p < 0.01, ***p < 0.001
-
-**Key Insight**: Large, statistically significant improvements across all subjective and efficiency metrics.
-
-***
-
-### 💬 Qualitative Themes
+#### 💬 Qualitative Patterns
 
 From post-task interviews, identify recurring patterns:
 
@@ -550,32 +539,18 @@ From post-task interviews, identify recurring patterns:
 
 ***
 
-### 🎬 Final Synthesis
+#### 🎬 Write Final Synthesis
 
-**Conclusion**: 
+Collect the qualitative and quantitative analysis to produce a conclusion with concrete figures:
+```
 The tool achieves its goal—developers complete onboarding tasks 33% faster with 29% less mental effort and significantly higher satisfaction. The interactive visualization is the standout feature, while navigation issues represent the primary barrier to adoption.
-
-**Prioritized Recommendations**:
+```
+Next action items can be infered/found from the survey's results. For example:
 1. **Critical**: Fix zoom/navigation controls (addresses main complaint)
 2. **Important**: Add onboarding tooltip for Q&A feature
 3. **Nice-to-have**: Bookmark functionality (requested by 2 participants)
 
-**Next Steps**: 
-Implement navigation improvements, then re-test with larger sample (n=15-20) across multiple codebases to validate generalizability.
-
 ***
-
-### 🤖 Using AI for Analysis
-
-With your collected data table, you can prompt AI tools:
-
-> "Here's my study data [paste table]. Please:
-> 1. Calculate means, standard deviations, and paired t-tests for each metric
-> 2. Compute effect sizes (Cohen's d)
-> 3. Generate a comparison visualization
-> 4. Identify which results are statistically significant (p < 0.05)"
-
-This automates the statistical heavy lifting while you focus on interpreting what the numbers mean for your design.
 
 ## 5. Conclusion
 
