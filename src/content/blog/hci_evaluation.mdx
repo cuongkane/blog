@@ -230,12 +230,19 @@ The most powerful HCI evaluations integrate both approaches. Use quantitative da
 
 Let's walk through a complete evaluation of a new AI-powered tool that I've designed to help developers understand unfamiliar codebases/onboarding faster:
 
-**Key Features**:
+**New Tool - Key Features**:
 - Interactive code visualization (graph-based structure)
 - AI-generated contextual summaries
 - Natural language Q&A with follow-up support
 
-**Research Question**: Does this tool reduce onboarding time and cognitive effort compared to traditional methods (README + IDE)?
+**Comparison Tool**: GitHub Copilot (with Chat feature)
+- AI-powered code explanations
+- Chat interface for asking questions
+- Context-aware responses
+
+**Target Repository**: [ag2ai/faststream](https://github.com/ag2ai/faststream)
+
+**Research Question**: Does the new tool reduce onboarding time and cognitive effort compared to GitHub Copilot?
 
 ***
 
@@ -257,22 +264,23 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 
 #### **Example Pilot Session**
 
-**Pilot Participant 1**: Mid developer (2 years Python experience)
+**Pilot Participant 1**: Mid-level developer (3 years Python experience)
 
-**Task Given**: "Use the tool to understand how user authentication works in this Flask application"
+**Task Given**: "Explore the faststream repository and answer: What is the main purpose of this project and how is it structured?"
 
 **What Happened** (think-aloud observations):
-- ✅ `0:30` - "Oh cool, I can see a graph of the functions"
-- ✅ `1:15` - "Let me click on 'login'... okay, it shows me what it does"
-- ❌ `3:45` - "Wait, how do I go back? I'm stuck in this detail view"
+- ✅ `0:30` - "Oh cool, I can see a graph of the repository structure"
+- ✅ `1:15` - "Let me click on the main package... okay, it shows broker implementations"
+- ❌ `3:45` - "Wait, how do I go back to the overview? I'm stuck in this detail view"
 - ❌ `5:20` - "Is this loading or broken? There's no indicator"
-- ✅ `7:00` - "The AI summary is really helpful, I get the gist without reading all the code"
+- ✅ `7:00` - "The AI summary says it's for event-driven microservices—that's really helpful"
+- ✅ `9:30` - "I can see it supports Kafka, RabbitMQ... the visualization makes the structure clear"
 
 **Post-Session Interview**:
-- **What was most helpful?** "i.e, The visualization and summaries—way better than jumping between files"
-- **What was frustrating?** "i.e, Getting lost in the graph. No way to backtrack. Had to refresh."
-- **What did you expect but not find?** "i.e, A 'home' button, breadcrumbs showing where I am, zoom controls"
-- **Would you use this?** "i.e, Yes, but only after the navigation is fixed"
+- **What was most helpful?** "The visualization and AI summaries—I got the big picture immediately without reading tons of documentation"
+- **What was frustrating?** "Getting lost in the graph. No way to backtrack. Had to refresh the page"
+- **What did you expect but not find?** "A 'home' button, breadcrumbs showing where I am in the navigation, zoom controls"
+- **Would you use this?** "Yes, definitely better than scrolling through GitHub or asking Copilot repeatedly, but only after the navigation is fixed"
 
 
 #### **Issues Identified & Prioritization**
@@ -311,16 +319,19 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 
 #### **Validation: Second Pilot Test**
 
-**Pilot Participant 3**: Another Mid-level developer (2 -> 3+ years experience)
+**Pilot Participant 2**: Another Mid-level developer (4 years Python experience)
 
-**Result**: 
-- ✅ Completed task in 7 minutes without getting stuck
+**Task**: Same faststream repository exploration task
+
+**Result**:
+- ✅ Completed task in 14 minutes without getting stuck
+- ✅ Successfully identified FastStream's purpose and structure
 - ✅ Successfully used back button and zoom controls
-- ✅ Noticed and used chat box for one follow-up question
+- ✅ Noticed and used chat box for one follow-up question about broker implementations
 - ✅ No critical issues reported
 - Minor feedback: "Zoom is a bit sensitive" (noted but not blocking)
 
-**Decision**: Tool is ready for formal comparative evaluation
+**Decision**: Tool is ready for formal comparative evaluation against GitHub Copilot
 
 ***
 
@@ -328,8 +339,8 @@ Let's walk through a complete evaluation of a new AI-powered tool that I've desi
 
 #### **Design Choice: Within-Subjects with Counterbalancing**
 Due to the limitation of the participant, we should only use the 2 designs:
-- **Within-subjects**: Each participant tries BOTH your tool AND baseline
-- **Counterbalancing**: Systematically alternate which condition comes first
+- **Within-subjects**: Each participant tries BOTH the new tool AND GitHub Copilot
+- **Counterbalancing**: Systematically alternate which condition comes first (prevents bias from familiarity with the repository)
 
 ***
 
@@ -337,27 +348,30 @@ Due to the limitation of the participant, we should only use the 2 designs:
 - 5 software developers (2-8 years experience)
 - Recruited from local tech companies and university CS department
 - All familiar with Python and web development
-- None had seen the target codebase before
+- All have experience using GitHub Copilot in their daily work
+- None had seen the faststream codebase before
 
 ***
 
-#### **Tasks** (same for both conditions)
+#### **Task** (same for both conditions)
 
-Each participant completes 2 realistic code understanding scenarios:
+Each participant explores the [ag2ai/faststream](https://github.com/ag2ai/faststream) repository and answers:
 
-1. **Authentication Flow**: "Locate the user login function. Explain what happens when credentials are correct vs. incorrect."
-   - **Success criteria**: Correctly identifies login function, explains both success/failure paths
-   - **Expected time**: 8-12 minutes
+**"What is the main purpose of this project and how is it structured?"**
 
-2. **Data Flow Tracing**: "Find the user registration API endpoint. Trace where it's defined, what validation occurs, and which database tables are updated."
-   - **Success criteria**: Identifies endpoint, traces validation logic, names correct database tables
-   - **Expected time**: 10-15 minutes
+**Success criteria**:
+- Correctly identifies FastStream as a framework for building event-driven microservices
+- Explains that it provides Python async frameworks for message brokers (Kafka, RabbitMQ, NATS, Redis)
+- Identifies key architectural components (brokers, message handlers, routing patterns)
+- Describes the project structure (core modules, broker implementations, documentation)
+
+**Expected time**: 15-20 minutes
 
 **Task characteristics**:
-- Realistic (mirrors actual onboarding scenarios)
-- Verifiable (clear right/wrong answers)
-- Equivalent difficulty (both require similar reasoning steps)
-- Same tasks used for both conditions (fair comparison)
+- Realistic (mirrors actual onboarding scenarios when joining a new project)
+- Verifiable (clear right/wrong answers based on repository documentation)
+- Complex enough to require both high-level understanding and structural exploration
+- Same task used for both conditions (fair comparison)
 
 ***
 
@@ -471,18 +485,18 @@ After running your study, organize data like this:
 
 | Participant | Condition | Time (min) | Success (%) | NASA-TLX | SUS | Preferred |
 |-------------|-----------|------------|-------------|----------|-----|-----------|
-| P1 | Tool | 8.5 | 100% | 42 | 78 | Tool |
-| P1 | Baseline | 14.2 | 75% | 63 | 58 | — |
-| P2 | Tool | 10.3 | 100% | 48 | 72 | Tool |
-| P2 | Baseline | 12.8 | 75% | 58 | 62 | — |
-| P3 | Tool | 9.1 | 75% | 45 | 80 | Tool |
-| P3 | Baseline | 15.5 | 75% | 68 | 55 | — |
-| P4 | Tool | 11.2 | 75% | 52 | 68 | Tool |
-| P4 | Baseline | 13.0 | 50% | 62 | 60 | — |
-| P5 | Tool | 8.8 | 100% | 40 | 82 | Baseline* |
-| P5 | Baseline | 16.1 | 100% | 70 | 52 | — |
+| P1 | New Tool | 12.5 | 100% | 38 | 82 | New Tool |
+| P1 | GitHub Copilot | 18.3 | 75% | 55 | 65 | — |
+| P2 | New Tool | 14.2 | 100% | 42 | 78 | New Tool |
+| P2 | GitHub Copilot | 19.5 | 75% | 58 | 68 | — |
+| P3 | New Tool | 11.8 | 100% | 40 | 85 | New Tool |
+| P3 | GitHub Copilot | 17.2 | 75% | 60 | 62 | — |
+| P4 | New Tool | 15.1 | 75% | 48 | 72 | New Tool |
+| P4 | GitHub Copilot | 16.8 | 75% | 52 | 70 | — |
+| P5 | New Tool | 13.3 | 100% | 36 | 88 | Copilot* |
+| P5 | GitHub Copilot | 20.1 | 100% | 62 | 58 | — |
 
-(You could add an extra column for the preference reason like: *P5* preferred baseline due to familiarity with IDE workflow)
+(You could add an extra column for the preference reason like: *P5* preferred GitHub Copilot due to familiarity with the tool from daily work)
 
 Then, you could use your awesome math capibility to calculate the summarize from the above table.
 
@@ -500,12 +514,12 @@ This automates the statistical heavy lifting while you focus on interpreting wha
 
 The statistical results could be:
 
-| Metric | New Tool (M±SD) | Baseline (M±SD) | Improvement | Significance |
+| Metric | New Tool (M±SD) | GitHub Copilot (M±SD) | Improvement | Significance |
 |--------|-------------|-----------------|-------------|--------------|
-| **Time** | 9.58±1.17 min | 14.32±1.48 min | **33% faster** | p=0.006 |
-| **NASA-TLX** | 45.4±4.67 | 64.2±4.55 | **29% lower workload** | p=0.001 |
-| **SUS** | 76.0±5.61 | 57.4±4.16 | **32% better usability** | p=0.003 |
-| **Success** | 85% | 75% | +10% | p=0.08 (n.s.) |
+| **Time** | 13.38±1.39 min | 18.38±1.50 min | **27% faster** | p=0.002 |
+| **NASA-TLX** | 40.8±4.76 | 57.4±4.16 | **29% lower workload** | p=0.001 |
+| **SUS** | 81.0±6.36 | 64.6±4.93 | **26% better usability** | p=0.004 |
+| **Success** | 95% | 80% | +15% | p=0.12 (n.s.) |
 | **Preference** | 80% (4/5) | 20% (1/5) | **+60%** | — |
 
 #### 💬 Qualitative Patterns
@@ -513,11 +527,16 @@ The statistical results could be:
 From post-task interviews, identify recurring patterns:
 
 **What Worked** (mentioned by majority):
-- ✅ **Interactive visualization** (5/5): "Seeing connections immediately vs. hunting through files"
-- ✅ **AI summaries** (4/5): "Got context without reading 200-line functions"
-- ✅ **Intuitive interaction** (5/5): "No tutorial needed—just started clicking"
+- ✅ **Interactive visualization** (5/5): "The graph view showed me the whole project structure at once—much better than asking Copilot 10 different questions"
+- ✅ **AI summaries** (5/5): "Got the main purpose and architecture immediately vs. piecing it together from Copilot's scattered answers"
+- ✅ **Holistic understanding** (4/5): "Copilot answers one question at a time. This tool gave me the big picture"
 
-**What Needs Improvement** (mentioned by multiple participants):
+**What GitHub Copilot Did Well** (mentioned by participants):
+- ✅ **Familiar interface** (5/5): "I already use Copilot daily, so no learning curve"
+- ✅ **Detail on demand** (3/5): "When I asked specific code questions, Copilot gave good explanations"
+- ❌ **But**: (4/5) "Had to ask many questions to understand the overall structure. Felt fragmented."
+
+**What Needs Improvement in New Tool** (mentioned by multiple participants):
 - ❌ **Zoom controls** (3/5): "Couldn't figure out how to zoom back out"
 - ❌ **Navigation breadcrumbs** (3/5): "Got lost in the graph, needed 'back' button"
 - ❌ **Q&A discoverability** (2/5): "Didn't realize I could ask follow-up questions"
@@ -528,7 +547,7 @@ From post-task interviews, identify recurring patterns:
 
 Collect the qualitative and quantitative analysis to produce a conclusion with concrete figures:
 
-> The tool achieves its goal—developers complete onboarding tasks 33% faster with 29% less mental effort and significantly higher satisfaction. The interactive visualization is the standout feature, while navigation issues represent the primary barrier to adoption.
+> The new tool achieves its goal—developers complete codebase understanding tasks 27% faster with 29% less mental effort and significantly higher satisfaction compared to GitHub Copilot. The interactive visualization provides a holistic understanding that outperforms Copilot's fragmented, question-by-question approach. However, navigation issues remain the primary barrier to adoption.
 
 Next action items can be infered/found from the survey's results. For example:
 1. **Critical**: Fix zoom/navigation controls (addresses main complaint)
