@@ -1,9 +1,11 @@
 ---
 title: "Use Claude Code Skill to Efficiently Do Vibe Coding"
-date: 2025-01-22
-draft: false
+description: "Learn how to create and use Claude Code Skills to transform AI-assisted development from a novelty into a reliable engineering practice with consistent, high-quality outputs."
+image: "/images/use_claude_code_skill/intro.webp"
+date: "2025-01-22"
+author: "cuongkane"
+published: true
 tags: ["claude-code", "ai-coding", "productivity", "developer-tools"]
-categories: ["Engineering"]
 ---
 
 ## Introduction: The World with Claude Code
@@ -17,6 +19,21 @@ This is where **Skills** become essential.
 Think of Claude Code as a highly capable assistant who just joined your team. They're intelligent and eager to help, but they don't know your team's conventions, your coding standards, or your preferred workflows. You could explain everything from scratch each time—or you could create a comprehensive onboarding document that captures all this knowledge.
 
 Skills are exactly that: structured instruction sets that guide Claude Code through specific tasks with precision and consistency.
+
+## Terminology
+
+Before diving deeper, let's clarify the key terms used throughout this post:
+
+| Term | Definition |
+|------|------------|
+| **Claude Code** | Anthropic's official CLI tool for AI-assisted development. It can read files, execute commands, and make code changes autonomously. |
+| **Skill** | A structured set of instructions that guides Claude Code through a specific task. Skills have a name, description, and step-by-step workflow. |
+| **Subagent** | An isolated Claude Code process spawned to handle a specific subtask. Subagents have their own context window, preventing the main session from being overwhelmed. |
+| **Programmatic Tool Calling** | A technique where skills define templates that invoke Claude Code's tools (like Task, Read, Grep) with specific parameters. This enables automated, repeatable tool usage patterns. |
+| **Context Window** | The amount of conversation history and file content Claude Code can "remember" at once. Managing this is critical for complex tasks. |
+| **MCP (Model Context Protocol)** | A protocol that allows Claude Code to connect to external services like Jira, Confluence, and databases. |
+| **Confirmation Gate** | A checkpoint in a skill workflow where Claude Code pauses and requires explicit user approval before proceeding. |
+| **CLAUDE.md** | A special markdown file that Claude Code automatically reads for project-specific conventions, commands, and guidelines. |
 
 ## Problem Setup: Why Do We Need Skills?
 
@@ -73,30 +90,6 @@ Skills are collections of instructions that tell Claude Code what to do for spec
 | **Name** | Clear identifier that describes the skill's purpose |
 | **Description** | Explains when the skill should be used—Claude Code reads this to determine applicability |
 | **Instructions** | Step-by-step workflow with phases, checkpoints, and expected outputs |
-
-### Why Skills Matter
-
-**1. Automatic Invocation**
-
-Claude Code reads skill descriptions and automatically determines which skill applies to the current task. When a developer says "implement HORIZON-1234," Claude Code recognizes this matches the implement-python-ticket skill and invokes it.
-
-**2. Consistent Workflows**
-
-Skills encode your team's best practices into repeatable workflows. Every implementation follows the same phases, every test meets the same standards, every code review checks the same criteria.
-
-**3. Knowledge Integration**
-
-Skills can reference:
-- Confluence documentation
-- Internal libraries and packages
-- Team conventions
-- Approval gates and checkpoints
-
-This turns scattered knowledge into actionable guidance.
-
-**4. Context Management**
-
-Well-designed skills use **subagents**—isolated processes that handle specific phases without bloating the main context window. This allows Claude Code to explore large codebases without losing track of earlier decisions.
 
 ### The Skill Architecture
 
@@ -203,12 +196,28 @@ The skill:
 
 #### Phase 3: Codebase Exploration & Planning
 
-This is where the skill's architecture shines. A **subagent** handles exploration and planning in an isolated context:
+This is where the skill's architecture shines through **Programmatic Tool Calling**—a technique where the skill defines templates that automatically invoke Claude Code's tools with specific parameters.
+
+**The Technique: Programmatic Tool Calling**
+
+Instead of hoping Claude Code will explore the right files, the skill explicitly defines what tools to call and how:
+
+```
+Task(
+  description: "Explore and plan for {TICKET_ID}",
+  subagent_type: "Plan",
+  model: "opus",
+  prompt: <structured template with variables>
+)
+```
+
+This spawns a **subagent**—an isolated Claude Code process with its own context window. The skill passes variables like `{TICKET_ID}`, `{CONSOLIDATED_REQUIREMENTS}`, and `{PATTERN_REFERENCES}` into the template, ensuring the subagent has exactly the context it needs.
 
 **Why Use a Subagent?**
 - Exploration requires reading many files
 - Keeping this in the main session would bloat the context window
 - If the user requests plan revisions, the subagent can adjust without re-reading files
+- The subagent's context is isolated—it won't pollute the main session
 
 The subagent workflow:
 1. **Explore Codebase**: Find patterns, conventions, utilities, and similar implementations
@@ -331,13 +340,34 @@ Vague instructions reduce accuracy. Instead of:
 Specify:
 > "Write tests using AAA pattern. Name tests `test_should_{behavior}_when_{scenario}`. Cover all acceptance criteria behaviors. Target 80%+ coverage."
 
-### 8. Test Incrementally
+### 8. Test with Two Claude Sessions
 
-After creating or updating skills:
-- Test with representative tasks
-- Observe where Claude Code struggles
-- Refine instructions based on actual behavior
-- Iterate like prompt engineering
+A practical strategy for developing skills is to use **two separate Claude Code sessions**:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  TWO-SESSION TESTING STRATEGY               │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Session 1: SKILL DEVELOPMENT          Session 2: TESTING  │
+│  ┌─────────────────────────┐          ┌─────────────────┐  │
+│  │ • Write skill code      │          │ • Run example   │  │
+│  │ • Edit instructions     │   ───►   │   tasks         │  │
+│  │ • Refine based on       │   ◄───   │ • Observe       │  │
+│  │   feedback              │          │   behavior      │  │
+│  └─────────────────────────┘          └─────────────────┘  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**How it works:**
+1. **Session 1** focuses on writing and editing the skill definition
+2. **Session 2** tests the skill with real example tasks (e.g., "implement HORIZON-1234")
+3. Observe where Claude Code struggles or deviates from expected behavior
+4. Return to Session 1 to refine instructions
+5. Repeat until the skill performs consistently
+
+This separation prevents the skill-writing context from interfering with skill-testing context, giving you cleaner feedback on how the skill actually performs.
 
 ## Conclusion
 
