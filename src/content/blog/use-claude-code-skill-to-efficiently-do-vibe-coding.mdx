@@ -369,6 +369,132 @@ A practical strategy for developing skills is to use **two separate Claude Code 
 
 This separation prevents the skill-writing context from interfering with skill-testing context, giving you cleaner feedback on how the skill actually performs.
 
+## Lessons from Building the Investigate-Sentry-Issue Skill
+
+While building a skill to investigate Sentry issues, several practical lessons emerged that complement the best practices above:
+
+### 1. Claude is Already Smart—Don't Over-Explain
+
+The initial draft was 326 lines with detailed explanations of what stacktraces are, what Sentry does, and step-by-step MCP tool usage. After applying the "concise is key" principle, it reduced to 147 lines.
+
+**Before (verbose):**
+```markdown
+## Phase 1: Environment Check
+
+**Intent**: Ensure Sentry MCP is properly configured before starting investigation.
+
+### Steps
+
+1. **Check Sentry MCP connection**: Call `mcp__sentry__whoami` to verify authentication.
+
+2. **If authentication fails**: Stop and display:
+   Sentry MCP is not configured or authenticated.
+   Please ensure:
+   1. Sentry MCP server is configured in your Claude Code settings
+   ...
+```
+
+**After (concise):**
+```markdown
+## Phase 1: Environment Check
+
+1. Verify Sentry MCP is authenticated
+2. If fails → stop and ask user to configure MCP
+3. Check for `CLAUDE.md` for project conventions
+```
+
+Claude already knows what MCP authentication means and how to communicate failures. The skill only needs to specify *what* to do, not *how* to explain it.
+
+### 2. Avoid Hardcoding External Dependencies
+
+MCP tool names like `mcp__sentry__whoami` or `mcp__plugin_standard_atlassian__createJiraIssue` are implementation details that can change. Hardcoding them makes the skill fragile.
+
+**Fragile:**
+```markdown
+Use `mcp__sentry__get_issue_details` with the full URL:
+get_issue_details(issueUrl='<full-sentry-url>')
+```
+
+**Resilient:**
+```markdown
+Fetch issue using Sentry MCP
+```
+
+Claude knows how to use the available MCP tools. The skill should describe *intent*, not *implementation*.
+
+### 3. Description Drives Skill Discovery
+
+The description field is critical—Claude reads it to decide which skill to trigger. Initially, the skill wasn't being triggered for phrases like "investigate this sentry issue" or "check sentry error."
+
+**Before:**
+```yaml
+description: Investigates Sentry issues by fetching error details, exploring related code, and generating investigation reports.
+```
+
+**After:**
+```yaml
+description: Proactively use when user wants to investigate a Sentry issue (e.g., "investigate this sentry issue", "check sentry error", "debug this sentry", or provides a sentry.io URL). Fetches error details, explores related code, generates investigation report, and optionally creates Jira bug ticket.
+```
+
+The pattern `Proactively use when... (e.g., "trigger phrase 1", "trigger phrase 2")` explicitly tells Claude when to activate the skill.
+
+### 4. Eliminate Duplication Ruthlessly
+
+The initial draft had both a "Workflow Overview" diagram and a "Progress Checklist"—essentially the same information twice.
+
+**Duplicated:**
+```markdown
+## Workflow Overview
+Phase 1: Environment Check     → Verify Sentry MCP
+Phase 2: Sentry Analysis       → Fetch issue details
+...
+
+## Progress Checklist
+- [ ] Phase 1: Verify Sentry MCP connection
+- [ ] Phase 2: Fetch and analyze Sentry issue
+...
+```
+
+**Consolidated:**
+```markdown
+## Workflow Checklist
+
+Copy and track progress:
+- [ ] Phase 1: Environment Check    → Verify Sentry MCP
+- [ ] Phase 2: Sentry Analysis      → Fetch issue details
+...
+```
+
+One element serving both purposes: visual overview AND trackable checklist.
+
+### 5. Review Against the Official Checklist
+
+Anthropic provides a comprehensive checklist for skill quality. Use it as a final review:
+
+| Check | Status |
+|-------|--------|
+| Description specific with triggers | ✓ |
+| Third person description | ✓ |
+| Under 500 lines | ✓ (147 lines) |
+| Progressive disclosure | ✓ |
+| One-level deep references | ✓ |
+| Copyable checklist | ✓ |
+| No hardcoded dependencies | ✓ |
+| Consistent terminology | ✓ |
+
+Multiple review passes caught issues that seemed fine initially—like the hardcoded MCP tool names that only became obvious as "fragile" after explicit review.
+
+### 6. Start with Existing Patterns
+
+Rather than inventing structure from scratch, examine existing skills in your codebase. The `implement-python-ticket` skill provided patterns for:
+
+- Description format: `Proactively use when... (e.g., ...)`
+- Phase structure with gates
+- Subagent usage for heavy exploration
+- Template files in `tasks/` and `templates/` directories
+
+Consistency across skills makes them easier to maintain and understand.
+
 ## Conclusion
 
 Claude Code skills transform AI-assisted development from a novelty into a reliable engineering practice. By encoding your team's knowledge, standards, and workflows into structured instructions, you achieve:
