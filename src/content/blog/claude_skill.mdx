@@ -8,19 +8,17 @@ published: true
 tags: ["claude-code", "ai-coding", "productivity", "developer-tools"]
 ---
 
-## Introduction: The World with Claude Code
+## Context
 
 We are living in an exciting era of AI-assisted development. Claude Code has emerged as a powerful CLI tool that transforms how developers interact with codebases. Unlike traditional autocomplete tools, Claude Code understands context, executes commands, reads files, and can even make complex multi-file changes autonomously.
 
-But with great power comes great complexity. As teams adopt Claude Code, a critical question emerges: **How do we ensure consistent, high-quality outputs across different developers and tasks?**
-
-This is where **Skills** become essential.
-
 Think of Claude Code as a highly capable assistant who just joined your team. They're intelligent and eager to help, but they don't know your team's conventions, your coding standards, or your preferred workflows. You could explain everything from scratch each time—or you could create a comprehensive onboarding document that captures all this knowledge.
 
-Skills are exactly that: structured instruction sets that guide Claude Code through specific tasks with precision and consistency.
+As teams adopt Claude Code, a critical question emerges: **How do we ensure consistent, high-quality outputs across different developers and tasks?**
 
-## Terminology
+This is where **Skills** become essential—structured instruction sets that guide Claude Code through specific tasks with precision and consistency.
+
+## Terminologies
 
 Before diving deeper, let's clarify the key terms used throughout this post:
 
@@ -29,13 +27,12 @@ Before diving deeper, let's clarify the key terms used throughout this post:
 | **Claude Code** | Anthropic's official CLI tool for AI-assisted development. It can read files, execute commands, and make code changes autonomously. |
 | **Skill** | A structured set of instructions that guides Claude Code through a specific task. Skills have a name, description, and step-by-step workflow. |
 | **Subagent** | An isolated Claude Code process spawned to handle a specific subtask. Subagents have their own context window, preventing the main session from being overwhelmed. |
-| **Programmatic Tool Calling** | A technique where skills define templates that invoke Claude Code's tools (like Task, Read, Grep) with specific parameters. This enables automated, repeatable tool usage patterns. |
 | **Context Window** | The amount of conversation history and file content Claude Code can "remember" at once. Managing this is critical for complex tasks. |
-| **MCP (Model Context Protocol)** | A protocol that allows Claude Code to connect to external services like Jira, Confluence, and databases. |
+| **MCP (Model Context Protocol)** | A protocol that allows Claude Code to connect to external services like Jira, Confluence, Sentry, and databases. |
 | **Confirmation Gate** | A checkpoint in a skill workflow where Claude Code pauses and requires explicit user approval before proceeding. |
 | **CLAUDE.md** | A special markdown file that Claude Code automatically reads for project-specific conventions, commands, and guidelines. |
 
-## Problem Setup: Why Do We Need Skills?
+## Problem Setup
 
 ### The Challenges of AI-Assisted Development
 
@@ -79,7 +76,7 @@ As your organization grows, these problems multiply:
 
 You need a systematic solution—not just better prompts.
 
-## Claude Skill Solution: Structured Intelligence
+## Solution: Claude Skill
 
 ### What Are Skills?
 
@@ -106,11 +103,31 @@ Skills are collections of instructions that tell Claude Code what to do for spec
 └─────────────────────────────────────────────┘
 ```
 
-## Example: The Implement Python Ticket Skill
+### Key Architectural Principles
 
-Let's examine a real-world skill that transforms how teams implement Jira tickets. This skill guides Claude Code through a systematic workflow from ticket analysis to tested code.
+**1. Phase Separation**
 
-### Workflow Overview
+Skills break complex tasks into distinct phases with clear boundaries. Each phase has a specific purpose, defined inputs, and expected outputs.
+
+**2. Confirmation Gates**
+
+Critical transitions require explicit user approval before proceeding. This prevents cascading errors and ensures alignment.
+
+**3. Subagent Isolation**
+
+Heavy exploration tasks (reading many files) are delegated to subagents with their own context windows. This prevents the main session from being overwhelmed.
+
+**4. Recovery Points**
+
+Important outputs (like implementation plans) are saved to files, allowing restart without losing progress.
+
+## Practical Skills
+
+### Implement Python Ticket Skill
+
+This skill guides Claude Code through a systematic workflow from Jira ticket analysis to tested code.
+
+#### Workflow Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -151,56 +168,28 @@ Phase 5: Testing & Verification
 Result: Working code + tests + ready for PR
 ```
 
-### Step-by-Step Walkthrough
+#### Phase Walkthrough
 
-#### Phase 0: Authentication & Environment
+**Phase 0: Authentication & Environment**
 
 Before any work begins, the skill verifies prerequisites:
+- MCP Authentication: Checks the Atlassian MCP connection
+- Project Detection: Identifies Django, Kafka, or generic Python projects
+- Context Loading: Locates `CLAUDE.md` files and shared utility directories
 
-1. **MCP Authentication**: Checks the Atlassian MCP connection. If authentication fails, the skill stops and shows instructions rather than proceeding with incomplete access.
+**Phase 1-2: Ticket Analysis & Requirement Clarification**
 
-2. **Project Detection**: Identifies the project type from indicators:
-   - Django: `manage.py`, `settings.py`, `models.py`
-   - Kafka: `kafka/` directory, consumer/producer patterns
-   - Generic Python: `pyproject.toml`, standard package structure
+The skill fetches the Jira ticket and performs structured analysis:
+- Extract information: Issue key, title, description, acceptance criteria
+- Assess completeness: Are requirements clear? Are acceptance criteria testable?
+- Clarify gaps: Ask questions about behavior, edge cases, and business context
+- **GATE**: Requires explicit user confirmation before proceeding
 
-3. **Context Loading**: Locates `CLAUDE.md` files and shared utility directories that contain team-specific guidance.
+Key principle: Questions about WHAT needs to be built belong here. Questions about HOW (code locations, patterns) belong in Phase 3.
 
-**Why This Matters**: Starting with environment verification prevents wasted effort on tasks that would fail later due to missing access or incorrect assumptions.
+**Phase 3: Codebase Exploration & Planning**
 
-#### Phase 1: Ticket Analysis
-
-The skill fetches the Jira ticket and performs a structured analysis:
-
-1. **Extract Information**: Issue key, title, description, acceptance criteria, linked documents
-2. **Assess Completeness**: Are the requirements clear? Are acceptance criteria testable?
-3. **Categorize Gaps**:
-   - Minor (1-2 unknowns): Proceed with clarifying questions
-   - Major (3+ unknowns): Suggest requesting a Technical Design document
-
-**Why This Matters**: This prevents the "butterfly effect" where small ambiguities in requirements cascade into significant rework during implementation.
-
-#### Phase 2: Requirement Clarification
-
-This phase focuses purely on **WHAT** needs to be built—not **HOW**.
-
-Key principle: Questions about behavior, edge cases, and business context belong here. Questions about code locations and existing patterns belong in Phase 3.
-
-The skill:
-1. Batches clarifying questions (asked all at once for efficiency)
-2. Gathers user domain knowledge
-3. Consolidates requirements into a summary
-4. **GATE**: Requires explicit user confirmation before proceeding
-
-**Why This Matters**: Separating business understanding from implementation details ensures you solve the right problem before investing in exploration.
-
-#### Phase 3: Codebase Exploration & Planning
-
-This is where the skill's architecture shines through **Programmatic Tool Calling**—a technique where the skill defines templates that automatically invoke Claude Code's tools with specific parameters.
-
-**The Technique: Programmatic Tool Calling**
-
-Instead of hoping Claude Code will explore the right files, the skill explicitly defines what tools to call and how:
+This phase uses **Programmatic Tool Calling**—the skill defines templates that automatically invoke Claude Code's tools:
 
 ```
 Task(
@@ -211,69 +200,125 @@ Task(
 )
 ```
 
-This spawns a **subagent**—an isolated Claude Code process with its own context window. The skill passes variables like `{TICKET_ID}`, `{CONSOLIDATED_REQUIREMENTS}`, and `{PATTERN_REFERENCES}` into the template, ensuring the subagent has exactly the context it needs.
+The subagent:
+1. Explores codebase for patterns, conventions, and similar implementations
+2. Loads pattern references from Confluence documentation
+3. Creates structured implementation plan
+4. Gets user approval (iterates until approved)
+5. Saves plan to `docs/{TICKET_ID}-{slug}.md`
 
-**Why Use a Subagent?**
-- Exploration requires reading many files
-- Keeping this in the main session would bloat the context window
-- If the user requests plan revisions, the subagent can adjust without re-reading files
-- The subagent's context is isolated—it won't pollute the main session
+**Phase 4-5: Implementation & Testing**
 
-The subagent workflow:
-1. **Explore Codebase**: Find patterns, conventions, utilities, and similar implementations
-2. **Load Pattern References**: Fetch established patterns from Confluence documentation
-3. **Create Implementation Plan**: Structured plan with files to create/modify, steps, and test strategy
-4. **Get User Approval**: Present plan and iterate until approved
-5. **Return**: Only exits when the user explicitly approves
+With an approved plan:
+- Follow the approved step order
+- Match discovered patterns and conventions
+- Write tests using AAA pattern (Arrange → Act → Assert)
+- Verify all acceptance criteria
 
-The output is saved to `docs/{TICKET_ID}-{slug}.md` as a checkpoint—if implementation needs to restart, this plan serves as the recovery point.
+### Investigate Sentry Issue Skill
 
-#### Phase 4: Implementation
+This skill transforms Sentry error investigation from ad-hoc debugging into a systematic process with documented findings.
 
-With an approved plan, implementation becomes straightforward:
+#### Workflow Overview
 
-1. Follow the approved step order
-2. Match discovered patterns and conventions
-3. Apply clean code principles
-4. Document progress
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  INVESTIGATION WORKFLOW                     │
+└─────────────────────────────────────────────────────────────┘
 
-**Key Principle**: The implementation should fit the codebase, not impose new conventions.
+Phase 1: Environment Check
+   ↓ Verify Sentry MCP authentication
 
-#### Phase 5: Testing & Verification
+Phase 2: Sentry Analysis
+   ↓ Fetch issue details, extract stacktrace
 
-The skill enforces testing standards:
+Phase 3: Code Exploration (SUBAGENT)
+   ↓ ┌─────────────────────────────────────┐
+     │  SUBAGENT: Explore codebase         │
+     │                                     │
+     │  • Read stacktrace files            │
+     │  • Trace code flow                  │
+     │  • Identify potential root causes   │
+     │  • Find related patterns            │
+     └─────────────────────────────────────┘
 
-**Test Structure**:
-- AAA pattern (Arrange → Act → Assert)
-- Descriptive names: `test_should_{expected_behavior}_when_{scenario}`
-- One scenario per test
+Phase 4: Write Report
+   ↓ Compile investigation findings
 
-**What to Test**:
-- Behavior, not implementation
-- Mock only external boundaries
-- Every bug fix requires a regression test
+Phase 5: User Review
+   ↓ ┌─────────────────────────────────────┐
+     │       APPROVAL GATE                 │
+     │  User reviews and approves report   │
+     └─────────────────────────────────────┘
 
-**Quality Targets**:
-- 80%+ coverage for new code
-- All acceptance criteria verified
+Phase 6: Save & Decide
+   ↓ Save report, ask about Jira ticket
 
-### Why This Skill Works
+Phase 7: Create Ticket (Optional)
+   ↓ Create Jira bug with investigation details
 
-The implement-python-ticket skill succeeds because it:
+Result: Documented investigation + optional Jira bug
+```
 
-1. **Separates Concerns**: Requirements → Exploration → Planning → Implementation → Testing
-2. **Uses Checkpoints**: Confirmation gates prevent cascading errors
-3. **Manages Context**: Subagents isolate heavy exploration from the main session
-4. **Encodes Standards**: Testing patterns, code conventions, and approval workflows are built-in
-5. **Enables Recovery**: Saved plans allow restart without losing progress
+#### Phase Walkthrough
 
-## Claude Skill Best Practices
+**Phase 1-2: Environment Check & Sentry Analysis**
 
-Based on Anthropic's official recommendations and practical experience, here are the key practices for creating effective skills:
+- Verify Sentry MCP is authenticated
+- Parse Sentry URL to extract issue/event IDs
+- Fetch issue details: error type, message, stacktrace, event count, affected users, environment, tags, breadcrumbs
+- Summarize findings for the exploration subagent
+
+**Phase 3: Code Exploration**
+
+Uses subagent to avoid context bloat:
+
+```
+Task(
+  description: "Explore code for Sentry issue",
+  subagent_type: "Explore",
+  prompt: <substituted template with stacktrace info>
+)
+```
+
+The subagent reads stacktrace files, traces code flow, and identifies potential root causes.
+
+**Phase 4-5: Write Report & User Review**
+
+Compile findings into structured report:
+- Executive Summary
+- Error Details
+- Root Cause Analysis
+- Affected Areas
+- Reproduction Steps (if determinable)
+- Recommended Fixes
+- Impact Assessment
+
+**GATE**: Do NOT proceed without explicit approval.
+
+**Phase 6-7: Save & Optional Jira Creation**
+
+- Save report to `docs/sentry-investigations/{ISSUE_ID}-investigation.md`
+- Ask if user wants to create Jira bug ticket
+- If yes: create ticket with investigation details via Atlassian MCP
+
+#### Guardrails
+
+| Rule | Why |
+|------|-----|
+| Verify MCP first | Avoid wasted effort |
+| Use subagent for exploration | Prevent context bloat |
+| Require report approval | Ensure accuracy |
+| Confirm before Jira creation | Side effect control |
+| User chooses Jira project | Team flexibility |
+
+## Good Practices
+
+Based on Anthropic's official recommendations and practical experience:
 
 ### 1. Invest in Naming and Description
 
-The skill name and description determine whether Claude Code invokes the skill correctly. Be specific:
+The skill name and description determine whether Claude Code invokes the skill correctly:
 
 | Quality | Example |
 |---------|---------|
@@ -282,8 +327,6 @@ The skill name and description determine whether Claude Code invokes the skill c
 | **Description** | "Proactively use when user wants to implement a Jira ticket (e.g., 'implement HORIZON-1999', 'work on PROJ-123')" |
 
 ### 2. Design Clear Phase Boundaries
-
-Break workflows into distinct phases with specific purposes:
 
 - **Phase separation**: Don't mix requirements gathering with code exploration
 - **Clear handoffs**: Define what each phase produces and what the next phase expects
@@ -302,10 +345,7 @@ Task(
 )
 ```
 
-Benefits:
-- Isolated context window
-- Enables extended thinking
-- Supports revision without re-exploration
+Benefits: isolated context window, enables extended thinking, supports revision without re-exploration.
 
 ### 4. Encode Your Team's Knowledge
 
@@ -314,18 +354,11 @@ Reference your actual documentation:
 - Internal library documentation
 - Team conventions and standards
 
-Skills should know where to find authoritative guidance.
-
 ### 5. Build in Recovery Points
 
-Save important outputs (like implementation plans) to files:
-- Allows restart without losing progress
-- Creates audit trail
-- Enables handoff between sessions
+Save important outputs (like implementation plans) to files for restart capability and audit trails.
 
 ### 6. Follow the Explore → Plan → Code → Commit Pattern
-
-Anthropic's recommended workflow:
 
 1. **Explore**: Read relevant files without writing code
 2. **Plan**: Create documented plan before implementation
@@ -334,15 +367,11 @@ Anthropic's recommended workflow:
 
 ### 7. Be Specific in Instructions
 
-Vague instructions reduce accuracy. Instead of:
-> "Add appropriate tests"
+Instead of: "Add appropriate tests"
 
-Specify:
-> "Write tests using AAA pattern. Name tests `test_should_{behavior}_when_{scenario}`. Cover all acceptance criteria behaviors. Target 80%+ coverage."
+Specify: "Write tests using AAA pattern. Name tests `test_should_{behavior}_when_{scenario}`. Cover all acceptance criteria behaviors. Target 80%+ coverage."
 
 ### 8. Test with Two Claude Sessions
-
-A practical strategy for developing skills is to use **two separate Claude Code sessions**:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -360,22 +389,13 @@ A practical strategy for developing skills is to use **two separate Claude Code 
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**How it works:**
-1. **Session 1** focuses on writing and editing the skill definition
-2. **Session 2** tests the skill with real example tasks (e.g., "implement HORIZON-1234")
-3. Observe where Claude Code struggles or deviates from expected behavior
-4. Return to Session 1 to refine instructions
-5. Repeat until the skill performs consistently
+This separation prevents skill-writing context from interfering with skill-testing context.
 
-This separation prevents the skill-writing context from interfering with skill-testing context, giving you cleaner feedback on how the skill actually performs.
-
-## Lessons from Building the Investigate-Sentry-Issue Skill
-
-While building a skill to investigate Sentry issues, several practical lessons emerged that complement the best practices above:
+## Lesson Learnt
 
 ### 1. Claude is Already Smart—Don't Over-Explain
 
-The initial draft was 326 lines with detailed explanations of what stacktraces are, what Sentry does, and step-by-step MCP tool usage. After applying the "concise is key" principle, it reduced to 147 lines.
+The initial investigate-sentry-issue draft was 326 lines with detailed explanations. After applying "concise is key," it reduced to 147 lines.
 
 **Before (verbose):**
 ```markdown
@@ -386,12 +406,7 @@ The initial draft was 326 lines with detailed explanations of what stacktraces a
 ### Steps
 
 1. **Check Sentry MCP connection**: Call `mcp__sentry__whoami` to verify authentication.
-
-2. **If authentication fails**: Stop and display:
-   Sentry MCP is not configured or authenticated.
-   Please ensure:
-   1. Sentry MCP server is configured in your Claude Code settings
-   ...
+...
 ```
 
 **After (concise):**
@@ -403,97 +418,61 @@ The initial draft was 326 lines with detailed explanations of what stacktraces a
 3. Check for `CLAUDE.md` for project conventions
 ```
 
-Claude already knows what MCP authentication means and how to communicate failures. The skill only needs to specify *what* to do, not *how* to explain it.
+Claude knows what MCP authentication means. The skill only needs to specify *what* to do, not *how* to explain it.
 
 ### 2. Avoid Hardcoding External Dependencies
 
-MCP tool names like `mcp__sentry__whoami` or `mcp__plugin_standard_atlassian__createJiraIssue` are implementation details that can change. Hardcoding them makes the skill fragile.
+MCP tool names like `mcp__sentry__whoami` are implementation details that can change.
 
-**Fragile:**
-```markdown
-Use `mcp__sentry__get_issue_details` with the full URL:
-get_issue_details(issueUrl='<full-sentry-url>')
-```
+**Fragile:** `Use mcp__sentry__get_issue_details with the full URL`
 
-**Resilient:**
-```markdown
-Fetch issue using Sentry MCP
-```
+**Resilient:** `Fetch issue using Sentry MCP`
 
-Claude knows how to use the available MCP tools. The skill should describe *intent*, not *implementation*.
+Claude knows how to use available MCP tools. Describe *intent*, not *implementation*.
 
 ### 3. Description Drives Skill Discovery
 
-The description field is critical—Claude reads it to decide which skill to trigger. Initially, the skill wasn't being triggered for phrases like "investigate this sentry issue" or "check sentry error."
+The description field is critical—Claude reads it to decide which skill to trigger.
 
 **Before:**
 ```yaml
-description: Investigates Sentry issues by fetching error details, exploring related code, and generating investigation reports.
+description: Investigates Sentry issues by fetching error details...
 ```
 
 **After:**
 ```yaml
-description: Proactively use when user wants to investigate a Sentry issue (e.g., "investigate this sentry issue", "check sentry error", "debug this sentry", or provides a sentry.io URL). Fetches error details, explores related code, generates investigation report, and optionally creates Jira bug ticket.
+description: Proactively use when user wants to investigate a Sentry issue (e.g., "investigate this sentry issue", "check sentry error", "debug this sentry", or provides a sentry.io URL)...
 ```
 
-The pattern `Proactively use when... (e.g., "trigger phrase 1", "trigger phrase 2")` explicitly tells Claude when to activate the skill.
+The pattern `Proactively use when... (e.g., "trigger phrase 1", "trigger phrase 2")` explicitly tells Claude when to activate.
 
 ### 4. Eliminate Duplication Ruthlessly
 
-The initial draft had both a "Workflow Overview" diagram and a "Progress Checklist"—essentially the same information twice.
-
-**Duplicated:**
-```markdown
-## Workflow Overview
-Phase 1: Environment Check     → Verify Sentry MCP
-Phase 2: Sentry Analysis       → Fetch issue details
-...
-
-## Progress Checklist
-- [ ] Phase 1: Verify Sentry MCP connection
-- [ ] Phase 2: Fetch and analyze Sentry issue
-...
-```
-
-**Consolidated:**
-```markdown
-## Workflow Checklist
-
-Copy and track progress:
-- [ ] Phase 1: Environment Check    → Verify Sentry MCP
-- [ ] Phase 2: Sentry Analysis      → Fetch issue details
-...
-```
-
-One element serving both purposes: visual overview AND trackable checklist.
+The initial draft had both a "Workflow Overview" diagram and a "Progress Checklist"—essentially the same information twice. Consolidate into one element serving both purposes.
 
 ### 5. Review Against the Official Checklist
 
-Anthropic provides a comprehensive checklist for skill quality. Use it as a final review:
+Anthropic provides a comprehensive checklist for skill quality:
 
-| Check | Status |
-|-------|--------|
-| Description specific with triggers | ✓ |
-| Third person description | ✓ |
-| Under 500 lines | ✓ (147 lines) |
-| Progressive disclosure | ✓ |
-| One-level deep references | ✓ |
-| Copyable checklist | ✓ |
-| No hardcoded dependencies | ✓ |
-| Consistent terminology | ✓ |
-
-Multiple review passes caught issues that seemed fine initially—like the hardcoded MCP tool names that only became obvious as "fragile" after explicit review.
+| Check | Criteria |
+|-------|----------|
+| Description specific with triggers | Include example phrases |
+| Third person description | "Use when user wants..." |
+| Under 500 lines | Concise is key |
+| Progressive disclosure | Phase structure |
+| One-level deep references | Avoid nested complexity |
+| Copyable checklist | Track progress |
+| No hardcoded dependencies | Intent over implementation |
 
 ### 6. Start with Existing Patterns
 
-Rather than inventing structure from scratch, examine existing skills in your codebase. The `implement-python-ticket` skill provided patterns for:
-
-- Description format: `Proactively use when... (e.g., ...)`
+Rather than inventing structure from scratch, examine existing skills for:
+- Description format
 - Phase structure with gates
-- Subagent usage for heavy exploration
-- Template files in `tasks/` and `templates/` directories
+- Subagent usage patterns
+- Template organization
 
-Consistency across skills makes them easier to maintain and understand.
+Consistency across skills makes them easier to maintain.
 
 ## Conclusion
 
@@ -504,7 +483,7 @@ Claude Code skills transform AI-assisted development from a novelty into a relia
 - **Scalability**: New team members benefit from accumulated expertise immediately
 - **Quality**: Built-in checkpoints and standards prevent common mistakes
 
-The implement-python-ticket skill demonstrates these principles in action: from ticket analysis through tested code, each phase has clear purpose, the workflow manages complexity through subagents, and team standards are enforced automatically.
+The implement-python-ticket and investigate-sentry-issue skills demonstrate these principles: from ticket analysis through tested code, each phase has clear purpose, the workflow manages complexity through subagents, and team standards are enforced automatically.
 
 As your team adopts Claude Code, investing in well-designed skills pays dividends across every task they handle. Start with your most common workflows, encode your best practices, and iterate based on results.
 
@@ -512,4 +491,4 @@ The future of development isn't just AI-assisted—it's AI-augmented with your t
 
 ---
 
-*Thank Mr. Khang Nguyen (ParcelPerform CTO) facilitated me for me to complete my knowledge about Claude skill*
+*Thanks to Mr. Khang Nguyen (ParcelPerform CTO) for facilitating me to complete my knowledge about Claude skill*
