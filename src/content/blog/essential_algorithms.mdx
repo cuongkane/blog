@@ -1,0 +1,395 @@
+---
+title: "Algorithm Techniques: The Junior++ Engineer's Guide"
+description: "Moving beyond syntax to system thinking: A deep dive into the WH5 framework and 16 core patterns for backend mastery."
+image: "/images/algorithms/intro.webp"
+date: "2023-10-15"
+author: "Gemini"
+published: true
+tags: ["algorithms", "backend", "interview", "system-design", "python"]
+---
+
+## 1. Overview
+
+As a junior engineer, you often know the _syntax_—you can write a loop, define a class, and query a database. But the jump to a Senior or Backend Engineer role requires a shift in thinking. It requires moving from "getting code to run" to "designing efficient, scalable logic."
+
+This guide isn't a cheat sheet for memorization. It is a framework called **WH5 + Deep HOW**.
+
+For every algorithm, we ask:
+
+- **W**hat is it?
+- **W**hy use it?
+- **W**hen is it applicable?
+- **W**here is it used in real systems?
+- **W**ho uses it?
+- **HOW:** The deep intuition and mental model.
+
+We will cover the 11 fundamental patterns and 5 advanced "Backend Special" patterns that bridge the gap between LeetCode and System Design.
+
+---
+
+## 2. Core Techniques (The Fundamentals)
+
+### 1. Two Pointers
+
+**What**
+Two pointers use two indices moving in a controlled way to process data without re-visiting elements.
+
+**Why**
+
+- **Efficiency:** Turns nested loops ($O(N^2)$) into a single pass ($O(N)$).
+- **Space:** Operates in-place ($O(1)$ space).
+
+**When**
+
+- Data is sorted (crucial for the standard variation).
+- Comparing pairs or boundaries.
+- Reversing or swapping elements symmetrically.
+
+**Where**
+Arrays, Strings, Linked Lists.
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The Shrinking Search Space"**
+Imagine looking for two numbers in a sorted list that add up to a target.
+
+- Pointer `Left` starts at the smallest number.
+- Pointer `Right` starts at the largest.
+- If the sum is too big, moving `Left` forward only makes it bigger. You _must_ move `Right` backward. You have safely discarded the right-most element without checking it against every other number.
+
+```python
+left, right = 0, len(nums) - 1
+while left < right:
+    evaluate(nums[left], nums[right])
+    # Move exactly one pointer based on logic
+
+```
+
+### 2. Sliding Window
+
+**What**
+Maintains a contiguous range ("window") of data and updates its state incrementally as it moves.
+
+**Why**
+
+- **Linear Time:** Avoids re-calculating overlapping parts of the range.
+- **Localized State:** Keeps track of validity without looking back.
+
+**When**
+
+- Dealing with continuous subarrays/substrings.
+- Constraints depend on a range (sum, count, uniqueness).
+
+**Where**
+Network packet analysis (TCP window), Stream processing.
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The Caterpillar"**
+Imagine a caterpillar crawling over a leaf (array).
+
+1. **Eat (Expand):** The head (`right`) moves forward, adding data to the state.
+2. **Digest (Shrink):** If the caterpillar gets too full (invalid state), the tail (`left`) moves forward, removing data.
+
+**Core Invariant:**
+At all times, the window represents a fully tracked state whose validity is known.
+
+### 3. Sorting
+
+**What**
+Ordering data so constraints become implicit.
+
+**Why**
+
+- **Simplifies Logic:** Enables greedy decisions and binary search.
+- **Grouping:** Makes duplicates adjacent.
+
+**When**
+
+- Relative order matters.
+- Greedy decisions depend on sequence (e.g., "cheapest first").
+
+**Where**
+Database Merge Joins, Search Engine Ranking.
+
+**How (Deep Explanation)**
+**The Mental Model: "Organizing the Deck"**
+If I ask you to find a pair of Kings in a shuffled deck, you scan everything ($O(N)$). If the deck is sorted, you go straight to the Kings. Sorting ($O(N \log N)$) is an investment that makes future queries cheap.
+
+### 4. Monotonic Pattern (Stack / Queue)
+
+**What**
+A structure that maintains elements in strict increasing or decreasing order.
+
+**Why**
+
+- **Nearest Queries:** Solves "Next Greater Element" in linear time.
+
+**When**
+
+- Order matters more than position.
+- You want to "remember" potentially useful candidates and "discard" useless ones permanently.
+
+**Where**
+Stock span analysis, Histogram areas, Syntax parsing.
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The Line of Sight"**
+You are standing in a line looking right.
+
+- If a taller person stands in front of you, they block your view.
+- In the stack, when a "taller" element arrives, it pops all "shorter" elements before it because those shorter elements can never be the "next greater" for anyone else.
+
+### 5. Heaps (Priority Queue)
+
+**What**
+A tree-based structure providing $O(1)$ access to the highest or lowest priority element.
+
+**Why**
+
+- **Efficiency:** Full sorting is wasteful when you only need the Top K.
+
+**When**
+
+- "Top K" problems.
+- Streaming data where priorities change dynamically.
+
+**Where**
+Task Scheduling, Load Balancers, Leaderboards.
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The VIP Club"**
+To track the `K` richest people in a stream:
+
+1. Keep a club (Min-Heap) of size `K`.
+2. When a new person arrives, compare them to the _poorest_ member (Root).
+3. If they are richer, kick the poorest out and let the new one in.
+
+### 6. Prefix Sum
+
+**What**
+Stores cumulative results to answer range queries efficiently.
+
+**Why**
+
+- **Instant Access:** Calculates range sums in $O(1)$ after $O(N)$ preprocessing.
+
+**When**
+
+- The array is static (no updates).
+- You have millions of range queries.
+
+**Where**
+Analytics, Image Processing (Integral Images).
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The Odometer"**
+To know how many miles you drove today, you don't count every mile. You take `Odometer_Tonight - Odometer_Morning`.
+`Sum(i, j) = Prefix[j] - Prefix[i-1]`.
+
+### 7. Backtracking
+
+**What**
+Explores all solutions by trial and rollback.
+
+**Why**
+
+- **Completeness:** It finds _every_ valid combination when no mathematical shortcut exists.
+
+**When**
+
+- "Return all permutations/subsets."
+- Constraint satisfaction (Sudoku, N-Queens).
+
+**Where**
+Configuration validation, Game AI (Chess).
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The Maze"**
+
+1. **Choose:** Pick a path.
+2. **Explore:** Walk down it.
+3. **Undo:** If you hit a wall, walk back to the intersection and try the next path.
+
+### 8. BFS (Breadth-First Search)
+
+**What**
+Explores nodes level by level.
+
+**Why**
+
+- **Optimality:** Guarantees the shortest path in unweighted graphs.
+
+**When**
+
+- "Minimum steps to reach X."
+- Level-order traversal.
+
+**Where**
+GPS Navigation, Social Network connections.
+
+**How (Deep Explanation)**
+**The Mental Model: "The Ripple Effect"**
+Drop a stone in water. The ripples expand in concentric circles. BFS processes the immediate circle (neighbors) completely before moving to the next circle.
+
+### 9. DFS (Depth-First Search)
+
+**What**
+Explores deeply before backtracking.
+
+**Why**
+
+- **Exhaustive:** Good for exploring entire structures or reaching leaves quickly.
+
+**When**
+
+- Maze solving (does a path exist?).
+- Detecting cycles.
+
+**Where**
+Dependency resolution, File system traversal.
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The Labyrinth Runner"**
+Unlike the ripple, the runner picks a wall, puts a hand on it, and walks until they hit a dead end, then backtracks.
+
+### 10. Greedy Strategy
+
+**What**
+Chooses the locally optimal option at every step.
+
+**Why**
+
+- **Speed:** Much faster than DP or Backtracking because it never looks back.
+
+**When**
+
+- You can prove that a local choice never blocks a global solution (e.g., Interval Scheduling).
+
+**Where**
+Data compression (Huffman), Dijkstra's Algorithm.
+
+**How (Deep Explanation)**
+**The Mental Model: "The Cashier"**
+To make change with the fewest coins: always grab the largest coin value possible that fits the remaining amount.
+
+### 11. Dynamic Programming (DP)
+
+**What**
+Stores results of overlapping subproblems to avoid re-computation.
+
+**When**
+
+- Optimal Substructure (Solution to Big = Solution to Small + Step).
+- Overlapping Subproblems (You calculate `fib(5)` multiple times).
+
+**Where**
+Diff tools, Finance Optimization.
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The Notepad (Memoization)"**
+Don't re-calculate `3 + 2` every time. Write it down on a notepad. Before calculating, check the notepad.
+
+---
+
+## 3. The "Backend Special" (Advanced Patterns)
+
+These patterns are less about "LeetCode" and more about "System Engineering."
+
+### 12. Binary Search (The "Answer" Variant)
+
+**What**
+Using Binary Search not on an array, but on a **solution space**.
+
+**Why**
+
+- Turns "Optimization" problems (Find min capacity) into "Decision" problems (Can we do it with capacity X?).
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The Price is Right"**
+Guess a capacity. If it works, try a smaller one (optimize). If it fails, try a bigger one. The solution space is monotonic.
+
+### 13. Union-Find (DSU)
+
+**What**
+Tracks elements split into disjoint sets.
+
+**Why**
+
+- **Speed:** Merges sets and finds leaders in nearly $O(1)$ time.
+
+**Where**
+Network connectivity, Image Segmentation.
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The Representative"**
+Every group has a "Leader." To merge two groups, just make Leader A report to Leader B.
+
+### 14. Tries (Prefix Trees)
+
+**What**
+A tree where nodes share common prefixes.
+
+**Why**
+
+- **Prefix Lookups:** Fast autocomplete and routing.
+
+**Where**
+URL Routing (`/api/v1/...`), Search bars.
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The Dictionary Folders"**
+Folder `A` -> Folder `P` -> Folder `P`. To check for "APP", just try to open the folders.
+
+### 15. Topological Sort
+
+**What**
+Linear ordering of vertices where dependencies are respected.
+
+**Why**
+
+- Resolves dependencies (deadlocks, build order).
+
+**Where**
+Task Orchestration (Airflow), Package Managers.
+
+**How (Deep Explanation)**
+**The Mental Model: "Unpeeling the Onion"**
+Find the task with zero prerequisites. Do it. That frees up new tasks. Repeat.
+
+### 16. LRU Cache
+
+**What**
+Evicts the Least Recently Used item when full.
+
+**Why**
+
+- Industry standard for caching (Redis).
+
+**How (Deep Explanation)**
+
+**The Mental Model: "The Stack of Papers"**
+Read a paper? Move it to the top. Need space? Throw away the bottom one.
+_Implementation:_ HashMap + Doubly Linked List.
+
+---
+
+## 4. Conclusion
+
+The difference between a Junior and a Senior engineer isn't just knowing the syntax; it's knowing the **invariant**.
+
+- **Junior:** "I'll loop through the list and check everything."
+- **Senior:** "I can use a Sliding Window here because the state is contiguous and invalidation is local."
+
+If you can explain the **Deep HOW**—the mental model—the code becomes trivial. Pick one of these patterns this week, write the "Mental Model" on a post-it note, and solve three problems using only that intuition.
+
+Happy Coding!
