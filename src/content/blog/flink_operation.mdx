@@ -17,7 +17,9 @@ Apache Flink is an open-source, distributed processing engine and framework desi
 
 - **TaskManager**: Worker Pods that execute the actual data processing. Each TaskManager runs as a separate Pod and registers with the JobManager to offer its slots. A typical cluster has multiple TaskManager Pods distributed across Kubernetes nodes.
 
-- **Slot**: A resource unit within a TaskManager that runs one parallel slice of the job. Each slot executes a complete operator chain (Source → Operator → Sink) and has its own RocksDB instance for state.
+- **Slot**: A resource container within a TaskManager that provides memory and CPU share for execution. Each slot runs one Task (which contains one or more chained subtasks) and has its own RocksDB instance for state. The number of slots per TaskManager is configurable via taskmanager.numberOfTaskSlots.
+
+- **Subtask**: A parallel instance of an operator — if map() has parallelism=4, there are 4 map subtasks (subtask-0 to subtask-3). Subtasks are logical units executed by Java threads; with operator chaining, multiple subtasks (e.g., Source-0 → Map-0 → Sink-0) run in the same thread. Each subtask owns a specific KeyGroup range and accesses only its portion of the keyed state.
 
 - **Operator**: A processing unit that transforms data (e.g., map, filter, window, aggregate). Stateful operators store their state in RocksDB, while stateless operators process records without persistence. Multiple operators can be chained together in a single slot to avoid serialization overhead.
 
@@ -171,10 +173,36 @@ Records are placed into a handover queue for the main task thread to process. Th
 
 ### Step 4: Source emits records to operators
 
-The source deserializes raw Kafka bytes into Flink records (using the configured deserializer) and emits them downstream. Records flow through Flink's network stack via serialized buffers. For keyed streams, records are partitioned by key hash to ensure all records with the same key reach the same operator subtask.
+The source deserializes raw Kafka bytes into Flink records (using the configured deserializer) and emits them downstream. Before reaching the operator, each record goes through key-based routing to ensure it arrives at the correct subtask that owns its keyed state.
+```
+Record {key: "user-123", value: "..."}
+    │
+    ▼
+Step A: Hash the key
+    hash = MurmurHash("user-123") → 987654321
+    │
+    ▼
+Step B: Map to KeyGroup
+    keyGroup = hash % maxParallelism
+    keyGroup = 987654321 % 128 → 49
+    │
+    ▼
+Step C: Map KeyGroup to Subtask
+    subtask = keyGroup * parallelism / maxParallelism
+    subtask = 49 * 4 / 128 → 1
+    │
+    ▼
+Step D: Route to target
+    Subtask 1 → TM1, Slot 1 (owns KG 32-63)
+```
 
-Records are serialized into `NetworkBuffer` segments (32KB default), sent via Netty TCP connections between TaskManagers. Back-pressure propagates upstream if downstream operators are slow — the network buffers fill up, causing the source to slow down its poll rate.
+This routing happens at the sender side (source operator). The KeyGroupStreamPartitioner calculates the target subtask, then the record is placed into the corresponding output channel.
 
+All records with the same key ALWAYS route to the same subtask. This guarantees that state.get(key) and state.put(key, value) always access the same RocksDB instance — no distributed locking or cross-TM coordination needed.
+
+Records are serialized into NetworkBuffer segments (32KB default). Each downstream subtask has a dedicated output channel. Buffers are sent via Netty TCP connections between TaskManagers. If source and operator are in the same slot (operator chaining), records pass through an in-memory handover without network serialization.
+
+If downstream operators are slow, network buffers fill up, blocking the sender. This back-pressure propagates upstream, eventually causing the source to slow down its Kafka poll rate.
 
 ### Step 5: Operators read/write state in RocksDB
 
