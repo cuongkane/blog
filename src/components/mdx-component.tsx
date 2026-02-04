@@ -4,6 +4,19 @@ import React, { HTMLAttributes } from "react";
 import * as runtime from "react/jsx-runtime";
 
 import Image from "next/image";
+import { Mermaid } from "./mermaid";
+
+// Helper function to extract text content from React children (for mermaid code blocks)
+function extractTextFromChildren(children: React.ReactNode): string {
+  if (typeof children === "string") return children;
+  if (Array.isArray(children)) {
+    return children.map(extractTextFromChildren).join("");
+  }
+  if (React.isValidElement(children) && children.props?.children) {
+    return extractTextFromChildren(children.props.children);
+  }
+  return "";
+}
 
 const useMDXComponent = (code: string) => {
   const fn = new Function(code);
@@ -138,15 +151,30 @@ const components = {
       {...props}
     />
   ),
-  pre: ({ className, ...props }: ComponentsProps) => (
-    <pre
-      className={cn(
-        "mb-4 mt-6 overflow-x-auto text-sm  rounded-lg border !bg-secondary py-4",
-        className,
-      )}
-      {...props}
-    />
-  ),
+  pre: ({ className, children, ...props }: ComponentsProps) => {
+    // Check if this is a mermaid code block
+    const child = React.Children.toArray(children)[0];
+    if (
+      React.isValidElement(child) &&
+      child.props?.["data-language"] === "mermaid"
+    ) {
+      // Extract the text content from the code element
+      const codeContent = extractTextFromChildren(child.props.children);
+      return <Mermaid chart={codeContent} />;
+    }
+
+    return (
+      <pre
+        className={cn(
+          "mb-4 mt-6 overflow-x-auto text-sm  rounded-lg border !bg-secondary py-4",
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </pre>
+    );
+  },
   code: ({ className, ...props }: ComponentsProps) => (
     <code
       className={cn(
@@ -157,6 +185,7 @@ const components = {
     />
   ),
   Image,
+  Mermaid,
 };
 
 interface MdxProps {
