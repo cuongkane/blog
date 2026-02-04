@@ -17,17 +17,15 @@ Apache Flink is an open-source, distributed processing engine and framework desi
 
 - **TaskManager**: Worker Pods that execute the actual data processing. Each TaskManager runs as a separate Pod and registers with the JobManager to offer its slots. A typical cluster has multiple TaskManager Pods distributed across Kubernetes nodes.
 
-- **Slot**: A resource unit within a TaskManager that runs one parallel slice of the job. Each slot executes a complete operator chain (Source → Operator → Sink) and has its own RocksDB instance for state. The number of slots per TaskManager is configurable via `taskmanager.numberOfTaskSlots`.
+- **Slot**: A resource unit within a TaskManager that runs one parallel slice of the job. Each slot executes a complete operator chain (Source → Operator → Sink) and has its own RocksDB instance for state.
 
 - **Operator**: A processing unit that transforms data (e.g., map, filter, window, aggregate). Stateful operators store their state in RocksDB, while stateless operators process records without persistence. Multiple operators can be chained together in a single slot to avoid serialization overhead.
 
 - **RocksDB**: An embedded key-value store that holds operator state on local disk. It stores data in immutable SST (Sorted String Table) files and supports state larger than memory. Each slot has its own RocksDB instance, but they share a memory cache within the TaskManager.
 
-- **emptyDir (Ephemeral Storage)**: Kubernetes-managed temporary storage attached to each TaskManager Pod. RocksDB writes SST files here during normal operation. This storage is deleted when the Pod terminates—S3 is the durable backup.
+- **Ephemeral Storage**: Kubernetes-managed temporary storage attached to each TaskManager Pod. RocksDB writes SST files here during normal operation. This storage is deleted when the Pod terminates—S3 is the durable backup.
 
-- **S3 (Checkpoint Storage)**: Durable object storage that holds checkpoint data for recovery. TaskManagers upload RocksDB SST files here, and JobManager writes the `_metadata` file to mark checkpoint completion. On failure recovery, state is downloaded from S3 to restore the job.
-
-- **Kafka**: External message broker serving as data source and sink. KafkaSource consumes from input topics and tracks offsets in Flink state (not Kafka consumer groups). KafkaSink produces to output topics using transactions to achieve exactly-once delivery.
+- **S3 (Checkpoint Storage)**: Durable object storage that holds checkpoint data for recovery. TaskManagers upload RocksDB SST files here, and JobManager marks checkpoint completion. On failure recovery, state is downloaded from S3 to restore the job.
 
 - **ConfigMap (HA)**: Kubernetes ConfigMap used for JobManager high availability. It stores the leader election lock and current leader address. If the JobManager Pod crashes, a standby can take over by acquiring the lock.
 
