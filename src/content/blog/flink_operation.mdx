@@ -623,4 +623,4 @@ The checkpoint mechanism is designed so that its cost does **not** grow with tot
 - **Parallel snapshots** across operators mean the barrier-to-completion time is bounded by the slowest single operator, not the sum of all operators
 - **Independent per-subtask state** means there is zero coordination between parallel instances during snapshotting — each subtask snapshots its own RocksDB independently
 
-A pipeline with 500 GB of total state across 100 subtasks, checkpointing every 30 seconds, might only upload 2 GB of new SST files per checkpoint cycle. The processing thread pauses for <10ms per checkpoint. This is how Flink maintains exactly-once guarantees at tremendous scale without sacrificing throughput.
+A pipeline with 500 GB of total state across 100 subtasks, checkpointing every 30 seconds, might only upload 2 GB of new SST files per checkpoint cycle. The processing thread pauses for less than 10ms per checkpoint. This is how Flink maintains exactly-once guarantees at tremendous scale without sacrificing throughput.
