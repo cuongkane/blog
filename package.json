@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:mdx": "node scripts/lint-mdx.mjs",
     "prettier": "pnpx prettier --write ."
   },
   "dependencies": {

@@ -30,4 +30,4 @@ yarn.lock
 .velite
 *.gz
 *.cjs
-*.mjs
+.pnp.loader.mjs
