@@ -49,23 +49,9 @@ Before we trace our message, let's name the moving parts. In Flink, there is a c
 
 **Slot sharing** — By default, Flink places one subtask from *each* operator into the same slot (for the same subtask index). So Slot 0 runs Source[0], Dedup[0], Enrich[0], and Sink[0]. This means a pipeline with 4 operators at parallelism=8 needs only **8 slots** (not 32), because each slot hosts the full pipeline for one parallel lane.
 
-```
 The hierarchy on one machine:
 
-K8s Node
-└── TaskManager Pod (one JVM process)
-    ├── Slot 0 (logical resource budget)
-    │   ├── Source[0]  ─┐
-    │   ├── Dedup[0]    │ chained into one thread
-    │   ├── Enrich[0]   │
-    │   └── Sink[0]    ─┘
-    │
-    └── Slot 1 (separate memory budget)
-        ├── Source[1]  ─┐
-        ├── Dedup[1]    │ another thread
-        ├── Enrich[1]   │
-        └── Sink[1]    ─┘
-```
+![The hierarchy on one machine](/images/flink_operation/single_node.png)
 
 ---
 
