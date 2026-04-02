@@ -27,67 +27,129 @@ Kafka "user-events" (8 partitions)
 Kafka "processed-events"
 ```
 
-**Setup:** parallelism = 8, with 4 TaskManagers × 2 slots each.
-
 This post follows a single message through this pipeline — from the moment it leaves Kafka to the moment its result is committed — and explains what happens at every physical layer along the way.
 
 ---
 
-# The Cluster Before Any Message Arrives
+# Flink Components in 60 Seconds
 
-When Flink starts this job, here is what the cluster physically looks like:
+Before we trace our message, let's name the moving parts. In Flink, there is a clear hierarchy from the physical machines all the way down to the threads that process your data:
+
+**JobManager** — The brain. A single process (one K8s Pod) that coordinates the entire job. It decides where tasks run, triggers checkpoints, and handles failures. It contains three internal components: the **Dispatcher** (receives job submissions), the **ResourceManager** (negotiates slots from TaskManagers), and the **JobMaster** (manages the execution graph and checkpoint coordination for a specific job).
+
+**TaskManager** — The workers. Each TaskManager is a separate JVM process (one K8s Pod) that registers with the JobManager and offers its computational capacity. A typical production cluster has many TaskManager Pods spread across Kubernetes nodes. Each TaskManager has a fixed amount of memory and CPU, configured at Pod creation time.
+
+**Slot** — A logical resource container *inside* a TaskManager. Not a process, not a thread — just a budgeted slice of the TaskManager's resources. If a TaskManager has 10 GB of memory and 2 slots, each slot gets roughly half the managed memory. The number of slots per TaskManager is configured via `taskmanager.numberOfTaskSlots`. Slots are what the JobManager "books" when it needs to run tasks.
+
+**Operator** — A processing step in your pipeline. `KafkaSource`, `Dedup`, `Enrich`, `KafkaSink` are each an operator. An operator defines *what* to do with data (map, filter, aggregate, etc.), but by itself it doesn't run — it needs to be instantiated as subtasks.
+
+**Subtask** — A parallel instance of an operator. If `Dedup` has parallelism=8, there are 8 Dedup subtasks: `Dedup[0]` through `Dedup[7]`. Each subtask runs in a slot and processes a portion of the data. A subtask is the actual unit of execution — it's a Java thread that reads records, calls your function, and writes output.
+
+**Operator chaining** — When consecutive operators have the same parallelism and no shuffle boundary (like `keyBy`) between them, Flink fuses their subtasks into a single thread. `Dedup[4] → Enrich[4] → Sink[4]` become one thread that calls each operator in sequence via direct method calls — no serialization, no network. This is how Flink avoids unnecessary overhead.
+
+**Slot sharing** — By default, Flink places one subtask from *each* operator into the same slot (for the same subtask index). So Slot 0 runs Source[0], Dedup[0], Enrich[0], and Sink[0]. This means a pipeline with 4 operators at parallelism=8 needs only **8 slots** (not 32), because each slot hosts the full pipeline for one parallel lane.
 
 ```
-┌─────────────────────────────────────────────────┐
-│ JobManager (single JVM process)                  │
-│                                                  │
-│ CheckpointCoordinator: triggers snapshots        │
-│ SourceCoordinator: assigns Kafka partitions      │
-│ ExecutionGraph: 8 instances of each operator     │
-└─────────────────────────────────────────────────┘
+The hierarchy on one machine:
 
-┌──────────────────────────────────┐  ┌──────────────────────────────────┐
-│ TaskManager-1 (JVM, 10 GB)       │  │ TaskManager-2 (JVM, 10 GB)       │
-│                                  │  │                                  │
-│ ┌──────────────────────────────┐ │  │ ┌──────────────────────────────┐ │
-│ │ Slot 0                       │ │  │ │ Slot 2                       │ │
-│ │ Source[0] → Dedup[0]         │ │  │ │ Source[2] → Dedup[2]         │ │
-│ │ → Enrich[0] → Sink[0]       │ │  │ │ → Enrich[2] → Sink[2]       │ │
-│ │ (reads Kafka partition 0)    │ │  │ │ (reads Kafka partition 2)    │ │
-│ └──────────────────────────────┘ │  │ └──────────────────────────────┘ │
-│ ┌──────────────────────────────┐ │  │ ┌──────────────────────────────┐ │
-│ │ Slot 1                       │ │  │ │ Slot 3                       │ │
-│ │ Source[1] → Dedup[1]         │ │  │ │ Source[3] → Dedup[3]         │ │
-│ │ → Enrich[1] → Sink[1]       │ │  │ │ → Enrich[3] → Sink[3]       │ │
-│ │ (reads Kafka partition 1)    │ │  │ │ (reads Kafka partition 3)    │ │
-│ └──────────────────────────────┘ │  │ └──────────────────────────────┘ │
-└──────────────────────────────────┘  └──────────────────────────────────┘
+K8s Node
+└── TaskManager Pod (one JVM process)
+    ├── Slot 0 (logical resource budget)
+    │   ├── Source[0]  ─┐
+    │   ├── Dedup[0]    │ chained into one thread
+    │   ├── Enrich[0]   │
+    │   └── Sink[0]    ─┘
+    │
+    └── Slot 1 (separate memory budget)
+        ├── Source[1]  ─┐
+        ├── Dedup[1]    │ another thread
+        ├── Enrich[1]   │
+        └── Sink[1]    ─┘
+```
 
-┌──────────────────────────────────┐  ┌──────────────────────────────────┐
-│ TaskManager-3 (JVM, 10 GB)       │  │ TaskManager-4 (JVM, 10 GB)       │
-│                                  │  │                                  │
-│ ┌──────────────────────────────┐ │  │ ┌──────────────────────────────┐ │
-│ │ Slot 4                       │ │  │ │ Slot 6                       │ │
-│ │ Source[4] → Dedup[4]         │ │  │ │ Source[6] → Dedup[6]         │ │
-│ │ → Enrich[4] → Sink[4]       │ │  │ │ → Enrich[6] → Sink[6]       │ │
-│ │ (reads Kafka partition 4)    │ │  │ │ (reads Kafka partition 6)    │ │
-│ └──────────────────────────────┘ │  │ └──────────────────────────────┘ │
-│ ┌──────────────────────────────┐ │  │ ┌──────────────────────────────┐ │
-│ │ Slot 5                       │ │  │ │ Slot 7                       │ │
-│ │ Source[5] → Dedup[5]         │ │  │ │ Source[7] → Dedup[7]         │ │
-│ │ → Enrich[5] → Sink[5]       │ │  │ │ → Enrich[7] → Sink[7]       │ │
-│ │ (reads Kafka partition 5)    │ │  │ │ (reads Kafka partition 7)    │ │
-│ └──────────────────────────────┘ │  │ └──────────────────────────────┘ │
-└──────────────────────────────────┘  └──────────────────────────────────┘
+---
+
+# The Cluster on Kubernetes
+
+Now let's see how this maps to a real K8s deployment with **parallelism=8** and **2 slots per TaskManager**.
+
+We need 8 slots total. With 2 slots per TaskManager, that's **4 TaskManager Pods**. The Flink Kubernetes Operator (or native K8s integration) creates these as a Deployment or StatefulSet:
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│ Kubernetes Cluster                                                  │
+│                                                                     │
+│  ┌────────────────────────────────────────────────────────────┐     │
+│  │ JobManager Pod (Deployment, 1 replica)                      │     │
+│  │ Container: flink-jobmanager                                 │     │
+│  │                                                             │     │
+│  │   Dispatcher: receives job submissions                      │     │
+│  │   ResourceManager: tracks available slots across all TMs    │     │
+│  │   JobMaster:                                                │     │
+│  │     CheckpointCoordinator → triggers snapshots every 30s    │     │
+│  │     SourceCoordinator → assigns Kafka partitions to sources │     │
+│  │     ExecutionGraph → 8 subtasks per operator                │     │
+│  │                                                             │     │
+│  │   ConfigMap (HA): leader election lock for failover         │     │
+│  └────────────────────────────────────────────────────────────┘     │
+│                                                                     │
+│  ┌───────────────────────────┐  ┌───────────────────────────┐       │
+│  │ TaskManager Pod 1         │  │ TaskManager Pod 2         │       │
+│  │ (Node A, 10 GB memory)    │  │ (Node A, 10 GB memory)    │       │
+│  │                           │  │                           │       │
+│  │ ┌───────────────────────┐ │  │ ┌───────────────────────┐ │       │
+│  │ │ Slot 0                │ │  │ │ Slot 2                │ │       │
+│  │ │ Source[0] → Dedup[0]  │ │  │ │ Source[2] → Dedup[2]  │ │       │
+│  │ │ → Enrich[0] → Sink[0]│ │  │ │ → Enrich[2] → Sink[2]│ │       │
+│  │ │ Kafka partition 0     │ │  │ │ Kafka partition 2     │ │       │
+│  │ └───────────────────────┘ │  │ └───────────────────────┘ │       │
+│  │ ┌───────────────────────┐ │  │ ┌───────────────────────┐ │       │
+│  │ │ Slot 1                │ │  │ │ Slot 3                │ │       │
+│  │ │ Source[1] → Dedup[1]  │ │  │ │ Source[3] → Dedup[3]  │ │       │
+│  │ │ → Enrich[1] → Sink[1]│ │  │ │ → Enrich[3] → Sink[3]│ │       │
+│  │ │ Kafka partition 1     │ │  │ │ Kafka partition 3     │ │       │
+│  │ └───────────────────────┘ │  │ └───────────────────────┘ │       │
+│  │                           │  │                           │       │
+│  │ Ephemeral disk: RocksDB   │  │ Ephemeral disk: RocksDB   │       │
+│  │ SST files for slots 0,1  │  │ SST files for slots 2,3  │       │
+│  └───────────────────────────┘  └───────────────────────────┘       │
+│                                                                     │
+│  ┌───────────────────────────┐  ┌───────────────────────────┐       │
+│  │ TaskManager Pod 3         │  │ TaskManager Pod 4         │       │
+│  │ (Node B, 10 GB memory)    │  │ (Node B, 10 GB memory)    │       │
+│  │                           │  │                           │       │
+│  │ ┌───────────────────────┐ │  │ ┌───────────────────────┐ │       │
+│  │ │ Slot 4                │ │  │ │ Slot 6                │ │       │
+│  │ │ Source[4] → Dedup[4]  │ │  │ │ Source[6] → Dedup[6]  │ │       │
+│  │ │ → Enrich[4] → Sink[4]│ │  │ │ → Enrich[6] → Sink[6]│ │       │
+│  │ │ Kafka partition 4     │ │  │ │ Kafka partition 6     │ │       │
+│  │ └───────────────────────┘ │  │ └───────────────────────┘ │       │
+│  │ ┌───────────────────────┐ │  │ ┌───────────────────────┐ │       │
+│  │ │ Slot 5                │ │  │ │ Slot 7                │ │       │
+│  │ │ Source[5] → Dedup[5]  │ │  │ │ Source[7] → Dedup[7]  │ │       │
+│  │ │ → Enrich[5] → Sink[5]│ │  │ │ → Enrich[7] → Sink[7]│ │       │
+│  │ │ Kafka partition 5     │ │  │ │ Kafka partition 7     │ │       │
+│  │ └───────────────────────┘ │  │ └───────────────────────┘ │       │
+│  │                           │  │                           │       │
+│  │ Ephemeral disk: RocksDB   │  │ Ephemeral disk: RocksDB   │       │
+│  │ SST files for slots 4,5  │  │ SST files for slots 6,7  │       │
+│  └───────────────────────────┘  └───────────────────────────┘       │
+│                                                                     │
+│  S3 Bucket: checkpoint storage (durable, survives Pod restarts)     │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
 A few things to notice:
 
+- **Each TaskManager Pod is one JVM process.** Kubernetes manages its lifecycle — if a Pod dies, K8s (or the Flink Kubernetes Operator) can restart it. The 2 slots inside it are purely logical: they share the JVM heap and network buffers, but each slot gets its own **isolated managed memory** budget for RocksDB. Slot 0 cannot borrow memory from Slot 1, even though they're in the same Pod.
+
 - **8 Kafka partitions, parallelism 8, 8 slots** — each slot reads exactly one Kafka partition. This is the ideal 1:1 mapping. (If you had 16 partitions with parallelism 8, each slot would read 2 partitions. If you had 4 partitions with parallelism 8, 4 slots would sit idle — Flink never splits one Kafka partition across multiple readers.)
 
-- **Slot sharing** means all four operators (Source, Dedup, Enrich, Sink) run inside the **same slot** for the same subtask index. Slot 0 runs Source[0], Dedup[0], Enrich[0], and Sink[0] — all in a single Java thread. This is called **operator chaining**: the output of one operator is passed to the next via a direct method call, with zero serialization and zero network cost.
+- **Slot sharing** means all four operators run inside the **same slot** for the same subtask index. Slot 0 runs Source[0], Dedup[0], Enrich[0], and Sink[0] — all chained into a single Java thread. Data flows between them via direct method calls, not the network.
 
-- Each TaskManager is a single JVM process. Its 2 slots share the JVM heap and network buffers, but each slot gets its own **isolated managed memory** budget (for RocksDB). Slot 0 cannot borrow memory from Slot 1.
+- **RocksDB state lives on ephemeral disk** (the Pod's local storage). It disappears when the Pod is terminated. But that's fine — the checkpoint data is on S3 (durable). On recovery, a new Pod downloads state from S3 and rebuilds its RocksDB.
+
+- **Scaling up** means increasing parallelism and adding more TaskManager Pods. Going from parallelism=8 to parallelism=16 means adding 4 more TM Pods (8 more slots), doubling Kafka partitions to 16, and taking a savepoint to redistribute state. Kubernetes handles the Pod scheduling; Flink handles the state redistribution across the new key group ranges.
 
 ---
 
@@ -111,9 +173,9 @@ Kafka stores it at **partition 3, offset 50701**.
 
 # Chapter 2: Flink Picks It Up
 
-Source[3] is running in **Slot 3 on TaskManager-2**. It has a background fetcher thread that continuously calls Kafka's `poll()`. Our message arrives in a batch of records. The fetcher places it into a hand-over queue, and the main task thread picks it up.
+Source[3] is a **subtask** — the 4th parallel instance of the KafkaSource operator. It's running inside **Slot 3 in TaskManager Pod 2** on Node A. Its background fetcher thread continuously calls Kafka's `poll()`. Our message arrives in a batch of records. The fetcher places it into a hand-over queue, and the slot's task thread picks it up.
 
-The source deserializes the raw Kafka bytes into a Flink `StreamRecord` — now it's a Java object living in the JVM heap of TaskManager-2.
+The source deserializes the raw Kafka bytes into a Flink `StreamRecord` — now it's a Java object living in the JVM heap of TaskManager Pod 2.
 
 **Important:** Flink does NOT use Kafka's consumer group offsets for recovery. It stores offsets in its own state. Kafka's `__consumer_offsets` may be committed optionally for monitoring, but Flink ignores it during failover.
 
@@ -131,7 +193,7 @@ Since the pipeline uses `keyBy(event -> event.event_id)` before the Dedup operat
   → key group 71 × 8 / 128 → subtask 4
 ```
 
-Our message was read by Source[3] on TaskManager-2, but it needs to go to **Dedup[4] on TaskManager-3**. This means a **network shuffle** — the message must physically cross machines.
+Our message was read by Source[3] in Pod 2 (Node A), but it needs to go to **Dedup[4] in Pod 3 (Node B)**. This means a **network shuffle** — the message must physically cross Kubernetes nodes.
 
 ### What Happens on the Wire
 
@@ -139,11 +201,11 @@ Our message was read by Source[3] on TaskManager-2, but it needs to go to **Dedu
 
 2. **Partitioning:** The `ResultPartition` for Source[3] has 8 sub-partitions (one per downstream Dedup subtask). Our message goes into sub-partition 4.
 
-3. **TCP transport:** Since Dedup[4] lives on a different TaskManager, the buffer is sent via **Netty over TCP** from TaskManager-2 to TaskManager-3. The bytes travel through the OS TCP stack, across the physical network, and arrive at TaskManager-3's Netty server.
+3. **TCP transport:** Since Dedup[4] lives in a different Pod on a different K8s node, the buffer is sent via **Netty over TCP** from Pod 2 (Node A) to Pod 3 (Node B). The bytes travel through the OS TCP stack, across the Kubernetes network (CNI plugin, potentially across physical switches), and arrive at Pod 3's Netty server.
 
 4. **Deserialization:** Dedup[4]'s input gate receives the buffer, deserializes it back into a `StreamRecord`, and hands it to the Dedup operator.
 
-If Dedup[4] happened to be on the **same** TaskManager (e.g., if the routing landed on Dedup[3] in Slot 3), the transfer would be a memory-to-memory handoff within the same JVM — no TCP, no system calls. But the record would still be serialized/deserialized because the source and dedup run in different threads (the `keyBy` breaks operator chaining).
+If the key had hashed to Dedup[3] instead (same Pod as Source[3]), the transfer would be a memory-to-memory handoff within the same JVM — no TCP, no K8s network. But the record would still be serialized/deserialized because the `keyBy` breaks operator chaining (source and dedup run in different threads).
 
 ### Backpressure
 
@@ -153,20 +215,20 @@ What if Dedup[4] is slow? The receiving slot's input buffers fill up. It stops g
 
 # Chapter 4: The Dedup Checks State — RAM or Disk?
 
-Our message has arrived at **Dedup[4] in Slot 4, TaskManager-3**. The operator needs to check: has `evt-88821` been seen before?
+Our message has arrived at **Dedup[4]** — the 5th parallel instance of the Dedup operator, running in **Slot 4 inside TaskManager Pod 3** on Node B. The operator needs to check: has `evt-88821` been seen before?
 
-Dedup[4] has its own RocksDB instance, living partly in RAM and partly on disk:
+Dedup[4] has its own RocksDB instance, living partly in RAM (the Pod's managed memory) and partly on the Pod's ephemeral disk:
 
 ```
-Slot 4's managed memory budget: ~2.5 GB (half of TM-3's 5 GB managed memory)
+Pod 3, Slot 4's managed memory budget: ~2.5 GB (half of Pod's 5 GB managed memory)
 │
 └── RocksDB for Dedup[4]:
     ├── Block cache (~180 MB): hot SST data blocks cached in RAM
     ├── Write buffer (~20 MB): recent writes sitting in a memtable
-    └── SST files on disk: /tmp/flink/.../dedup_4/db/
+    └── SST files on ephemeral disk: /tmp/flink/.../dedup_4/db/
         ├── 000001.sst (64 MB)
         ├── 000002.sst (64 MB)
-        └── ...
+        └── ... (can grow to hundreds of GB on disk)
 ```
 
 The state lookup for `"evt-88821"` follows this path:
@@ -303,11 +365,13 @@ If the entire cluster crashes after this checkpoint, Flink restores from S3 and 
 
 Now that we've followed a single message through the pipeline, let's zoom out and see why this architecture handles millions of messages per second across terabytes of state.
 
-## 1. Parallelism = Independent Lanes
+## 1. Parallelism = Independent Lanes, Scaled by K8s Pods
 
-Our 8 subtasks are 8 completely independent processing lanes. Dedup[0] and Dedup[4] never communicate with each other. They have separate RocksDB instances, separate managed memory, potentially on separate physical machines. Doubling parallelism to 16 doubles throughput — you just add more TaskManagers and Kafka partitions.
+Our 8 subtasks are 8 completely independent processing lanes, spread across 4 Kubernetes Pods. Dedup[0] in Pod 1 and Dedup[4] in Pod 3 never communicate with each other. They have separate RocksDB instances, separate managed memory, on separate K8s nodes.
 
-The key group system makes this possible. Each key deterministically maps to exactly one subtask. No distributed locks, no cross-node coordination, no shared state. Each lane is self-contained.
+Doubling throughput means: increase parallelism to 16, add Kafka partitions to 16, and let the Flink K8s Operator spin up 4 more TaskManager Pods. Take a savepoint, redeploy, and Flink redistributes state across the new key group ranges automatically.
+
+The key group system makes this possible. Each key deterministically maps to exactly one subtask. No distributed locks, no cross-Pod coordination, no shared state. Each lane is self-contained.
 
 ## 2. Slot Sharing = Resource Efficiency
 
@@ -344,29 +408,32 @@ Where things are shared and where they're isolated:
 
 | What | Shared? | Where it lives |
 |------|---------|---------------|
-| Managed memory (RocksDB cache) between slots on same TM | **No** — hard partition per slot | Off-heap native memory |
+| Managed memory (RocksDB cache) between slots in same Pod | **No** — hard partition per slot | Off-heap native memory |
 | RocksDB block cache between operators in same slot | **Yes** — shared within the slot | Slot's managed memory |
 | RocksDB data files between operators in same slot | **No** — separate directories | Local disk |
 | Keyed state between parallel subtasks | **No** — different key groups, different machines | Each subtask's own RocksDB |
 | Broadcast state between subtasks | Same content, but **physically separate** copies | JVM heap per subtask |
-| Network buffers between slots on same TM | **Soft sharing** — global pool, dynamic redistribution | Off-heap pre-allocated |
+| Network buffers between slots in same Pod | **Soft sharing** — global pool, dynamic redistribution | Off-heap pre-allocated |
 | Data between chained operators | **Zero-copy** — same Java object reference | Same thread, same stack frame |
-| Data between non-chained operators (same TM) | Serialized, memory-to-memory | Network buffer pool, no TCP |
-| Data between non-chained operators (different TM) | Serialized, **Netty over TCP** | Through the physical network |
+| Data between non-chained operators (same Pod) | Serialized, memory-to-memory | Network buffer pool, no TCP |
+| Data between non-chained operators (different Pods) | Serialized, **Netty over TCP** | Through the K8s network |
 
 ---
 
 # What Happens When Things Go Wrong
 
-If TaskManager-3 crashes (which hosts Slot 4 and Slot 5 — including our message's Dedup[4] and Enrich[4]):
+Say TaskManager Pod 3 on Node B gets OOM-killed by Kubernetes. This Pod hosted Slot 4 and Slot 5 — including our message's Dedup[4] and Enrich[4]. All state on its ephemeral disk is gone.
 
-1. The JobManager detects the failure via heartbeat timeout
-2. It restores from the last completed checkpoint (say, checkpoint 44)
-3. New TaskManager slots download RocksDB SST files from S3
-4. KafkaSources rewind to the checkpointed offsets
-5. KafkaSinks abort any uncommitted transactions (zombie fencing kills old producers)
-6. Processing resumes from exactly where checkpoint 44 left off
+Here's what happens:
 
-Messages that were processed between checkpoint 44 and the crash are replayed from Kafka. But because the Sink's transaction for those messages was never committed (it was part of the in-progress checkpoint 45 that didn't complete), downstream consumers never saw them. When they're reprocessed, it's as if the crash never happened.
+1. **JobManager detects the failure** via heartbeat timeout (the Pod stopped sending heartbeats)
+2. Kubernetes (or the Flink K8s Operator) **schedules a replacement Pod** — possibly on a different node entirely
+3. The new TaskManager Pod registers with the JobManager and offers its 2 fresh slots
+4. JobManager **restores from the last completed checkpoint** (say, checkpoint 44): the new slots download RocksDB SST files from S3 and rebuild local state
+5. **KafkaSources rewind** to the checkpointed offsets — they re-read messages from exactly where checkpoint 44 left off
+6. **KafkaSinks abort** any uncommitted transactions (Kafka's zombie fencing kills the old producer's pending transaction)
+7. Processing resumes. From the outside, it looks like a brief pause — no data lost, no duplicates
 
-This is exactly-once: the combination of rewindable sources, consistent state snapshots, and transactional sinks means every message is reflected in the output exactly one time, regardless of failures.
+Messages that were processed between checkpoint 44 and the crash are replayed from Kafka. But because the Sink's Kafka transaction for those messages was never committed (it was part of the in-progress checkpoint 45 that didn't complete), downstream consumers with `read_committed` never saw them. When they're reprocessed, the output is identical.
+
+This is exactly-once: Kubernetes handles Pod lifecycle (restart, reschedule). Flink handles data consistency (rewind source, restore state, abort uncommitted transactions). Together, they make the crash invisible to the rest of the system.
