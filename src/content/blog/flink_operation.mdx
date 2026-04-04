@@ -39,15 +39,11 @@ Before we trace our message, let's name the moving parts. In Flink, there is a c
 
 **TaskManager** — The workers. Each TaskManager is a separate JVM process (one K8s Pod) that registers with the JobManager and offers its computational capacity. A typical production cluster has many TaskManager Pods spread across Kubernetes nodes. Each TaskManager has a fixed amount of memory and CPU, configured at Pod creation time.
 
-**Slot** — A logical resource container *inside* a TaskManager. Not a process, not a thread — just a budgeted slice of the TaskManager's resources. If a TaskManager has 10 GB of memory and 2 slots, each slot gets roughly half the managed memory. The number of slots per TaskManager is configured via `taskmanager.numberOfTaskSlots`. Slots are what the JobManager "books" when it needs to run tasks.
+**Slot** — A logical resource container *inside* a TaskManager. Not a process, not a thread — just a budgeted slice of the TaskManager's resources. If a TaskManager has 10 GB of memory and 2 slots, each slot gets roughly half the managed memory. Slots are what the JobManager "books" when it needs to run tasks.
 
-**Operator** — A processing step in your pipeline. `KafkaSource`, `Dedup`, `Enrich`, `KafkaSink` are each an operator. An operator defines *what* to do with data (map, filter, aggregate, etc.), but by itself it doesn't run — it needs to be instantiated as subtasks.
+**Operator** — A processing step in your pipeline (i.e `KafkaSource`, `Dedup`, `Enrich`, `KafkaSink`). An operator defines *what* to do with data (map, filter, aggregate, etc.), but by itself it doesn't run — it needs to be instantiated as subtasks.
 
 **Subtask** — A parallel instance of an operator. If `Dedup` has parallelism=8, there are 8 Dedup subtasks: `Dedup[0]` through `Dedup[7]`. Each subtask runs in a slot and processes a portion of the data. A subtask is the actual unit of execution — it's a Java thread that reads records, calls your function, and writes output.
-
-**Operator chaining** — When consecutive operators have the same parallelism and no shuffle boundary (like `keyBy`) between them, Flink fuses their subtasks into a single thread. `Dedup[4] → Enrich[4] → Sink[4]` become one thread that calls each operator in sequence via direct method calls — no serialization, no network. This is how Flink avoids unnecessary overhead.
-
-**Slot sharing** — By default, Flink places one subtask from *each* operator into the same slot (for the same subtask index). So Slot 0 runs Source[0], Dedup[0], Enrich[0], and Sink[0]. This means a pipeline with 4 operators at parallelism=8 needs only **8 slots** (not 32), because each slot hosts the full pipeline for one parallel lane.
 
 The hierarchy on one machine:
 
