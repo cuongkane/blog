@@ -102,7 +102,44 @@ Source[3] is a **subtask** — the 4th parallel instance of the KafkaSource oper
 
 The source deserializes the raw Kafka bytes into a Flink `StreamRecord` — now it's a Java object living in the JVM heap of TaskManager Pod 2.
 
-**Important:** Flink does NOT use Kafka's consumer group offsets for recovery. It stores offsets in its own state. Kafka's `__consumer_offsets` may be committed optionally for monitoring, but Flink ignores it during failover.
+**Important:** Flink does NOT use Kafka's consumer group offsets for recovery. It stores offsets in its own state. Kafka's consumer offsets may be committed optionally for monitoring, but Flink ignores it during failover.
+
+---
+
+# What Our Message Sees Around It in the Stream
+
+Our message is not alone. As it flows through the pipeline, it travels alongside two special types of markers that are invisible to your business logic but critical to Flink's internals. From the message's point of view, the stream looks something like this:
+
+```
+... [record] [record] [watermark W=1712099000] [record] [OUR MESSAGE] [record]
+    [record] [BARRIER cp-43] [record] [record] [watermark W=1712100000] ...
+```
+
+### Watermarks — "How Late Is Too Late?"
+
+A watermark is a timestamp marker that flows through the stream and declares: **"no event with a timestamp earlier than this value will arrive after me."** When Source[3] emits a watermark of W=1712100000, it's telling all downstream operators: you can safely assume all events with timestamps before 1712100000 have already arrived.
+
+Our message has timestamp 1712100000. As it flows downstream, it may trigger the source to advance its watermark past that value. Any downstream window operator that was waiting for "all events up to 1712100000" will see the watermark arrive and know it's safe to fire the window and emit results.
+
+Watermarks are generated **per source subtask** (based on the Kafka partition's event timestamps), and they flow through the operator chain just like records. When an operator has multiple input channels — like Dedup[4] which receives from all 8 sources — it tracks the **minimum** watermark across all inputs. The operator's watermark only advances when the slowest input advances. One straggling partition holds back the entire watermark.
+
+Our message doesn't "interact" with watermarks directly — the Dedup operator in our pipeline doesn't use event-time windows. But if it did (say, a time-windowed aggregation), the watermark is what would tell the operator "the window for 12:00-12:05 is complete, emit the result now."
+
+### Checkpoint Barriers — "Take a Snapshot Here"
+
+A checkpoint barrier is a control marker injected by the source when the JobManager triggers a checkpoint. It divides the stream into epochs: everything before barrier N belongs to checkpoint N's snapshot, everything after belongs to the next checkpoint.
+
+Our message sits at offset 50701. If checkpoint 43 was triggered when Source[3] was at offset 50600, the barrier for checkpoint 43 was injected 101 records before our message. From the message's perspective, it sees the barrier ahead of it in the stream (already passed) or behind it (hasn't reached it yet):
+
+```
+... [records at offsets 50598, 50599] [BARRIER cp-43] [records 50600...50700] [OUR MESSAGE at 50701] ...
+```
+
+Our message arrived **after** barrier 43, so it belongs to checkpoint 44's epoch. When checkpoint 44 triggers, a new barrier will be injected *after* our message, and our message's effects (the Dedup state write, the Kafka output record) will be captured in checkpoint 44's snapshot.
+
+**What happens when a barrier reaches an operator with multiple inputs?** This is called **barrier alignment**. Say Dedup[4] receives data from all 8 source subtasks. Barrier 44 arrives from Source[0] first, but Source[5] is slow. Dedup[4] must wait. It **blocks** the channel from Source[0] (buffering any post-barrier records from that channel) and continues processing pre-barrier records from the other channels. Only when barrier 44 has arrived from all 8 inputs does Dedup[4] snapshot its state and forward the barrier. This ensures the snapshot reflects a consistent cut — no operator has seen "future" records from one input mixed with "past" records from another.
+
+During this alignment pause, our message might be stuck in a buffer if it arrived on a channel whose barrier came early. This is the trade-off of exactly-once: brief pauses for consistency. Flink also supports **unaligned checkpoints** that skip alignment by including the buffered in-flight records in the snapshot itself — lower latency, but larger checkpoint size.
 
 ---
 
@@ -142,32 +179,155 @@ What if Dedup[4] is slow? The receiving slot's input buffers fill up. It stops g
 
 Our message has arrived at **Dedup[4]** — the 5th parallel instance of the Dedup operator, running in **Slot 4 inside TaskManager Pod 3** on Node B. The operator needs to check: has `evt-88821` been seen before?
 
-Dedup[4] has its own RocksDB instance, living partly in RAM (the Pod's managed memory) and partly on the Pod's ephemeral disk:
+To understand where that answer comes from, we need to look at how the Pod's memory is carved up and how RocksDB physically stores state.
+
+## How the TaskManager Pod's Memory Is Organized
+
+When TaskManager Pod 3 starts, its 10 GB of total memory is divided into strictly separated regions before any task runs:
 
 ```
-Pod 3, Slot 4's managed memory budget: ~2.5 GB (half of Pod's 5 GB managed memory)
+TaskManager Pod 3 (10 GB total)
 │
-└── RocksDB for Dedup[4]:
-    ├── Block cache (~180 MB): hot SST data blocks cached in RAM
-    ├── Write buffer (~20 MB): recent writes sitting in a memtable
-    └── SST files on ephemeral disk: /tmp/flink/.../dedup_4/db/
-        ├── 000001.sst (64 MB)
-        ├── 000002.sst (64 MB)
-        └── ... (can grow to hundreds of GB on disk)
+├── JVM Heap (controlled by -Xmx)
+│   ├── Framework Heap (~400 MB)
+│   │   Flink's internal machinery: the RPC actor system, classloaders,
+│   │   internal data structures. You never touch this.
+│   │
+│   └── Task Heap (~2 GB)
+│       Where your user-defined functions' Java objects live.
+│       Also where broadcast state is stored (as a plain Java HashMap).
+│       Garbage-collected normally by the JVM.
+│
+├── Network Memory (~1 GB) — off-heap, pre-allocated at startup
+│   Fixed-size 32 KB buffer segments, all allocated upfront into a pool.
+│   This is where serialized records sit while traveling between
+│   operators over the network. SHARED across both slots in this Pod.
+│
+└── Managed Memory (~5 GB) — off-heap, OUTSIDE the JVM's control
+    Allocated via raw OS memory allocation (not Java heap, not direct buffers).
+    The JVM doesn't know this memory exists. Flink tracks it manually
+    with atomic counters. This is where RocksDB lives.
+    HARD-PARTITIONED: Slot 4 gets ~2.5 GB, Slot 5 gets ~2.5 GB.
+    They cannot borrow from each other.
 ```
 
-The state lookup for `"evt-88821"` follows this path:
+The critical point: **managed memory is hard-partitioned per slot**. Slot 4 and Slot 5 each get their own independent memory manager with their own budget. If Slot 4's RocksDB needs more cache space, it cannot steal from Slot 5. This prevents one hot subtask from degrading its neighbor.
 
-1. **Check the memtable (write buffer):** Was this key written very recently? If yes → answer from RAM in nanoseconds. If no →
-2. **Check the block cache:** Is the SST data block containing this key already cached? If yes → answer from RAM in microseconds. If no →
-3. **Check bloom filters (always in RAM):** Which SST files *might* contain this key? Bloom filters eliminate most SSTs instantly. For the remaining candidates →
-4. **Read from disk:** Load the relevant data block from an SST file into the block cache, then return the value. Cost: milliseconds.
+Network memory, by contrast, is soft-shared — both slots draw from the same global pool, and buffers flow dynamically to wherever demand is highest.
 
-For deduplication with a short time window (most duplicates arrive within seconds), the block cache hit rate is typically 95%+. Our message's key is likely in the cache. The lookup takes microseconds.
+## How RocksDB Uses the Slot's Managed Memory
 
-**Result:** `evt-88821` has not been seen before. The Dedup operator writes `evt-88821 → true` to its RocksDB (which goes to the memtable — RAM speed), and passes the message downstream.
+Slot 4's 2.5 GB of managed memory is further divided by consumer weights. In a typical streaming job with no batch operators or Python UDFs, the state backend (RocksDB) gets about half:
 
-If it *had* been seen, the message would be silently dropped here. No further processing.
+```
+Slot 4's Managed Memory: 2.5 GB
+│
+└── RocksDB budget: ~1.0 GB (allocated to all RocksDB instances in this slot)
+    │
+    ├── Write Buffer Manager: ~100 MB (10%)
+    │   The in-RAM memtable where all new writes land.
+    │   Shared across Dedup[4]'s RocksDB AND Enrich[4]'s RocksDB.
+    │
+    └── Block Cache: ~900 MB (90%)
+        LRU cache for SST data blocks read from disk.
+        Also shared across both RocksDB instances in this slot.
+        │
+        ├── High Priority Pool: ~90 MB (10% of cache)
+        │   Pinned index blocks and bloom filter blocks.
+        │   Never evicted. This is what makes key lookups fast
+        │   without touching disk.
+        │
+        └── Default Pool: ~810 MB (90% of cache)
+            Data blocks containing your actual key-value pairs.
+            Evicted least-recently-used when full.
+```
+
+**This is the sharing boundary that matters:** Dedup[4] and Enrich[4] are two separate RocksDB instances (separate databases, separate files on disk), but they **share** the block cache and write buffer within Slot 4. They compete for the same 900 MB of cache. But they never compete with Slot 5's RocksDB — that's a completely separate memory budget.
+
+## RocksDB's LSM-Tree: How State Gets from RAM to Disk
+
+RocksDB uses a Log-Structured Merge-Tree (LSM-tree). Understanding this data structure explains why writes are fast, reads are usually fast, and state can grow far beyond available RAM.
+
+### The Write Path
+
+When the Dedup operator writes "evt-88821 → true" to state, here's what physically happens:
+
+1. Flink serializes the key (with a key-group prefix so Flink knows which subtask owns it) and the value into bytes
+2. The write goes into a **write batch** — a buffer that accumulates multiple writes before submitting them to RocksDB in one atomic operation
+3. When the batch is flushed, all entries go into the **memtable** — an in-memory sorted data structure (a skip list). This is pure RAM. Cost: microseconds.
+4. The memtable has a size limit (determined by the write buffer budget). When full, it becomes **immutable** — it's frozen in place, and a new empty memtable is created for incoming writes
+5. A background thread **flushes** the immutable memtable to disk as a new **SST file** (Sorted String Table) at Level 0. The SST file is immutable — once written, it never changes.
+6. Over time, background **compaction** threads merge and sort SST files from Level 0 into deeper levels (Level 1, Level 2, etc.), removing deleted keys and deduplicating entries
+
+```
+Write path:
+
+state.update(value)
+    → write batch (RAM, accumulates writes)
+    → memtable (RAM, sorted skip list, ~50 MB)
+    → [when full] flush to Level 0 SST file (disk, immutable, ~64 MB)
+    → [background] compact into Level 1, Level 2, etc.
+
+Each level is ~10x larger than the previous:
+  Level 0: ~256 MB (up to 4 unsorted SSTs)
+  Level 1: ~256 MB (sorted, non-overlapping SSTs)
+  Level 2: ~2.5 GB
+  Level 3: ~25 GB
+  ...
+```
+
+The key insight: **writes never block on disk I/O during normal processing.** Your write hits the memtable (RAM) and returns immediately. The disk work happens in background threads. This is why Flink can sustain millions of state writes per second even with terabytes of total state.
+
+### The Read Path
+
+Now let's trace our message's state lookup — checking if "evt-88821" exists:
+
+1. **Memtable check:** RocksDB checks the active memtable and any immutable memtables waiting to be flushed. If the key was written in the last few seconds, it's here. Cost: nanoseconds (in-memory sorted lookup).
+
+2. **Block cache check:** If not in the memtable, RocksDB checks the block cache for the relevant data block from an SST file. The block cache holds recently-accessed 4 KB data blocks from SST files. If the block is cached, the lookup is a hash table hit. Cost: microseconds.
+
+3. **Bloom filter check:** If not in the cache, RocksDB needs to search SST files on disk. But first, it checks the **bloom filter** for each SST file. Bloom filters are always kept in the high-priority pool of the block cache (never evicted). A bloom filter can definitively say "this SST does NOT contain the key" with zero disk I/O. It eliminates most SSTs instantly — typically 99%+ of files can be skipped.
+
+4. **Disk read:** For the few SST files that pass the bloom filter (usually just one or two), RocksDB reads the relevant data block from the ephemeral disk into the block cache, searches it, and returns the result. Cost: milliseconds (one SSD read).
+
+```
+Read path for "evt-88821":
+
+1. Memtable (RAM)           → miss (not written in last few seconds)
+2. Block cache (RAM)        → miss (first time seeing this key)
+3. Bloom filter (RAM)       → "not in 000001.sst, not in 000002.sst,
+                               MAYBE in 000003.sst"
+4. Read 000003.sst (disk)   → key not found → first occurrence!
+```
+
+For our dedup use case, most duplicate events arrive within seconds of the original, so the block cache hit rate is typically 95%+. The first occurrence of a key has the worst lookup time (bloom filter miss → disk read), but once the data block is loaded into the cache, all subsequent lookups for nearby keys are RAM-speed.
+
+### SST Files on Disk
+
+Each operator subtask's RocksDB lives in its own directory on the Pod's ephemeral storage:
+
+```
+/tmp/flink/job_{jobId}_op_dedup_uuid_{random}/db/
+├── 000001.sst       ← Level 1 SST, ~64 MB, sorted, immutable
+├── 000002.sst       ← Level 1 SST
+├── 000003.sst       ← Level 2 SST (produced by compaction)
+├── 000004.sst       ← Level 0 SST (recently flushed from memtable)
+├── MANIFEST-000005  ← Metadata: which SSTs exist, which level they're on
+├── CURRENT          ← Points to the current MANIFEST
+└── OPTIONS-000006   ← RocksDB configuration snapshot
+```
+
+Each Flink state descriptor (like "seen" for the ValueState in Dedup) becomes a separate **column family** within the RocksDB instance. Column families are logically independent — they have their own SST files and their own compaction schedule — but they share the block cache and write buffer. If the Dedup operator had both a ValueState and a MapState, those would be two column families in the same RocksDB database.
+
+**SST files are immutable.** Once written, an SST file is never modified. New data creates new SSTs. Compaction reads multiple old SSTs, merges them, writes new SSTs, then deletes the old ones. This append-only design is what makes hard-link snapshots possible during checkpointing — you can create a point-in-time snapshot by hard-linking the current set of SST files, and even if compaction deletes the originals later, the hard links keep the data alive until the snapshot is uploaded to S3.
+
+**State larger than RAM:** The total size of SST files on disk can be hundreds of gigabytes per subtask. The block cache (900 MB in our example) only holds the hot working set. RocksDB's LSM-tree and bloom filters ensure that most reads still avoid disk, even when total state is 100x larger than available cache.
+
+## The Dedup Verdict
+
+Back to our message. Dedup[4] looks up "evt-88821" in its RocksDB. The key has never been seen before (bloom filter confirms it's absent from all SST files, memtable is empty for this key).
+
+**Result:** First occurrence. The operator writes "evt-88821 → true" to the memtable (RAM speed, microseconds), and passes the message downstream. If the same event ID arrives again later, the lookup will find it in either the memtable or the block cache, and the duplicate will be silently dropped.
 
 ---
 
@@ -255,18 +415,21 @@ sequenceDiagram
 
 ### Phase 1: Barrier Injection
 
-The JobManager tells all 8 source subtasks: "start checkpoint 44." Each source snapshots its current Kafka offsets (e.g., Source[3] records `partition-3: offset 50702` — just past our message), then injects a `CheckpointBarrier` into the data stream. The barrier flows downstream like a regular record.
+The JobManager tells all 8 source subtasks: "start checkpoint 44." Each source snapshots its current Kafka offsets (Source[3] records partition-3: offset 50702 — just past our message), then injects a CheckpointBarrier into the data stream.
 
-**Processing does not stop.** Sources keep emitting records after the barrier. The barrier is just a marker — "everything before me belongs to checkpoint 44."
+Remember from earlier: our message was at offset 50701, and it arrived *before* this barrier. So our message belongs to checkpoint 44's epoch. The barrier flows downstream like a regular record, but it's not delivered to your function — it's consumed by Flink's runtime to trigger snapshots.
+
+**Processing does not stop.** Sources keep emitting records after the barrier. The barrier is just a marker — "everything before me belongs to checkpoint 44." Records after the barrier are already being processed for the *next* checkpoint's epoch.
 
 ### Phase 2: State Snapshot
 
-When Dedup[4] receives barriers from all its input channels (barrier alignment ensures consistency across inputs), it snapshots its RocksDB. This happens in two phases:
+When Dedup[4] receives barrier 44 from all its input channels (barrier alignment, as described earlier), it snapshots its RocksDB. Our message's state write — "evt-88821 → true" in the memtable — is part of this snapshot. The snapshot happens in two phases:
 
-- **Synchronous (microseconds):** Flush pending writes, then create hard links to all SST files. Hard links are just filesystem metadata — a 500 GB state is "frozen" in milliseconds with zero data copying.
-- **Asynchronous (background thread):** Compare against the previous checkpoint. Upload only **new** SST files to S3. A 500 GB state that had 200 MB of new writes only uploads those 200 MB. This is incremental checkpointing — cost scales with write rate, not state size.
+- **Synchronous (microseconds):** Flush the write batch to the memtable, then call RocksDB's native checkpoint API. This creates **hard links** to every current SST file in a snapshot directory. A hard link is just filesystem metadata pointing to the same disk blocks — no data is copied. Even if compaction deletes the original SST file later, the hard link keeps the data alive. A 500 GB state is "frozen" in milliseconds. The memtable is also flushed to a new SST, ensuring writes like our "evt-88821 → true" are captured on disk.
 
-The barrier is forwarded to the Sink immediately after the sync phase. Processing of new records resumes in parallel with the S3 upload.
+- **Asynchronous (background thread):** A separate thread compares the hard-linked SST files against the previous checkpoint. Only **new** SST files (those produced by memtable flushes and compaction since checkpoint 43) are uploaded to S3. Previously uploaded SSTs are referenced by metadata only. A 500 GB state that had 200 MB of new writes only uploads those 200 MB. This is incremental checkpointing — cost scales with the write rate, not the total state size.
+
+The barrier is forwarded to the Sink immediately after the sync phase. Processing of new records (belonging to the next checkpoint epoch) resumes in parallel with the background S3 upload.
 
 ### Phase 3: Sink Pre-Commit
 
@@ -304,9 +467,9 @@ With 4 operators and parallelism 8, a naive approach would need 32 slots. Slot s
 
 ## 3. RocksDB = State Larger Than Memory
 
-The Dedup operator might need to remember billions of event IDs. With `HashMapStateBackend`, this would require terabytes of JVM heap — impractical. RocksDB stores state on local SSD with an in-memory cache. Hot keys (recently seen events) are served from the block cache at RAM speed. Cold keys (old events) are read from disk. The block cache and bloom filters ensure most lookups avoid disk entirely.
+As we saw in Chapter 4, RocksDB's LSM-tree architecture means writes always hit the in-memory memtable (microseconds), and reads are served from the block cache 95%+ of the time. State can grow to hundreds of gigabytes per subtask on the Pod's ephemeral disk, while the block cache only holds the hot working set in RAM. Bloom filters eliminate disk reads for keys that don't exist. Compaction runs in background threads, never blocking the processing thread.
 
-Each slot's RocksDB gets its own isolated memory budget from managed memory (allocated outside the JVM heap via `Unsafe.allocateMemory`). This budget is split between a write buffer (~10%) for absorbing writes at RAM speed, and a block cache (~90%) for caching reads. Two operators in the same slot share this cache but slots never share with each other — preventing one slow subtask from starving its neighbor.
+Each slot's RocksDB memory is isolated — Slot 4's block cache and write buffer come from Slot 4's managed memory budget. Two operators in the same slot share this cache, but slots never share with each other. This prevents one hot subtask from degrading its neighbor.
 
 ## 4. Incremental Checkpoints = Constant-Cost Snapshots
 
