@@ -40,9 +40,9 @@ But co-located state introduces new problems: How do you make local state durabl
 
 This post follows a single Kafka message through a real Flink pipeline — from consumption to stateful processing to exactly-once delivery — to show how all these pieces fit together.
 
-# The Pipeline
+## Example Pipeline
 
-We'll trace a message through this pipeline:
+To make this concrete, we'll trace a single Kafka message through this pipeline:
 
 ```
 Kafka "user-events" (8 partitions)
@@ -55,7 +55,7 @@ Kafka "processed-events"
 
 ---
 
-# Flink Components in 60 Seconds
+## Flink Components in 60 Seconds
 
 Before we trace our message, let's name the moving parts. In Flink, there is a clear hierarchy from the physical machines all the way down to the threads that process your data:
 
@@ -75,7 +75,7 @@ The hierarchy on one machine:
 
 ---
 
-# The Cluster on Kubernetes
+## The Cluster on Kubernetes
 
 Now let's see how this maps to a real K8s deployment with **parallelism=8** and **2 slots per TaskManager**.
 
@@ -98,7 +98,7 @@ A few things to notice:
 
 ---
 
-# Chapter 1: A Message Is Born
+## Chapter 1: A Message Is Born
 
 A user event arrives in Kafka partition 3 of the `user-events` topic:
 
@@ -116,7 +116,7 @@ Kafka stores it at **partition 3, offset 50701**.
 
 ---
 
-# Chapter 2: Flink Picks It Up
+## Chapter 2: Flink Picks It Up
 
 Source[3] is a **subtask** — the 4th parallel instance of the KafkaSource operator. It's running inside **Slot 3 in TaskManager Pod 2** on Node A. Its background fetcher thread continuously calls Kafka's `poll()`. Our message arrives in a batch of records. The fetcher places it into a hand-over queue, and the slot's task thread picks it up.
 
@@ -126,7 +126,7 @@ The source deserializes the raw Kafka bytes into a Flink `StreamRecord` — now 
 
 ---
 
-# What Our Message Sees Around It in the Stream
+## What Our Message Sees Around It in the Stream
 
 Our message is not alone. As it travels through the pipeline, it flows alongside two special markers. Your business logic never sees them — Flink's runtime handles them behind the scenes — but they're critical to understanding how Flink keeps time and makes snapshots.
 
@@ -160,7 +160,7 @@ Our message is at offset 50701. Checkpoint 43's barrier was injected earlier (at
 
 ---
 
-# Chapter 3: The Dedup — Does This Message Need a Network Hop?
+## Chapter 3: The Dedup — Does This Message Need a Network Hop?
 
 This is where the pipeline design matters. The Dedup operator is keyed by `event_id` — it needs to check "have I seen `evt-88821` before?" in its keyed state.
 
@@ -192,13 +192,13 @@ What if Dedup[4] is slow? The receiving slot's input buffers fill up. It stops g
 
 ---
 
-# Chapter 4: The Dedup Checks State — RAM or Disk?
+## Chapter 4: The Dedup Checks State — RAM or Disk?
 
 Our message has arrived at **Dedup[4]** — the 5th parallel instance of the Dedup operator, running in **Slot 4 inside TaskManager Pod 3** on Node B. The operator needs to check: has `evt-88821` been seen before?
 
 To understand where that answer comes from, we need to look at how the Pod's memory is carved up and how RocksDB physically stores state.
 
-## How the TaskManager Pod's Memory Is Organized
+### How the TaskManager Pod's Memory Is Organized
 
 When TaskManager Pod 3 starts, its total memory (10 GB in this example — you configure this via the Pod's resource request; it could be 4 GB for a light job or 32 GB for a heavy one) is divided into strictly separated regions before any task runs:
 
@@ -230,7 +230,7 @@ The critical point: **managed memory is hard-partitioned per slot**. Slot 4 and 
 
 Network memory, by contrast, is soft-shared — both slots draw from the same global pool, and buffers flow dynamically to wherever demand is highest.
 
-## How RocksDB Uses the Slot's Managed Memory
+### How RocksDB Uses the Slot's Managed Memory
 
 Slot 4's 2.5 GB of managed memory is further divided by consumer weights. In a typical streaming job with no batch operators or Python UDFs, the state backend (RocksDB) gets about half:
 
@@ -259,7 +259,7 @@ Slot 4's Managed Memory: 2.5 GB
 
 **This is the sharing boundary that matters:** Dedup[4] and Enrich[4] are two separate RocksDB instances (separate databases, separate files on disk), but they **share** the block cache and write buffer within Slot 4. They compete for the same 900 MB of cache. But they never compete with Slot 5's RocksDB — that's a completely separate memory budget.
 
-## RocksDB's LSM-Tree: How State Lives on RAM and Disk
+### RocksDB's LSM-Tree: How State Lives on RAM and Disk
 
 RocksDB uses a Log-Structured Merge-Tree (LSM-tree). This data structure is why writes are fast, reads are usually fast, and state can grow far beyond available RAM. Let's trace our message through both paths — first the read (the dedup check), then the write (marking it as seen).
 
@@ -344,13 +344,13 @@ Each Flink state descriptor (like the ValueState "seen" in Dedup) becomes a sepa
 
 **SST files are immutable.** Once written, never modified. New data creates new SSTs. Compaction reads old SSTs, merges them, writes new ones, deletes the old ones. This append-only design is what makes checkpointing fast: to create a point-in-time snapshot, Flink just creates **hard links** to the current SST files. Even if compaction deletes the originals afterward, the hard links keep the data alive until the snapshot is uploaded to S3.
 
-## The Dedup Verdict
+### The Dedup Verdict
 
 Back to our message. The read path found no match — "evt-88821" has never been seen. The write path records "evt-88821 → true" in the memtable in microseconds. The message passes downstream. If the same event ID arrives again later, the read path will find it (in the memtable if recent, or in the block cache after the data is flushed to an SST), and the duplicate will be silently dropped.
 
 ---
 
-# Chapter 5: The Enrich — Broadcast State
+## Chapter 5: The Enrich — Broadcast State
 
 The message moves from Dedup[4] to Enrich[4]. Since they're in the **same slot** and there's no keyBy between them, they are **chained** — they run in the same thread. When Dedup[4] emits a record, it directly calls Enrich[4]'s processing function as a plain Java method call within the same thread. The record is not serialized into bytes, not written to a network buffer, not copied — the same Java object in memory is simply passed from one function to the next. This is as fast as any normal function call in your code: nanoseconds.
 
@@ -374,7 +374,7 @@ Our message is enriched with the current pricing rules and passed to the Sink.
 
 ---
 
-# Chapter 6: The Sink — Writing to Kafka (But Not Committing Yet)
+## Chapter 6: The Sink — Writing to Kafka (But Not Committing Yet)
 
 Enrich[4] and Sink[4] are also chained — same slot, same thread, direct method call. The enriched message arrives at Sink[4] with no serialization, no network hop, no buffer copy — just one Java object passed within the same thread.
 
@@ -392,7 +392,7 @@ It will stay this way until the next checkpoint completes.
 
 ---
 
-# Chapter 7: The Checkpoint — Making It All Durable
+## Chapter 7: The Checkpoint — Making It All Durable
 
 Every 30 seconds (configurable), the CheckpointCoordinator on the JobManager triggers a distributed snapshot. This is how Flink makes the pipeline's progress durable and enables exactly-once guarantees.
 
@@ -417,7 +417,7 @@ If the entire cluster crashes after this checkpoint, Flink restores from S3 and 
 
 ---
 
-# Physical Boundaries Summary
+## Physical Boundaries Summary
 
 Where things are shared and where they're isolated:
 
@@ -435,7 +435,7 @@ Where things are shared and where they're isolated:
 
 ---
 
-# What Happens When Things Go Wrong
+## What Happens When Things Go Wrong
 
 Say TaskManager Pod 3 on Node B gets OOM-killed by Kubernetes. This Pod hosted Slot 4 and Slot 5 — including our message's Dedup[4] and Enrich[4]. All state on its ephemeral disk is gone.
 
