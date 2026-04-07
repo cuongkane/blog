@@ -1,6 +1,6 @@
 ---
-title: "How Flink Handles Tremendous Scale for Stateful Streaming"
-description: "Follow a single Kafka message through Flink's internals — from consumption to stateful processing to exactly-once delivery — and see how the architecture scales horizontally."
+title: "How Flink Handles Stateful Streaming at Scale — And Why You Might Not Need It"
+description: "Why external stores like Redis break down for stateful stream processing at scale, how Flink solves this with co-located state — and why running Flink yourself is a serious commitment."
 image: "/images/flink_operation/intro.webp"
 date: "2026-04-03"
 author: "cuongkane"
@@ -8,15 +8,41 @@ published: true
 tags: ["flink", "streaming", "kafka", "distributed-systems", "checkpointing", "rocksdb", "state-management"]
 ---
 
-# The Problem
+# What Is Stateful Stream Processing?
 
-You have a Kafka topic receiving millions of user events per second. You need to:
+Most stream processing is stateless: a message comes in, you transform it, you push it out. But many real-world problems require **remembering things across messages**:
 
-1. **Deduplicate** events (same event ID must not be processed twice)
-2. **Enrich** each event with business rules that can change at runtime (via a config stream)
-3. **Write results** to an output Kafka topic with **exactly-once** guarantees
+- **Deduplication** — "Have I seen this event ID before?" requires storing every ID you've processed.
+- **Windowed aggregations** — "How many orders in the last 5 minutes?" requires accumulating counts over time.
+- **Pattern detection** — "Alert if a user fails login 3 times in a row" requires tracking per-user sequences.
 
-The pipeline looks like this:
+The moment your processor needs to remember something between messages, you have **stateful** stream processing.
+
+Most teams already solve this with tools they know: a Kafka consumer that checks PostgreSQL for duplicates, or a worker that increments counters in Redis. **This works.** For thousands — even tens of thousands — of messages per second, an external store is perfectly fine. Many production systems run this way for years without issues.
+
+The question is what happens when you outgrow it.
+
+# Why External Stores Break Down at Tremendous Scale
+
+Your stream consumer checks Redis (or PostgreSQL, or DynamoDB) for every message. At moderate throughput, this is the right choice — simple, debuggable, and built on tools your team already operates. But at truly high scale, it breaks down:
+
+- **Network round-trips kill throughput.** Every message needs at least one read and one write to an external store. At 1 million messages/second across 8 partitions, that's 2 million round-trips/second hitting your Redis cluster. Each round-trip adds 0.5–2ms of latency — your pipeline bottleneck becomes the network, not the computation.
+- **Consistency is painful.** Your consumer reads from Redis, processes the message, writes to Redis, then produces to the output topic. If it crashes between the Redis write and the Kafka produce, your state and output are inconsistent. Getting exactly-once semantics across two separate systems (Redis + Kafka) requires distributed transactions — which are slow, complex, and fragile.
+- **Scaling state independently from compute is wasteful.** You scale your Redis cluster based on state size and your consumers based on throughput. These two scaling axes are coupled in practice but managed separately, leading to over-provisioning or bottlenecks.
+
+The fundamental issue: **external state turns every message into a distributed system problem.** What if the state lived *inside* the stream processor itself?
+
+# How Flink Solves This
+
+Flink takes a radically different approach: **state is co-located with computation.** Each parallel instance of your operator has its own local state store (RocksDB) on the same machine. No network round-trips for state access — just local disk reads that hit an in-memory cache 95%+ of the time.
+
+But co-located state introduces new problems: How do you make local state durable? How do you recover it after a crash? How do you redistribute it when you scale up? Flink's answer is an elegant system of checkpoint barriers, incremental snapshots, and two-phase commits.
+
+This post follows a single Kafka message through a real Flink pipeline — from consumption to stateful processing to exactly-once delivery — to show how all these pieces fit together.
+
+# The Pipeline
+
+We'll trace a message through this pipeline:
 
 ```
 Kafka "user-events" (8 partitions)
@@ -26,8 +52,6 @@ Kafka "user-events" (8 partitions)
     → KafkaSink
 Kafka "processed-events"
 ```
-
-This post follows a single message through this pipeline — from the moment it leaves Kafka to the moment its result is committed — and explains what happens at every physical layer along the way.
 
 ---
 
@@ -393,47 +417,6 @@ If the entire cluster crashes after this checkpoint, Flink restores from S3 and 
 
 ---
 
-# What Makes This Scale?
-
-Now that we've followed a single message through the pipeline, let's zoom out and see why this architecture handles millions of messages per second across terabytes of state.
-
-## 1. Parallelism = Independent Lanes, Scaled by K8s Pods
-
-Our 8 subtasks are 8 completely independent processing lanes, spread across 4 Kubernetes Pods. Dedup[0] in Pod 1 and Dedup[4] in Pod 3 never communicate with each other. They have separate RocksDB instances, separate managed memory, on separate K8s nodes.
-
-Doubling throughput means: increase parallelism to 16, add Kafka partitions to 16, and let the Flink K8s Operator spin up 4 more TaskManager Pods. Take a savepoint, redeploy, and Flink redistributes state across the new key group ranges automatically.
-
-The key group system makes this possible. Each key deterministically maps to exactly one subtask. No distributed locks, no cross-Pod coordination, no shared state. Each lane is self-contained.
-
-## 2. Slot Sharing = Resource Efficiency
-
-With 4 operators and parallelism 8, a naive approach would need 32 slots. Slot sharing puts all operators for the same subtask index into one slot — only 8 slots needed. This also means chained operators (Dedup→Enrich→Sink) pass data via direct method calls instead of network serialization, which is orders of magnitude faster.
-
-## 3. RocksDB = State Larger Than Memory
-
-As we saw in Chapter 4, RocksDB's LSM-tree architecture means writes always hit the in-memory memtable (microseconds), and reads are served from the block cache 95%+ of the time. State can grow to hundreds of gigabytes per subtask on the Pod's ephemeral disk, while the block cache only holds the hot working set in RAM. Bloom filters eliminate disk reads for keys that don't exist. Compaction runs in background threads, never blocking the processing thread.
-
-Each slot's RocksDB memory is isolated — Slot 4's block cache and write buffer come from Slot 4's managed memory budget. Two operators in the same slot share this cache, but slots never share with each other. This prevents one hot subtask from degrading its neighbor.
-
-## 4. Incremental Checkpoints = Constant-Cost Snapshots
-
-A 500 GB state doesn't mean 500 GB uploaded every 30 seconds. The synchronous phase creates hard links (microseconds), then a background thread uploads only new SST files. With a moderate write rate, each checkpoint might upload only a few hundred MB regardless of total state size. The processing thread is paused for less than 10 milliseconds.
-
-## 5. Exactly-Once Without Sacrificing Throughput
-
-The combination of:
-- **Source:** Flink-managed Kafka offsets (rewindable on failure)
-- **State:** Checkpoint barriers create consistent distributed snapshots without stopping processing
-- **Sink:** Two-phase commit with Kafka transactions (records are invisible until committed)
-
-...means every message is processed exactly once, even across failures. And because barriers flow through the data stream rather than requiring a global pause, throughput is barely affected during checkpointing.
-
-## 6. Broadcast State = Live Config Without Restart
-
-The Enrich operator reads business rules from a replicated in-memory HashMap — nanosecond lookups. Config changes from the config Kafka topic are automatically pushed to all 8 parallel instances. No job restart, no redeployment, no coordination. The cost is `parallelism × config_size` of JVM heap, which is trivial for typical config data.
-
----
-
 # Physical Boundaries Summary
 
 Where things are shared and where they're isolated:
@@ -469,3 +452,30 @@ Here's what happens:
 Messages that were processed between checkpoint 44 and the crash are replayed from Kafka. But because the Sink's Kafka transaction for those messages was never committed (it was part of the in-progress checkpoint 45 that didn't complete), downstream consumers with `read_committed` never saw them. When they're reprocessed, the output is identical.
 
 This is exactly-once: Kubernetes handles Pod lifecycle (restart, reschedule). Flink handles data consistency (rewind source, restore state, abort uncommitted transactions). Together, they make the crash invisible to the rest of the system.
+
+---
+
+# Key Takeaways from Flink's Architecture
+
+A few design principles worth remembering — they apply far beyond Flink:
+
+- **Co-locate state with computation.** Eliminating the network hop between processing and state access is the single biggest performance win. This is why Flink's RocksDB-based local state is orders of magnitude faster than hitting Redis for every message.
+- **Immutable data structures enable cheap snapshots.** RocksDB's SST files are never modified after creation. This means a point-in-time snapshot is just a set of hard links — microseconds, regardless of state size. The lesson: design your data structures so that "freezing" them is trivial.
+- **Barriers over pauses.** Instead of stopping the world to take a consistent snapshot, Flink injects lightweight markers (barriers) into the data stream. Processing continues uninterrupted. This is the Chandy-Lamport algorithm adapted for streaming — coordinate without stopping.
+- **Incremental over full.** A 500 GB state doesn't mean 500 GB uploaded every checkpoint. Only the delta (new SST files) gets uploaded. Cost scales with the write rate, not total state size.
+- **Two-phase commit for end-to-end exactly-once.** The Sink pre-commits Kafka transactions during the checkpoint, but records only become visible to consumers after the checkpoint is finalized. This extends exactly-once guarantees beyond Flink's boundary into the downstream system.
+
+---
+
+# Conclusion: Should You Actually Use Flink?
+
+Flink's architecture is genuinely impressive. But running it in production is a **serious operational commitment**:
+
+- **Cluster management.** JobManagers, TaskManagers, ZooKeeper (or Kubernetes Operator), S3 for checkpoints, monitoring for backpressure, checkpoint duration, and state size — it's a lot of infrastructure to keep healthy.
+- **Tuning is non-trivial.** RocksDB memory budgets, network buffer pools, checkpoint intervals, parallelism, slot sharing groups, watermark strategies — getting these wrong leads to OOM kills, checkpoint timeouts, or silent backpressure that degrades throughput.
+- **Upgrades and schema evolution** require savepoint management, state migration, and careful rollout procedures. A bad deploy can corrupt state that took hours to build.
+- **Debugging is hard.** When a subtask is slow, is it RocksDB compaction? GC pauses? Network shuffle backpressure? Skewed key distribution? The answer requires deep understanding of Flink's internals — the very internals this post walked through.
+
+**For small teams, the operational overhead often outweighs the benefits.** If your throughput is under 10K messages/second, a simple consumer with Redis or a database will serve you well — the "naive" approach works at moderate scale. If you need exactly-once semantics at moderate scale, consider Kafka Streams (embedded, no separate cluster) or managed services like AWS Kinesis Data Analytics.
+
+Use Flink when you genuinely need it: millions of messages per second, terabytes of state, exactly-once guarantees, and event-time processing with late data handling. If that describes your problem — and you have the team to operate it — Flink is hard to beat.
