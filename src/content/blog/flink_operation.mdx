@@ -38,11 +38,7 @@ Flink takes a radically different approach: **state is co-located with computati
 
 But co-located state introduces new problems: How do you make local state durable? How do you recover it after a crash? How do you redistribute it when you scale up? Flink's answer is an elegant system of checkpoint barriers, incremental snapshots, and two-phase commits.
 
-This post follows a single Kafka message through a real Flink pipeline — from consumption to stateful processing to exactly-once delivery — to show how all these pieces fit together.
-
-## Example Pipeline
-
-To make this concrete, we'll trace a single Kafka message through this pipeline:
+This post follows a single Kafka message through a real Flink pipeline — from consumption to stateful processing to exactly-once delivery — to show how all these pieces fit together. Here's the pipeline:
 
 ```
 Kafka "user-events" (8 partitions)
@@ -53,9 +49,7 @@ Kafka "user-events" (8 partitions)
 Kafka "processed-events"
 ```
 
----
-
-## Flink Components in 60 Seconds
+# How Flink Streaming Works
 
 Before we trace our message, let's name the moving parts. In Flink, there is a clear hierarchy from the physical machines all the way down to the threads that process your data:
 
@@ -72,10 +66,6 @@ Before we trace our message, let's name the moving parts. In Flink, there is a c
 The hierarchy on one machine:
 
 ![The hierarchy on one machine](/images/flink_operation/single_node.png)
-
----
-
-## The Cluster on Kubernetes
 
 Now let's see how this maps to a real K8s deployment with **parallelism=8** and **2 slots per TaskManager**.
 
@@ -124,9 +114,7 @@ The source deserializes the raw Kafka bytes into a Flink `StreamRecord` — now 
 
 **Important:** Flink does NOT use Kafka's consumer group offsets for recovery. It stores offsets in its own state. Kafka's consumer offsets may be committed optionally for monitoring, but Flink ignores it during failover.
 
----
-
-## What Our Message Sees Around It in the Stream
+### What Our Message Sees Around It in the Stream
 
 Our message is not alone. As it travels through the pipeline, it flows alongside two special markers. Your business logic never sees them — Flink's runtime handles them behind the scenes — but they're critical to understanding how Flink keeps time and makes snapshots.
 
@@ -134,7 +122,7 @@ Our message is not alone. As it travels through the pipeline, it flows alongside
 ... [record] [record] [WATERMARK] [record] [OUR MESSAGE] [BARRIER cp-43] [record] ...
 ```
 
-### Watermarks — "When Can We Close a Time Window?"
+#### Watermarks — "When Can We Close a Time Window?"
 
 **The problem watermarks solve:** Imagine you have a 5-minute window aggregation — "sum all purchases between 12:00 and 12:05." Events arrive out of order (network delays, retries). How does Flink know when 12:00–12:05 is "complete" and it's safe to emit the result?
 
@@ -146,7 +134,7 @@ That's what watermarks do. A watermark is a timestamp that flows through the str
 
 In our pipeline, the Dedup operator doesn't use time windows, so watermarks flow through it without triggering anything. But if we added a windowed aggregation, watermarks would be essential.
 
-### Checkpoint Barriers — "Take a Snapshot at This Exact Point"
+#### Checkpoint Barriers — "Take a Snapshot at This Exact Point"
 
 **The problem barriers solve:** Flink needs to take a consistent snapshot of the entire distributed pipeline — all 8 subtasks, across 4 Pods — without stopping processing. Barriers are how it coordinates this.
 
@@ -157,8 +145,6 @@ In our pipeline, the Dedup operator doesn't use time windows, so watermarks flow
 **Who handles alignment?** Each **subtask** handles its own barrier alignment. When Dedup[4] receives barrier 44 from Source[0] but not yet from Source[5], the subtask must wait until all 8 barriers arrive before it can snapshot its state and forward the barrier downstream. In **aligned mode** (the default), the subtask blocks the fast channels and only processes the slow ones. In **unaligned mode** (opt-in, introduced in Flink 1.11), the subtask continues processing all channels and instead includes any in-flight records that overtake the barrier as part of the checkpoint. Unaligned checkpoints avoid backpressure during snapshotting at the cost of larger checkpoint sizes. No central coordinator is involved — each subtask does alignment independently.
 
 Our message is at offset 50701. Checkpoint 43's barrier was injected earlier (at offset 50600). Our message arrived after that barrier, so it belongs to checkpoint 44's epoch. Its effects will be captured in checkpoint 44's snapshot.
-
----
 
 ## Chapter 3: The Dedup — Does This Message Need a Network Hop?
 
@@ -414,27 +400,7 @@ The JobManager then sends `notifyCheckpointComplete(44)` to the Sinks. Each Sink
 
 If the entire cluster crashes after this checkpoint, Flink restores from S3 and resumes from exactly this point. Our message will not be reprocessed. No duplicates.
 
----
-
-## Physical Boundaries Summary
-
-Where things are shared and where they're isolated:
-
-| What | Shared? | Where it lives |
-|------|---------|---------------|
-| Managed memory (RocksDB cache) between slots in same Pod | **No** — hard partition per slot | Off-heap native memory |
-| RocksDB block cache between operators in same slot | **Yes** — shared within the slot | Slot's managed memory |
-| RocksDB data files between operators in same slot | **No** — separate directories | Local disk |
-| Keyed state between parallel subtasks | **No** — different key groups, different machines | Each subtask's own RocksDB |
-| Broadcast state between subtasks | Same content, but **physically separate** copies | JVM heap per subtask |
-| Network buffers between slots in same Pod | **Soft sharing** — global pool, dynamic redistribution | Off-heap pre-allocated |
-| Data between chained operators | **Zero-copy** — same Java object reference | Same thread, same stack frame |
-| Data between non-chained operators (same Pod) | Serialized, memory-to-memory | Network buffer pool, no TCP |
-| Data between non-chained operators (different Pods) | Serialized, **Netty over TCP** | Through the K8s network |
-
----
-
-## What Happens When Things Go Wrong
+### What Happens When Things Go Wrong
 
 Say TaskManager Pod 3 on Node B gets OOM-killed by Kubernetes. This Pod hosted Slot 4 and Slot 5 — including our message's Dedup[4] and Enrich[4]. All state on its ephemeral disk is gone.
 
