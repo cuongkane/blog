@@ -88,7 +88,7 @@ A few things to notice:
 
 - **Each TaskManager Pod is one JVM process.** Kubernetes manages its lifecycle — if a Pod dies, K8s (or the Flink Kubernetes Operator) can restart it. The 2 slots inside it are purely logical: they share the JVM heap and network buffers, but each slot gets its own **isolated managed memory** budget for RocksDB. Slot 0 cannot borrow memory from Slot 1, even though they're in the same Pod.
 
-- **8 Kafka partitions, parallelism 8, 8 slots** — each slot reads exactly one Kafka partition. This is the ideal 1:1 mapping. (If you had 16 partitions with parallelism 8, each slot would read 2 partitions. If you had 4 partitions with parallelism 8, 4 slots would sit idle — Flink never splits one Kafka partition across multiple readers.)
+- **8 Kafka partitions, parallelism 8, 8 slots** — each slot reads exactly one Kafka partition. This is the ideal 1:1 mapping. (If you had 16 partitions with parallelism 8, each slot would read 2 partitions. If you had 4 partitions with parallelism 8, 4 source subtasks would have no partitions assigned and sit idle — though their downstream operators (Dedup, Enrich, Sink) in those slots could still receive data via keyBy shuffle. Flink never splits one Kafka partition across multiple readers.)
 
 - **Slot sharing** means all four operators run inside the **same slot** for the same subtask index. Slot 0 runs Source[0], Dedup[0], Enrich[0], and Sink[0] — all chained into a single Java thread. Data flows between them via direct method calls, not the network.
 
@@ -154,7 +154,7 @@ In our pipeline, the Dedup operator doesn't use time windows, so watermarks flow
 
 **Who injects them?** Each **source subtask** injects a barrier into its output stream at the current position. The barrier divides the stream: everything before it belongs to checkpoint 44, everything after belongs to the next checkpoint.
 
-**Who handles alignment?** Each **subtask** handles its own barrier alignment. When Dedup[4] receives barrier 44 from Source[0] but not yet from Source[5], the subtask itself blocks the fast channel and keeps processing the slow one, until all 8 barriers arrive. Then it snapshots its state and forwards the barrier downstream. No central coordinator is involved in this per-subtask alignment — each subtask does it independently.
+**Who handles alignment?** Each **subtask** handles its own barrier alignment. When Dedup[4] receives barrier 44 from Source[0] but not yet from Source[5], the subtask must wait until all 8 barriers arrive before it can snapshot its state and forward the barrier downstream. In **aligned mode** (the default), the subtask blocks the fast channels and only processes the slow ones. In **unaligned mode** (opt-in, introduced in Flink 1.11), the subtask continues processing all channels and instead includes any in-flight records that overtake the barrier as part of the checkpoint. Unaligned checkpoints avoid backpressure during snapshotting at the cost of larger checkpoint sizes. No central coordinator is involved — each subtask does alignment independently.
 
 Our message is at offset 50701. Checkpoint 43's barrier was injected earlier (at offset 50600). Our message arrived after that barrier, so it belongs to checkpoint 44's epoch. Its effects will be captured in checkpoint 44's snapshot.
 
@@ -401,15 +401,14 @@ We already covered how barriers work: the JobManager tells all source subtasks t
 ### Sink Pre-Commit
 
 When the barrier reaches Sink[4]:
-1. **Flush** all pending records to Kafka (our message was already sent, but any buffered-but-not-yet-sent records get flushed now)
-2. **Pre-commit** the Kafka transaction — the producer calls `commitTransaction()`, but downstream `read_committed` consumers still can't see these records yet (they become visible only after finalization)
-3. **Snapshot** the transaction ID to S3 for recovery purposes
+1. **Flush** all pending records to the Kafka broker (our message was already sent, but any buffered-but-not-yet-sent records get flushed now). The records are written to Kafka's log but the transaction is still open — `read_committed` consumers cannot see them yet.
+2. **Snapshot** the producer ID and transaction state to S3, so the transaction can be recovered and committed even if this Pod crashes before finalization.
 
 ### Finalization
 
 All 8 subtasks of all operators send `acknowledgeCheckpoint(44)` to the JobManager with their state handles (S3 paths). Once all 32 acknowledgments arrive (8 subtasks × 4 operators), the JobManager writes a single `_metadata` file to S3. This file is the **atomic commit point** — a checkpoint is valid if and only if its `_metadata` exists.
 
-The JobManager then sends `notifyCheckpointComplete(44)` to the Sinks. Each Sink finalizes its Kafka transaction — **now** the records become visible to `read_committed` consumers — and begins a new transaction for the next cycle.
+The JobManager then sends `notifyCheckpointComplete(44)` to the Sinks. Each Sink calls `commitTransaction()` — **now** the records become visible to `read_committed` consumers — and begins a new transaction for the next cycle.
 
 **Our message is now fully committed:** its Kafka offset is part of the checkpoint state, the Dedup "seen" flag is in the RocksDB snapshot on S3, and its output record is visible in the output Kafka topic.
 
