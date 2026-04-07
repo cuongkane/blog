@@ -372,79 +372,20 @@ It will stay this way until the next checkpoint completes.
 
 Every 30 seconds (configurable), the CheckpointCoordinator on the JobManager triggers a distributed snapshot. This is how Flink makes the pipeline's progress durable and enables exactly-once guarantees.
 
-Here's what happens, and what our message's state looks like at each phase:
+We already covered how barriers work: the JobManager tells all source subtasks to inject a CheckpointBarrier, each operator aligns on barriers from all inputs, then snapshots its RocksDB state (hard links + incremental S3 upload). Once the barrier has propagated through the Sources and stateful operators, it reaches the Sinks. This is where the two-phase commit protocol kicks in.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant JM as JobManager
-    participant Src as Sources [0-7]
-    participant Op as Dedup + Enrich [0-7]
-    participant Sink as Sinks [0-7]
-    participant S3 as S3
-
-    rect rgb(230, 240, 255)
-        Note over JM,S3: 1. Trigger + Barrier Injection
-        JM->>Src: triggerCheckpoint(44)
-        Src->>Src: snapshot Kafka offsets
-        Src->>Op: emit CheckpointBarrier(44) into data stream
-    end
-
-    rect rgb(240, 235, 250)
-        Note over JM,S3: 2. State Snapshot (async)
-        Op->>Op: barrier alignment across inputs
-        Op->>Op: RocksDB hard-link snapshot (microseconds)
-        Op->>Sink: forward barrier
-        Op-->>S3: upload new SST files (background thread)
-    end
-
-    rect rgb(255, 235, 235)
-        Note over JM,S3: 3. Sink Pre-Commit
-        Sink->>Sink: flush() pending records to Kafka
-        Sink->>Sink: commitTransaction()
-        Sink-->>S3: upload transaction ID
-    end
-
-    rect rgb(235, 250, 235)
-        Note over JM,S3: 4. Finalize
-        Src-->>JM: ack(44)
-        Op-->>JM: ack(44)
-        Sink-->>JM: ack(44)
-        JM->>S3: write _metadata (atomic commit point)
-        JM->>Sink: notifyCheckpointComplete(44)
-        Sink->>Sink: beginTransaction() for next cycle
-    end
-```
-
-### Phase 1: Barrier Injection
-
-The JobManager tells all 8 source subtasks: "start checkpoint 44." Each source snapshots its current Kafka offsets (Source[3] records partition-3: offset 50702 — just past our message), then injects a CheckpointBarrier into the data stream.
-
-Remember from earlier: our message was at offset 50701, and it arrived *before* this barrier. So our message belongs to checkpoint 44's epoch. The barrier flows downstream like a regular record, but it's not delivered to your function — it's consumed by Flink's runtime to trigger snapshots.
-
-**Processing does not stop.** Sources keep emitting records after the barrier. The barrier is just a marker — "everything before me belongs to checkpoint 44." Records after the barrier are already being processed for the *next* checkpoint's epoch.
-
-### Phase 2: State Snapshot
-
-When Dedup[4] receives barrier 44 from all its input channels (barrier alignment, as described earlier), it snapshots its RocksDB. Our message's state write — "evt-88821 → true" in the memtable — is part of this snapshot. The snapshot happens in two phases:
-
-- **Synchronous (microseconds):** Flush the write batch to the memtable, then call RocksDB's native checkpoint API. This creates **hard links** to every current SST file in a snapshot directory. A hard link is just filesystem metadata pointing to the same disk blocks — no data is copied. Even if compaction deletes the original SST file later, the hard link keeps the data alive. A 500 GB state is "frozen" in milliseconds. The memtable is also flushed to a new SST, ensuring writes like our "evt-88821 → true" are captured on disk.
-
-- **Asynchronous (background thread):** A separate thread compares the hard-linked SST files against the previous checkpoint. Only **new** SST files (those produced by memtable flushes and compaction since checkpoint 43) are uploaded to S3. Previously uploaded SSTs are referenced by metadata only. A 500 GB state that had 200 MB of new writes only uploads those 200 MB. This is incremental checkpointing — cost scales with the write rate, not the total state size.
-
-The barrier is forwarded to the Sink immediately after the sync phase. Processing of new records (belonging to the next checkpoint epoch) resumes in parallel with the background S3 upload.
-
-### Phase 3: Sink Pre-Commit
+### Sink Pre-Commit
 
 When the barrier reaches Sink[4]:
 1. **Flush** all pending records to Kafka (our message was already sent, but any buffered-but-not-yet-sent records get flushed now)
-2. **Commit** the Kafka transaction — our message and all other records in this transaction become visible to `read_committed` consumers
+2. **Pre-commit** the Kafka transaction — the producer calls `commitTransaction()`, but downstream `read_committed` consumers still can't see these records yet (they become visible only after finalization)
 3. **Snapshot** the transaction ID to S3 for recovery purposes
-4. **Begin** a new transaction for the next cycle
 
-### Phase 4: Finalization
+### Finalization
 
 All 8 subtasks of all operators send `acknowledgeCheckpoint(44)` to the JobManager with their state handles (S3 paths). Once all 32 acknowledgments arrive (8 subtasks × 4 operators), the JobManager writes a single `_metadata` file to S3. This file is the **atomic commit point** — a checkpoint is valid if and only if its `_metadata` exists.
+
+The JobManager then sends `notifyCheckpointComplete(44)` to the Sinks. Each Sink finalizes its Kafka transaction — **now** the records become visible to `read_committed` consumers — and begins a new transaction for the next cycle.
 
 **Our message is now fully committed:** its Kafka offset is part of the checkpoint state, the Dedup "seen" flag is in the RocksDB snapshot on S3, and its output record is visible in the output Kafka topic.
 
