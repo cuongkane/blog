@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="khBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <marker id="khArrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#53d8fb"/>
+    </marker>
+    <filter id="khGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="700" height="260" rx="12" fill="url(#khBg)"/>
+
+  <!-- Step 1: Key -->
+  <rect x="30" y="30" width="140" height="50" rx="8" fill="#2d1a3e" stroke="#e94560" stroke-width="2"/>
+  <text x="100" y="52" text-anchor="middle" fill="#e94560" font-size="11" font-weight="600">"evt-88821"</text>
+  <text x="100" y="68" text-anchor="middle" fill="#e94560" font-size="9" opacity="0.7">event_id key</text>
+
+  <!-- Arrow 1 -->
+  <line x1="170" y1="55" x2="210" y2="55" stroke="#53d8fb" stroke-width="2" marker-end="url(#khArrow)"/>
+
+  <!-- Step 2: Hash -->
+  <rect x="215" y="25" width="160" height="60" rx="8" fill="#1a3a5c" stroke="#53d8fb" stroke-width="1.5"/>
+  <text x="295" y="48" text-anchor="middle" fill="#53d8fb" font-size="11" font-weight="600">hashCode()</text>
+  <text x="295" y="64" text-anchor="middle" fill="#53d8fb" font-size="10" opacity="0.8">→ MurmurHash</text>
+  <text x="295" y="78" text-anchor="middle" fill="#7a8a9a" font-size="9">deterministic hash</text>
+
+  <!-- Arrow 2 -->
+  <line x1="375" y1="55" x2="415" y2="55" stroke="#53d8fb" stroke-width="2" marker-end="url(#khArrow)"/>
+
+  <!-- Step 3: Modulo -->
+  <rect x="420" y="25" width="140" height="60" rx="8" fill="#1a3a5c" stroke="#f0a500" stroke-width="1.5"/>
+  <text x="490" y="48" text-anchor="middle" fill="#f0a500" font-size="11" font-weight="600">modulo 128</text>
+  <text x="490" y="64" text-anchor="middle" fill="#f0a500" font-size="10" opacity="0.8">→ key group 71</text>
+  <text x="490" y="78" text-anchor="middle" fill="#7a8a9a" font-size="9">128 key groups total</text>
+
+  <!-- Arrow down -->
+  <line x1="490" y1="85" x2="490" y2="120" stroke="#53d8fb" stroke-width="2" marker-end="url(#khArrow)"/>
+
+  <!-- Step 4: Key Group to Subtask -->
+  <rect x="360" y="125" width="260" height="60" rx="8" fill="#1a3a5c" stroke="#7ed957" stroke-width="1.5"/>
+  <text x="490" y="148" text-anchor="middle" fill="#7ed957" font-size="11" font-weight="600">71 × 8 / 128</text>
+  <text x="490" y="164" text-anchor="middle" fill="#7ed957" font-size="10" opacity="0.8">→ subtask 4</text>
+  <text x="490" y="178" text-anchor="middle" fill="#7a8a9a" font-size="9">8 = parallelism</text>
+
+  <!-- Arrow to result -->
+  <line x1="490" y1="185" x2="490" y2="210" stroke="#53d8fb" stroke-width="2" marker-end="url(#khArrow)"/>
+
+  <!-- Result -->
+  <rect x="380" y="215" width="220" height="36" rx="8" fill="#2d1a3e" stroke="#e94560" stroke-width="2" filter="url(#khGlow)"/>
+  <text x="490" y="238" text-anchor="middle" fill="#e94560" font-size="12" font-weight="700">Dedup[4] in Pod 3, Node B</text>
+
+  <!-- Left side summary -->
+  <text x="40" y="130" fill="#556" font-size="10">Key routing ensures</text>
+  <text x="40" y="145" fill="#556" font-size="10">same key always goes</text>
+  <text x="40" y="160" fill="#556" font-size="10">to the same subtask</text>
+
+  <rect x="30" y="175" width="200" height="28" rx="4" fill="#1a1a2e" stroke="#334" stroke-width="1"/>
+  <text x="130" y="193" text-anchor="middle" fill="#7a8a9a" font-size="9">Key groups: fixed at 128 (max parallelism)</text>
+</svg>

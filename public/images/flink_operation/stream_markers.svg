@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 160" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="smBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <marker id="smArrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#53d8fb" opacity="0.5"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="950" height="160" rx="12" fill="url(#smBg)"/>
+
+  <!-- Stream line -->
+  <line x1="20" y1="80" x2="930" y2="80" stroke="#334" stroke-width="3" stroke-dasharray="6,3"/>
+  <polygon points="925,75 935,80 925,85" fill="#334"/>
+
+  <!-- record 1 -->
+  <rect x="40" y="58" width="70" height="44" rx="6" fill="#2a2a4a" stroke="#556" stroke-width="1"/>
+  <text x="75" y="84" text-anchor="middle" fill="#8899aa" font-size="11">record</text>
+
+  <!-- record 2 -->
+  <rect x="125" y="58" width="70" height="44" rx="6" fill="#2a2a4a" stroke="#556" stroke-width="1"/>
+  <text x="160" y="84" text-anchor="middle" fill="#8899aa" font-size="11">record</text>
+
+  <!-- WATERMARK -->
+  <rect x="215" y="48" width="110" height="64" rx="8" fill="#1a3a5c" stroke="#53d8fb" stroke-width="2"/>
+  <text x="270" y="74" text-anchor="middle" fill="#53d8fb" font-size="10" font-weight="600">WATERMARK</text>
+  <text x="270" y="90" text-anchor="middle" fill="#53d8fb" font-size="9" opacity="0.7">t=12:05:00</text>
+  <line x="215" y1="40" x2="270" y2="48" stroke="#53d8fb" stroke-width="1" opacity="0.4"/>
+
+  <!-- record 3 -->
+  <rect x="345" y="58" width="70" height="44" rx="6" fill="#2a2a4a" stroke="#556" stroke-width="1"/>
+  <text x="380" y="84" text-anchor="middle" fill="#8899aa" font-size="11">record</text>
+
+  <!-- OUR MESSAGE (highlighted) -->
+  <rect x="435" y="46" width="120" height="68" rx="8" fill="#2d1a3e" stroke="#e94560" stroke-width="2.5"/>
+  <text x="495" y="72" text-anchor="middle" fill="#e94560" font-size="10" font-weight="700">OUR MESSAGE</text>
+  <text x="495" y="88" text-anchor="middle" fill="#e94560" font-size="9" opacity="0.8">evt-88821</text>
+  <text x="495" y="103" text-anchor="middle" fill="#e94560" font-size="8" opacity="0.6">offset 50701</text>
+
+  <!-- BARRIER cp-43 -->
+  <rect x="575" y="48" width="130" height="64" rx="8" fill="#1a3a2c" stroke="#7ed957" stroke-width="2"/>
+  <text x="640" y="72" text-anchor="middle" fill="#7ed957" font-size="10" font-weight="600">BARRIER</text>
+  <text x="640" y="90" text-anchor="middle" fill="#7ed957" font-size="10">cp-43</text>
+  <line x="575" y1="40" x2="640" y2="48" stroke="#7ed957" stroke-width="1" opacity="0.4"/>
+
+  <!-- record 4 -->
+  <rect x="725" y="58" width="70" height="44" rx="6" fill="#2a2a4a" stroke="#556" stroke-width="1"/>
+  <text x="760" y="84" text-anchor="middle" fill="#8899aa" font-size="11">record</text>
+
+  <!-- record 5 -->
+  <rect x="810" y="58" width="70" height="44" rx="6" fill="#2a2a4a" stroke="#556" stroke-width="1"/>
+  <text x="845" y="84" text-anchor="middle" fill="#8899aa" font-size="11">record</text>
+
+  <!-- Flow direction label -->
+  <text x="475" y="148" text-anchor="middle" fill="#556" font-size="10">Stream flow direction →</text>
+
+  <!-- Legend -->
+  <circle cx="30" cy="140" r="5" fill="#53d8fb"/>
+  <text x="40" y="144" fill="#7a8a9a" font-size="9">Watermark</text>
+  <circle cx="120" cy="140" r="5" fill="#7ed957"/>
+  <text x="130" y="144" fill="#7a8a9a" font-size="9">Checkpoint Barrier</text>
+  <circle cx="250" cy="140" r="5" fill="#e94560"/>
+  <text x="260" y="144" fill="#7a8a9a" font-size="9">Our Message</text>
+</svg>

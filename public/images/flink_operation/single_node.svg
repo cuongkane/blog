@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="snBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <linearGradient id="snSlotBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f3460"/>
+      <stop offset="100%" style="stop-color:#1a1a4e"/>
+    </linearGradient>
+    <marker id="snArrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#53d8fb"/>
+    </marker>
+    <marker id="snArrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7ed957"/>
+    </marker>
+    <filter id="snShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="540" rx="12" fill="url(#snBg)"/>
+
+  <!-- Title -->
+  <text x="450" y="30" text-anchor="middle" fill="#53d8fb" font-size="16" font-weight="700">The Hierarchy on One Machine: K8s Node</text>
+
+  <!-- K8s Node outer box -->
+  <rect x="160" y="48" width="580" height="440" rx="12" fill="#12122a" stroke="#334" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <text x="180" y="72" fill="#556" font-size="11" font-weight="600">K8s Node</text>
+
+  <!-- TaskManager Pod -->
+  <rect x="185" y="82" width="530" height="390" rx="10" fill="#1e1e3a" stroke="#53d8fb" stroke-width="1.5" filter="url(#snShadow)"/>
+  <text x="450" y="108" text-anchor="middle" fill="#53d8fb" font-size="14" font-weight="700">TaskManager Pod (One JVM Process)</text>
+
+  <!-- ===== Slot 0 ===== -->
+  <rect x="210" y="125" width="230" height="330" rx="8" fill="url(#snSlotBg)" stroke="#f0a500" stroke-width="1.5"/>
+  <text x="325" y="148" text-anchor="middle" fill="#f0a500" font-size="12" font-weight="700">Slot 0</text>
+  <text x="325" y="164" text-anchor="middle" fill="#7a8a9a" font-size="9">Logical Resource Budget</text>
+
+  <!-- Source[0] -->
+  <rect x="240" y="180" width="170" height="40" rx="6" fill="#1a3a5c" stroke="#53d8fb" stroke-width="1.2"/>
+  <text x="325" y="205" text-anchor="middle" fill="#53d8fb" font-size="12" font-weight="600">Source[0]</text>
+  <!-- Arrow -->
+  <line x1="325" y1="220" x2="325" y2="240" stroke="#7ed957" stroke-width="1.5" marker-end="url(#snArrowGreen)"/>
+
+  <!-- Dedup[0] -->
+  <rect x="240" y="245" width="170" height="40" rx="6" fill="#1a3a5c" stroke="#f0a500" stroke-width="1.2"/>
+  <text x="325" y="270" text-anchor="middle" fill="#f0a500" font-size="12" font-weight="600">Dedup[0]</text>
+  <!-- Arrow -->
+  <line x1="325" y1="285" x2="325" y2="305" stroke="#7ed957" stroke-width="1.5" marker-end="url(#snArrowGreen)"/>
+
+  <!-- Enrich[0] -->
+  <rect x="240" y="310" width="170" height="40" rx="6" fill="#1a3a5c" stroke="#7ed957" stroke-width="1.2"/>
+  <text x="325" y="335" text-anchor="middle" fill="#7ed957" font-size="12" font-weight="600">Enrich[0]</text>
+  <!-- Arrow -->
+  <line x1="325" y1="350" x2="325" y2="370" stroke="#7ed957" stroke-width="1.5" marker-end="url(#snArrowGreen)"/>
+
+  <!-- Sink[0] -->
+  <rect x="240" y="375" width="170" height="40" rx="6" fill="#1a3a5c" stroke="#e94560" stroke-width="1.2"/>
+  <text x="325" y="400" text-anchor="middle" fill="#e94560" font-size="12" font-weight="600">Sink[0]</text>
+
+  <!-- Chained label for Slot 0 -->
+  <text x="420" y="290" fill="#7ed957" font-size="9" font-weight="600" transform="rotate(90, 420, 290)">Chained — one thread</text>
+
+  <!-- ===== Slot 1 ===== -->
+  <rect x="465" y="125" width="230" height="330" rx="8" fill="url(#snSlotBg)" stroke="#f0a500" stroke-width="1.5"/>
+  <text x="580" y="148" text-anchor="middle" fill="#f0a500" font-size="12" font-weight="700">Slot 1</text>
+  <text x="580" y="164" text-anchor="middle" fill="#7a8a9a" font-size="9">Separate Memory Budget</text>
+
+  <!-- Source[1] -->
+  <rect x="495" y="180" width="170" height="40" rx="6" fill="#1a3a5c" stroke="#53d8fb" stroke-width="1.2"/>
+  <text x="580" y="205" text-anchor="middle" fill="#53d8fb" font-size="12" font-weight="600">Source[1]</text>
+  <line x1="580" y1="220" x2="580" y2="240" stroke="#7ed957" stroke-width="1.5" marker-end="url(#snArrowGreen)"/>
+
+  <!-- Dedup[1] -->
+  <rect x="495" y="245" width="170" height="40" rx="6" fill="#1a3a5c" stroke="#f0a500" stroke-width="1.2"/>
+  <text x="580" y="270" text-anchor="middle" fill="#f0a500" font-size="12" font-weight="600">Dedup[1]</text>
+  <line x1="580" y1="285" x2="580" y2="305" stroke="#7ed957" stroke-width="1.5" marker-end="url(#snArrowGreen)"/>
+
+  <!-- Enrich[1] -->
+  <rect x="495" y="310" width="170" height="40" rx="6" fill="#1a3a5c" stroke="#7ed957" stroke-width="1.2"/>
+  <text x="580" y="335" text-anchor="middle" fill="#7ed957" font-size="12" font-weight="600">Enrich[1]</text>
+  <line x1="580" y1="350" x2="580" y2="370" stroke="#7ed957" stroke-width="1.5" marker-end="url(#snArrowGreen)"/>
+
+  <!-- Sink[1] -->
+  <rect x="495" y="375" width="170" height="40" rx="6" fill="#1a3a5c" stroke="#e94560" stroke-width="1.2"/>
+  <text x="580" y="400" text-anchor="middle" fill="#e94560" font-size="12" font-weight="600">Sink[1]</text>
+
+  <!-- Chained label for Slot 1 -->
+  <text x="675" y="290" fill="#7ed957" font-size="9" font-weight="600" transform="rotate(90, 675, 290)">Another thread</text>
+
+  <!-- ===== Kafka Cluster (left) ===== -->
+  <rect x="15" y="155" width="120" height="120" rx="10" fill="#2d1a3e" stroke="#e94560" stroke-width="1.5" filter="url(#snShadow)"/>
+  <text x="75" y="182" text-anchor="middle" fill="#e94560" font-size="12" font-weight="700">Kafka</text>
+  <text x="75" y="198" text-anchor="middle" fill="#e94560" font-size="11">Cluster</text>
+  <rect x="30" y="210" width="90" height="20" rx="4" fill="#1a1a2e" stroke="#e94560" stroke-width="0.8"/>
+  <text x="75" y="224" text-anchor="middle" fill="#ffccd5" font-size="9">Partition 0</text>
+  <rect x="30" y="236" width="90" height="20" rx="4" fill="#1a1a2e" stroke="#e94560" stroke-width="0.8"/>
+  <text x="75" y="250" text-anchor="middle" fill="#ffccd5" font-size="9">Partition 1</text>
+
+  <!-- Kafka to Source[0] arrow -->
+  <line x1="135" y1="220" x2="238" y2="196" stroke="#53d8fb" stroke-width="1.5" marker-end="url(#snArrow)"/>
+  <!-- Kafka to Source[1] arrow -->
+  <line x1="135" y1="246" x2="493" y2="196" stroke="#53d8fb" stroke-width="1.5" marker-end="url(#snArrow)"/>
+
+  <!-- ===== External Sink (right) ===== -->
+  <rect x="770" y="355" width="110" height="75" rx="10" fill="#1a3a2c" stroke="#7ed957" stroke-width="1.5" filter="url(#snShadow)"/>
+  <text x="825" y="383" text-anchor="middle" fill="#7ed957" font-size="11" font-weight="700">External</text>
+  <text x="825" y="399" text-anchor="middle" fill="#7ed957" font-size="11" font-weight="700">Sink</text>
+  <text x="825" y="418" text-anchor="middle" fill="#667" font-size="9">e.g., S3, HDFS</text>
+
+  <!-- Sink[0] to External -->
+  <line x1="410" y1="395" x2="768" y2="385" stroke="#e94560" stroke-width="1.5" marker-end="url(#snArrow)"/>
+  <!-- Sink[1] to External -->
+  <line x1="665" y1="395" x2="768" y2="393" stroke="#e94560" stroke-width="1.5" marker-end="url(#snArrow)"/>
+
+  <!-- Legend -->
+  <rect x="15" y="495" width="870" height="35" rx="6" fill="#12122a"/>
+  <rect x="30" y="505" width="12" height="12" rx="2" fill="#53d8fb" opacity="0.7"/>
+  <text x="48" y="515" fill="#7a8a9a" font-size="9">Source / Network</text>
+  <rect x="155" y="505" width="12" height="12" rx="2" fill="#f0a500" opacity="0.7"/>
+  <text x="173" y="515" fill="#7a8a9a" font-size="9">Keyed State (Dedup)</text>
+  <rect x="300" y="505" width="12" height="12" rx="2" fill="#7ed957" opacity="0.7"/>
+  <text x="318" y="515" fill="#7a8a9a" font-size="9">Broadcast State (Enrich)</text>
+  <rect x="465" y="505" width="12" height="12" rx="2" fill="#e94560" opacity="0.7"/>
+  <text x="483" y="515" fill="#7a8a9a" font-size="9">Sink / Kafka</text>
+  <line x1="590" y1="511" x2="620" y2="511" stroke="#7ed957" stroke-width="1.5"/>
+  <text x="628" y="515" fill="#7a8a9a" font-size="9">Chained (same thread, direct method call)</text>
+</svg>
