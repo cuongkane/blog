@@ -80,14 +80,29 @@ Replanning is an important action when AI need to update the spec after the impl
 We may need to change something once hands on with the actual code to fullfile the check list item. 
 The need for this phase is pain but in actual software development we usually have it. Therefore we need to plan to adapt this changes to keep the spec synchronized with the code. 
 
-This phase can be triggered autotically by the AI and get the approval of human because it changes and refined the spec which was aligned with the human. 
+This phase can be triggered automatically by the AI and get the approval of human because it changes and refined the spec which was aligned with the human. 
 
 In practical, This one can happen after the code reviewing also when we have something changes in term of product and tech (not good principle) so that we need to update the constitution and the spec of the previous spec.
 
-# spec-kit
+This replanning is also one of the really hot topic recently: harness engineering.
 
 
-# Apply SDD to the existing Software Development Life Cycle
+![Pipeline Flow](/images/sdd/factor.png)
+# tools
+When talking about spec kit in April 2026, we have the most 4 popular tools: Kiro by Aws, OpenSpec by Fission-AI and spec-kit by github, 
 
-# SDD in PP
+Tool,Best for,Complexity,Workflow style,Key trade-off
+Spec Kit,Greenfield (new) projects,Medium,Structured phases (specify → plan → tasks → implement),"Thorough checkpoints, but adds overhead for small changes"
+BMAD,Large-scale enterprise / complex systems,High,"Multi-agent (PM, Architect, QA, and other specialized roles)",Comprehensive but resource-heavy and steeper learning curve
+OpenSpec,Existing / brownfield codebases,Low,Lightweight iterative (propose → apply → archive),"Fast and minimal, but less formal structure"
+Kiro,AWS / Claude-centric teams,Medium,Integrated IDE + built-in spec pipeline,"Excellent structure and cloud integration, but vendor (AWS/Bedrock) lock-in"
 
+# Apply SDD to the existing Software Development Life Cycle (SDLC)
+SDD can take an important role of speed up significantly in the SDLC.
+Most of the phases from the traditional SDLC will be transformed in another format shape with SDD.
+
+![SDD](/images/sdd/sdd_general_sdlc.png)
+
+# Conclusion
+- Specfirst for AI-assisted initial development; spec-anchored for long-lived production systems; spec-as-source only when generation tooling is mature and trusted.
+- Traditional design documents are advisory—developers read them, then write code that hopefully matches. SDD specs are enforced—tests fail if code diverges, and in spec-as-source approaches, code is regenerated rather than manually edited.
