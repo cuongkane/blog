@@ -34,20 +34,45 @@ In 2026, SDD method is emergedly again. SDD come back because 2026 we mostly foc
 
 But the SDD is 2026 is changed a lot because we may have the greenfield and brownfield projects, the adopting SDD isn't only sepcify the requirement first but how to respect the specification and keep track it to grow in long term. 
 
-To answer this question, we will go through 3 kinds of SDD level and the support tool to achieve this goal.
+To answer this question, we will go through 3 kinds of SDD level and the let's an example support tool to achieve this goal.
 
 ## 3 kinds of SDD
 ### Spec first
 IN spec first development, a specifiction is written before to guide the initial implementation.
-Once code exist, the spec may or may not be maintained
+Once code exist, the spec may or may not be maintained.
+This one is suitable for prototye and where the code isn't maintained in long term.
 
-* A typical SDD workflow
-The typical SDD workflow will be started with defining the 
+### Spec-Anchored
+the spec is maintained along side the code throughout the system's lifecycle. Changes to behavior require updating both the spec and the code, keeping them synchronized. 
+Team must commit to updating the specs whenever behavior changes. This level fit almost all of the modern SDLC when we have ai agent can work well on almost of the task. It provide the benefit of the clear documentation and verifiable requirements with demanding to read all of code.
+The heart of this method is buidling the test follow strictly the spec and test again the source code to ensure the spec and code remain aligned.
+
+### Spec-as-source
+The spec is the only artifact humans edit directly. Code is entirely generated from the spec and should never be manaually edited. Change to the spec trigger code regenerating
+If your code generation tool is mature and well tested on the input tasks (not actually good in experiment tickets that require human in the loop like need execute multiple commands to get data from where the AI agent isn't allowed to read,...), choosing this level is good.
+Like the spec-anchored, automation test is required more strictly than spec-anchored if we go with this method. Not only the tests but also the unittest and integration test to ensure the code work. and automation test to ensure the product of the code work as expected.
+
+Higher level doesn't mean always good, choosing the right level and step by step ugrading it is a good move. You cannot come to spec as source if your AI coding tool isn't mature but moving forwarding to a higher level will be a good move.
+
+# A typical SDD workflow
+The typical SDD workflow with AI agent will be started with defining the constitution when you work with the AI to define the mission, tech stack and roadmap. And then we will go into the development phases with step by step introducing a new feature. And the the most importent process of modern SDD is the replanning phase
+
 ![Pipeline Flow](/images/sdd/workflow.png)
+## Constitution
+Constitution is process of defining the high level for your project. For greenfield project, we only need to determine the high level goal (concisely for your project) and the tech stack and roadmap but for brownfield, we may need to ask the agent to read the whole code base or related documentation to build the first specification for your project to ensure the LLM tool can understand the purpose of your code base in the next working times without reading all of the codebase.
 
+The outcome of this step will be the (i.e markdown) that live together with your project and live with your project (cohesive) to facilitate the LLM tool to consume it next time.
+
+## Develop new feature
+To develop a new feature, we will go through multiple steps. Step one 
+
+## Replanning
+Replanning is an important action when AI need to update the spec after the implementtion because there is not perfect implementation plan. We may need to change something once hands on with the actual code to fullfile the check list item. 
 
 * spec-kit
 
 
 # Apply SDD to the existing Software Development Life Cycle
+
+# SDD in PP
 
