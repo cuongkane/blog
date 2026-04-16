@@ -1,0 +1,53 @@
+# Context
+2026, in the AI era, AI coding tool became the essential tool where all developer using it in the daily tasks.
+
+From small feature to big feature, new projects or legacy projects.
+
+People get used to with the vibe coding term, when we just type the prompt and AI agent cares the rest.
+
+LLM is smarter day by day, and can implement most of the technical tasks.
+
+# Problem Statement
+
+* Redundant loop
+With using vibe coding, we cannot finish the task in a one single prompt. Human will fall into ta loop of refining the requirement to refine the feature. 
+
+Example with the button:
+- prompt: create a button in the center
+- ai: create too big with urgly center
+- prompt: no, I need...
+
+* Token consumption
+- When implementing a new feature the AI need to read the whole code repository to just understand the existing features, but the actual code is usually outdated and not structure well to consume quickly. 
+So AI will read all of the code to know the existing features to clarify new feature.  
+It needs to token consuming.
+
+* Code is a lier
+- Most of the code do more than what it was designed for (deadcode, redundant complex, unknown behavior,...), so reading the code can makes the LLM halucinate and lead to wrong result
+
+# SDD solution
+SDD (spec driven design) concept isn't new, it has been first introduced by Microsoft in 2000s, it's not a new one. The goal is merely writing the requirement specication detailedly before writing the code.
+
+And the most common example is API first, when we write the API spec follow the Open API spec and the team follow it strictly to write down the implementation.
+
+In 2026, SDD method is emergedly again. SDD come back because 2026 we mostly focus on writing and clarifying the requirement with the strong support of the AI coding agent.
+
+But the SDD is 2026 is changed a lot because we may have the greenfield and brownfield projects, the adopting SDD isn't only sepcify the requirement first but how to respect the specification and keep track it to grow in long term. 
+
+To answer this question, we will go through 3 kinds of SDD level and the support tool to achieve this goal.
+
+## 3 kinds of SDD
+### Spec first
+IN spec first development, a specifiction is written before to guide the initial implementation.
+Once code exist, the spec may or may not be maintained
+
+* A typical SDD workflow
+The typical SDD workflow will be started with defining the 
+![Pipeline Flow](/images/sdd/workflow.png)
+
+
+* spec-kit
+
+
+# Apply SDD to the existing Software Development Life Cycle
+
