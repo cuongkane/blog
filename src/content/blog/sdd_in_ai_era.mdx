@@ -64,12 +64,27 @@ Constitution is process of defining the high level for your project. For greenfi
 The outcome of this step will be the (i.e markdown) that live together with your project and live with your project (cohesive) to facilitate the LLM tool to consume it next time.
 
 ## Develop new feature
-To develop a new feature, we will go through multiple steps. Step one 
+To develop a new feature, we will go through multiple steps. Step one is defining a good specification which include clarify to remove ambigious points and make the spec is read for implementation.
+This step the LLM agent will read the old specs follow the constitution to clarify the requirements. 
+Answer what to build. We will follow Gherkin format (Like BDD) to acceptance criteria to make the spec more deternimistic on the outcome of the spec. Which is crucial for the agent to implement the code to fulfill it. because talking around without clarifying the storage is a trick for the AI coding tool.
+
+Next it will be writing the implementation plan for the clarified requirements. the implementation plan will stop at high code level (or maybe lower level at code level depend on what the team want to follow)
+This one answer how to build it at high level. 
+
+Implement phase: We will break out the task into smaller tasks that verifible. and then feed it into the AI agent to writing the code for it. The writing code will include writing tests.
+
+Validation: This phase include running the test to ensure the code meet the requirement. If the test fail, there will be 2 options updating the code or correcting the spec, it will be human decision.
 
 ## Replanning
-Replanning is an important action when AI need to update the spec after the implementtion because there is not perfect implementation plan. We may need to change something once hands on with the actual code to fullfile the check list item. 
+Replanning is an important action when AI need to update the spec after the implementtion because there is not perfect implementation plan.
+We may need to change something once hands on with the actual code to fullfile the check list item. 
+The need for this phase is pain but in actual software development we usually have it. Therefore we need to plan to adapt this changes to keep the spec synchronized with the code. 
 
-* spec-kit
+This phase can be triggered autotically by the AI and get the approval of human because it changes and refined the spec which was aligned with the human. 
+
+In practical, This one can happen after the code reviewing also when we have something changes in term of product and tech (not good principle) so that we need to update the constitution and the spec of the previous spec.
+
+# spec-kit
 
 
 # Apply SDD to the existing Software Development Life Cycle
