@@ -83,42 +83,37 @@ The payoff is significant: when generation is reliable, the spec becomes the sin
 
 ## A Typical SDD Workflow
 
-The typical SDD workflow with an AI agent starts with defining the constitution, where you work with the AI to define the mission, tech stack, and roadmap. Then we go into the development phase, step by step introducing new features. And the most important process of modern SDD is the replanning phase.
+There are many variants of SDD workflows, but the one described here is the most common and practical form. It consists of three phases: constitution, feature development, and replanning.
 
 ![Pipeline Flow](/images/sdd/workflow.png)
 
 ### Constitution
 
-Constitution is the process of defining the high level for your project. For greenfield projects, we only need to determine the high-level goal (concisely for your project) and the tech stack and roadmap, but for brownfield, we may need to ask the agent to read the whole codebase or related documentation to build the first specification for your project to ensure the LLM tool can understand the purpose of your codebase in future sessions without reading all of the codebase.
+Constitution is the process of defining the high-level foundation for your project. For greenfield projects, this means determining the project's goal, tech stack, and roadmap. For brownfield projects, it also involves having the AI agent read the existing codebase or related documentation to build an initial specification — so the AI can understand the project's purpose in future sessions without re-reading all of the code.
 
-The outcome of this step will be documentation (e.g., markdown) that lives together with your project (cohesive) to facilitate the LLM tool to consume it next time.
+The outcome is living documentation (e.g., markdown files) that resides in the repository alongside the code. This documentation serves as the entry point for both human developers and AI agents.
 
-### Develop New Feature
+### Feature Development
 
-To develop a new feature, we will go through multiple steps.
+Each new feature follows four steps:
 
-**Specification:** Define a good specification, which includes clarifying to remove ambiguous points and make the spec ready for implementation.
-In this step, the LLM agent will read the old specs following the constitution to clarify the requirements.
-This answers what to build. We will follow the Gherkin format (like BDD) for acceptance criteria to make the spec more deterministic on the outcome. This is crucial for the agent to implement the code to fulfill it, because talking around without clarifying the storage is a trap for the AI coding tool.
+**Specification:** Clarify the requirements and remove ambiguity until the spec is ready for implementation. The AI agent reads existing specs and the constitution to understand the current system before drafting the new spec. We use the Gherkin format (like BDD) for acceptance criteria to make the expected outcome deterministic — this is crucial because vague requirements are where AI agents produce the most divergent results.
 
-**Planning:** Write the implementation plan for the clarified requirements. The implementation plan will stop at a high level (or maybe lower at code level depending on what the team wants to follow).
-This answers how to build it at a high level.
+**Planning:** Write an implementation plan for the clarified requirements. The plan typically stays at a high level (architecture, component boundaries, data flow), though teams may go deeper to code-level detail depending on their preference.
 
-**Implementation:** Break the task into smaller verifiable tasks, and then feed them into the AI agent to write the code. Writing the code will include writing tests.
+**Implementation:** Break the plan into smaller verifiable tasks and feed them to the AI agent. Each task includes writing both the production code and its tests.
 
-**Validation:** Run the tests to ensure the code meets the requirements. If the tests fail, there will be 2 options: updating the code or correcting the spec. It will be a human decision.
+**Validation:** Run the tests to verify the code meets the spec. If tests fail, there are two paths: fix the code, or correct the spec. This is always a human decision.
 
 ### Replanning
 
-Replanning is an important action when the AI needs to update the spec after the implementation because there is no perfect implementation plan.
-We may need to change something once hands-on with the actual code to fulfill the checklist items.
-The need for this phase is painful but in actual software development we usually have it. Therefore we need to plan to adapt these changes to keep the spec synchronized with the code.
+No implementation plan survives first contact with the code. Once hands-on with the actual implementation, teams often discover gaps, edge cases, or necessary adjustments that weren't visible during planning.
 
-This phase can be triggered automatically by the AI and gets the approval of a human because it changes and refines the spec which was aligned with the human.
+Replanning is the process of updating the spec to reflect what was learned during implementation. This keeps the spec and code synchronized rather than letting them drift apart — a discipline that pays off in every future AI session.
 
-In practice, this can also happen after code review when we have something that changes in terms of product and tech (not a good principle), so that we need to update the constitution and the previous specs.
+This phase can be triggered automatically by the AI agent, but always requires human approval since it modifies the agreed-upon spec. In practice, replanning also happens after code review when product or technical requirements change, requiring updates to both the constitution and the affected specs.
 
-This replanning is also one of the really hot topics recently: harness engineering.
+This feedback loop between spec and implementation is also known as harness engineering — one of the most actively discussed topics in AI-assisted development today.
 
 ![Human Factor](/images/sdd/human_factor.png)
 
