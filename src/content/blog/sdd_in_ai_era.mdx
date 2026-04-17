@@ -1,95 +1,95 @@
 # Context
-2026, in the AI era, AI coding tool became the essential tool where all developer using it in the daily tasks.
+2026, in the AI era, AI coding tools have become essential tools that all developers use in their daily tasks.
 
-From small feature to big feature, new projects or legacy projects.
+From small features to big features, new projects or legacy projects.
 
-People get used to with the vibe coding term, when we just type the prompt and AI agent cares the rest.
+People have gotten used to the vibe coding term, where we just type the prompt and the AI agent takes care of the rest.
 
-LLM is smarter day by day, and can implement most of the technical tasks.
+LLMs are smarter day by day, and can implement most technical tasks.
 
 # Problem Statement
 
 * Redundant loop
-With using vibe coding, we cannot finish the task in a one single prompt. Human will fall into ta loop of refining the requirement to refine the feature. 
+When using vibe coding, we cannot finish the task in a single prompt. Humans will fall into a loop of refining the requirement to refine the feature. 
 
 Example with the button:
 - prompt: create a button in the center
-- ai: create too big with urgly center
+- ai: creates it too big with ugly centering
 - prompt: no, I need...
 
 * Token consumption
-- When implementing a new feature the AI need to read the whole code repository to just understand the existing features, but the actual code is usually outdated and not structure well to consume quickly. 
-So AI will read all of the code to know the existing features to clarify new feature.  
-It needs to token consuming.
+- When implementing a new feature, the AI needs to read the whole code repository just to understand the existing features, but the actual code is usually outdated and not structured well to consume quickly. 
+So the AI will read all of the code to understand the existing features before clarifying the new feature.  
+This leads to heavy token consumption.
 
-* Code is a lier
-- Most of the code do more than what it was designed for (deadcode, redundant complex, unknown behavior,...), so reading the code can makes the LLM halucinate and lead to wrong result
+* Code is a liar
+- Most code does more than what it was designed for (dead code, redundant complexity, unknown behavior,...), so reading the code can make the LLM hallucinate and lead to wrong results.
 
 # SDD solution
-SDD (spec driven design) concept isn't new, it has been first introduced by Microsoft in 2000s, it's not a new one. The goal is merely writing the requirement specication detailedly before writing the code.
+SDD (spec-driven design) concept isn't new, it was first introduced by Microsoft in the 2000s. The goal is merely writing the requirement specification in detail before writing the code.
 
-And the most common example is API first, when we write the API spec follow the Open API spec and the team follow it strictly to write down the implementation.
+And the most common example is API first, where we write the API spec following the OpenAPI spec and the team follows it strictly to write down the implementation.
 
-In 2026, SDD method is emergedly again. SDD come back because 2026 we mostly focus on writing and clarifying the requirement with the strong support of the AI coding agent.
+In 2026, the SDD method is emerging again. SDD has come back because in 2026 we mostly focus on writing and clarifying the requirements with the strong support of AI coding agents.
 
-But the SDD is 2026 is changed a lot because we may have the greenfield and brownfield projects, the adopting SDD isn't only sepcify the requirement first but how to respect the specification and keep track it to grow in long term. 
+But SDD in 2026 has changed a lot because we may have greenfield and brownfield projects, and adopting SDD isn't only about specifying the requirements first but also about how to respect the specification and keep track of it to grow in the long term. 
 
-To answer this question, we will go through 3 kinds of SDD level and the let's an example support tool to achieve this goal.
+To answer this question, we will go through 3 kinds of SDD levels and let's see an example support tool to achieve this goal.
 
 ## 3 kinds of SDD
 ### Spec first
-IN spec first development, a specifiction is written before to guide the initial implementation.
-Once code exist, the spec may or may not be maintained.
-This one is suitable for prototye and where the code isn't maintained in long term.
+In spec-first development, a specification is written before implementation to guide the initial development.
+Once code exists, the spec may or may not be maintained.
+This one is suitable for prototypes and where the code isn't maintained in the long term.
 
 ### Spec-Anchored
-the spec is maintained along side the code throughout the system's lifecycle. Changes to behavior require updating both the spec and the code, keeping them synchronized. 
-Team must commit to updating the specs whenever behavior changes. This level fit almost all of the modern SDLC when we have ai agent can work well on almost of the task. It provide the benefit of the clear documentation and verifiable requirements with demanding to read all of code.
-The heart of this method is buidling the test follow strictly the spec and test again the source code to ensure the spec and code remain aligned.
+The spec is maintained alongside the code throughout the system's lifecycle. Changes to behavior require updating both the spec and the code, keeping them synchronized. 
+The team must commit to updating the specs whenever behavior changes. This level fits almost all of the modern SDLC when we have AI agents that can work well on almost all tasks. It provides the benefit of clear documentation and verifiable requirements without demanding to read all of the code.
+The heart of this method is building the tests following the spec strictly and testing against the source code to ensure the spec and code remain aligned.
 
 ### Spec-as-source
-The spec is the only artifact humans edit directly. Code is entirely generated from the spec and should never be manaually edited. Change to the spec trigger code regenerating
-If your code generation tool is mature and well tested on the input tasks (not actually good in experiment tickets that require human in the loop like need execute multiple commands to get data from where the AI agent isn't allowed to read,...), choosing this level is good.
-Like the spec-anchored, automation test is required more strictly than spec-anchored if we go with this method. Not only the tests but also the unittest and integration test to ensure the code work. and automation test to ensure the product of the code work as expected.
+The spec is the only artifact humans edit directly. Code is entirely generated from the spec and should never be manually edited. Changes to the spec trigger code regeneration.
+If your code generation tool is mature and well tested on the input tasks (not actually good for experimental tickets that require human in the loop, like needing to execute multiple commands to get data from where the AI agent isn't allowed to read,...), choosing this level is good.
+Like spec-anchored, automated testing is required even more strictly than spec-anchored if we go with this method. Not only the tests but also unit tests and integration tests to ensure the code works, and automation tests to ensure the product of the code works as expected.
 
-Higher level doesn't mean always good, choosing the right level and step by step ugrading it is a good move. You cannot come to spec as source if your AI coding tool isn't mature but moving forwarding to a higher level will be a good move.
+A higher level doesn't always mean better; choosing the right level and step-by-step upgrading it is a good move. You cannot jump to spec-as-source if your AI coding tool isn't mature, but moving forward to a higher level will be a good move.
 
 # A typical SDD workflow
-The typical SDD workflow with AI agent will be started with defining the constitution when you work with the AI to define the mission, tech stack and roadmap. And then we will go into the development phases with step by step introducing a new feature. And the the most importent process of modern SDD is the replanning phase
+The typical SDD workflow with an AI agent starts with defining the constitution, where you work with the AI to define the mission, tech stack, and roadmap. Then we go into the development phase, step by step introducing new features. And the most important process of modern SDD is the replanning phase.
 
 ![Pipeline Flow](/images/sdd/workflow.png)
 ## Constitution
-Constitution is process of defining the high level for your project. For greenfield project, we only need to determine the high level goal (concisely for your project) and the tech stack and roadmap but for brownfield, we may need to ask the agent to read the whole code base or related documentation to build the first specification for your project to ensure the LLM tool can understand the purpose of your code base in the next working times without reading all of the codebase.
+Constitution is the process of defining the high level for your project. For greenfield projects, we only need to determine the high-level goal (concisely for your project) and the tech stack and roadmap, but for brownfield, we may need to ask the agent to read the whole codebase or related documentation to build the first specification for your project to ensure the LLM tool can understand the purpose of your codebase in future sessions without reading all of the codebase.
 
-The outcome of this step will be the (i.e markdown) that live together with your project and live with your project (cohesive) to facilitate the LLM tool to consume it next time.
+The outcome of this step will be documentation (e.g., markdown) that lives together with your project (cohesive) to facilitate the LLM tool to consume it next time.
 
 ## Develop new feature
-To develop a new feature, we will go through multiple steps. Step one is defining a good specification which include clarify to remove ambigious points and make the spec is read for implementation.
-This step the LLM agent will read the old specs follow the constitution to clarify the requirements. 
-Answer what to build. We will follow Gherkin format (Like BDD) to acceptance criteria to make the spec more deternimistic on the outcome of the spec. Which is crucial for the agent to implement the code to fulfill it. because talking around without clarifying the storage is a trick for the AI coding tool.
+To develop a new feature, we will go through multiple steps. Step one is defining a good specification, which includes clarifying to remove ambiguous points and make the spec ready for implementation.
+In this step, the LLM agent will read the old specs following the constitution to clarify the requirements. 
+This answers what to build. We will follow the Gherkin format (like BDD) for acceptance criteria to make the spec more deterministic on the outcome. This is crucial for the agent to implement the code to fulfill it, because talking around without clarifying the storage is a trap for the AI coding tool.
 
-Next it will be writing the implementation plan for the clarified requirements. the implementation plan will stop at high code level (or maybe lower level at code level depend on what the team want to follow)
-This one answer how to build it at high level. 
+Next, it will be writing the implementation plan for the clarified requirements. The implementation plan will stop at a high level (or maybe lower at code level depending on what the team wants to follow).
+This answers how to build it at a high level. 
 
-Implement phase: We will break out the task into smaller tasks that verifible. and then feed it into the AI agent to writing the code for it. The writing code will include writing tests.
+Implement phase: We will break the task into smaller verifiable tasks, and then feed them into the AI agent to write the code. Writing the code will include writing tests.
 
-Validation: This phase include running the test to ensure the code meet the requirement. If the test fail, there will be 2 options updating the code or correcting the spec, it will be human decision.
+Validation: This phase includes running the tests to ensure the code meets the requirements. If the tests fail, there will be 2 options: updating the code or correcting the spec. It will be a human decision.
 
 ## Replanning
-Replanning is an important action when AI need to update the spec after the implementtion because there is not perfect implementation plan.
-We may need to change something once hands on with the actual code to fullfile the check list item. 
-The need for this phase is pain but in actual software development we usually have it. Therefore we need to plan to adapt this changes to keep the spec synchronized with the code. 
+Replanning is an important action when the AI needs to update the spec after the implementation because there is no perfect implementation plan.
+We may need to change something once hands-on with the actual code to fulfill the checklist items. 
+The need for this phase is painful but in actual software development we usually have it. Therefore we need to plan to adapt these changes to keep the spec synchronized with the code. 
 
-This phase can be triggered automatically by the AI and get the approval of human because it changes and refined the spec which was aligned with the human. 
+This phase can be triggered automatically by the AI and gets the approval of a human because it changes and refines the spec which was aligned with the human. 
 
-In practical, This one can happen after the code reviewing also when we have something changes in term of product and tech (not good principle) so that we need to update the constitution and the spec of the previous spec.
+In practice, this can also happen after code review when we have something that changes in terms of product and tech (not a good principle), so that we need to update the constitution and the previous specs.
 
-This replanning is also one of the really hot topic recently: harness engineering.
+This replanning is also one of the really hot topics recently: harness engineering.
 
 
 ![Pipeline Flow](/images/sdd/factor.png)
-# tools
-When talking about spec kit in April 2026, we have the most 4 popular tools: Kiro by Aws, OpenSpec by Fission-AI and spec-kit by github, 
+# Tools
+When talking about spec kit in April 2026, we have 4 popular tools: Kiro by AWS, OpenSpec by Fission-AI, and spec-kit by GitHub. 
 
 Tool,Best for,Complexity,Workflow style,Key trade-off
 Spec Kit,Greenfield (new) projects,Medium,Structured phases (specify → plan → tasks → implement),"Thorough checkpoints, but adds overhead for small changes"
@@ -98,8 +98,8 @@ OpenSpec,Existing / brownfield codebases,Low,Lightweight iterative (propose → 
 Kiro,AWS / Claude-centric teams,Medium,Integrated IDE + built-in spec pipeline,"Excellent structure and cloud integration, but vendor (AWS/Bedrock) lock-in"
 
 # Apply SDD to the existing Software Development Life Cycle (SDLC)
-SDD can take an important role of speed up significantly in the SDLC.
-Most of the phases from the traditional SDLC will be transformed in another format shape with SDD.
+SDD can play an important role in significantly speeding up the SDLC.
+Most of the phases from the traditional SDLC will be transformed into a different shape with SDD.
 
 ![SDD](/images/sdd/sdd_general_sdlc.png)
 
@@ -110,5 +110,5 @@ Deeplearning AI
 speckit, openspec and more
 
 # Conclusion
-- Specfirst for AI-assisted initial development; spec-anchored for long-lived production systems; spec-as-source only when generation tooling is mature and trusted.
+- Spec-first for AI-assisted initial development; spec-anchored for long-lived production systems; spec-as-source only when generation tooling is mature and trusted.
 - Traditional design documents are advisory—developers read them, then write code that hopefully matches. SDD specs are enforced—tests fail if code diverges, and in spec-as-source approaches, code is regenerated rather than manually edited.
