@@ -119,23 +119,33 @@ This feedback loop between spec and implementation is also known as harness engi
 
 ## Tools
 
-When talking about spec kit in April 2026, we have 4 popular tools: Kiro by AWS, OpenSpec by Fission-AI, BMAD, and spec-kit by GitHub.
+As of April 2026, four tools have gained traction for spec-driven workflows:
 
-| Tool | Best for | Complexity | Workflow style | Key trade-off |
-|------|----------|------------|----------------|---------------|
-| Spec Kit | Greenfield (new) projects | Medium | Structured phases (specify → plan → tasks → implement) | Thorough checkpoints, but adds overhead for small changes |
-| BMAD | Large-scale enterprise / complex systems | High | Multi-agent (PM, Architect, QA, and other specialized roles) | Comprehensive but resource-heavy and steeper learning curve |
-| OpenSpec | Existing / brownfield codebases | Low | Lightweight iterative (propose → apply → archive) | Fast and minimal, but less formal structure |
-| Kiro | AWS / Claude-centric teams | Medium | Integrated IDE + built-in spec pipeline | Excellent structure and cloud integration, but vendor (AWS/Bedrock) lock-in |
+| Tool | Best fit | Complexity | Workflow style | Pricing |
+|------|----------|------------|----------------|---------|
+| Spec Kit | Greenfield and brownfield projects with structured checkpoints | Medium | Structured phases (specify → plan → tasks → implement) | Free, open-source (MIT) |
+| BMAD | Large-scale enterprise with dedicated roles (PM, Architect, QA) | High | Multi-agent with specialized personas | Free, open-source |
+| OpenSpec | Existing / brownfield codebases needing fast iteration | Low | Lightweight iterative (propose → apply → archive) | Free, open-source |
+| Kiro | AWS-native teams wanting built-in IDE integration | Medium | Integrated IDE + spec pipeline | Free (50 credits/mo), Pro $20/mo, Pro+ $40/mo |
 
-Most of tools here support different AI coding tool (claude, codex,...). It's eliminated the problem of vendor lock.
+Spec Kit, BMAD, and OpenSpec are agent-agnostic — they work with Claude, Copilot, Cursor, Windsurf, and others. Kiro is tied to AWS Bedrock but offers the most integrated spec-to-code experience out of the box.
+
+Both Spec Kit and OpenSpec support brownfield codebases — Spec Kit through a structured bootstrap process, OpenSpec through lightweight iterative adoption.
 
 ## Applying SDD to the Existing SDLC
 
-SDD can play an important role in significantly speeding up the SDLC.
-Most of the phases from the traditional SDLC will be transformed into a different shape with SDD.
+SDD doesn't replace the traditional SDLC — it reshapes it. Requirements gathering becomes spec authoring, design becomes planning with AI, implementation becomes AI-driven code generation guided by the spec, and QA shifts toward automated spec-based validation.
+
+The result is a tighter feedback loop where specifications serve as the connective tissue between every phase.
 
 ![SDD](/images/sdd/sdd_general_sdlc.svg)
+
+## Conclusion
+
+- Use spec-first for AI-assisted initial development, spec-anchored for long-lived production systems, and spec-as-source only when generation tooling is mature and trusted.
+- Traditional design documents are advisory — developers read them, then write code that hopefully matches. SDD specs are enforced — tests fail if code diverges, and in spec-as-source approaches, code is regenerated rather than manually edited.
+- Like TDD and BDD, SDD encourages developers to focus on end-user behavior and the original intent before writing code, rather than working around accumulated complexity.
+- Adopting SDD requires initial effort in setup, good automated tests to verify the output, and a mindset shift to respect the spec as a first-class artifact. But it is a sustainable investment for teams building with AI.
 
 ## References
 
@@ -143,11 +153,3 @@ Most of the phases from the traditional SDLC will be transformed into a differen
 - [Understanding Spec-Driven-Development: Kiro, spec-kit, and Tessl](https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html)
 - Deeplearning AI
 - speckit, openspec and more
-
-## Conclusion
-
-- Spec-first for AI-assisted initial development; spec-anchored for long-lived production systems; spec-as-source only when generation tooling is mature and trusted.
-- Traditional design documents are advisory—developers read them, then write code that hopefully matches. SDD specs are enforced—tests fail if code diverges, and in spec-as-source approaches, code is regenerated rather than manually edited.
-- We will go sustainable with using the SDD tool but adopting a new tool require step by step and deeply understand the workflow and the mindset to respect and gain benefit from it.
-- SDD is like TDD and BDD, when encourage the developer to focus about the end user behavior and initial goal for the coding instead of working around.
-- Build and apply the SDD (high level) for the project/project isn't easy. It requires initial effort in setup and good automation test to ensure the output. But it's a sustainable move for software industry.
