@@ -57,8 +57,6 @@ There are three levels of SDD adoption, each with different trade-offs.
 
 ### 3 Levels of SDD
 
-![3 Levels of SDD](/images/sdd/sdd_levels.svg)
-
 #### Spec-First
 
 A specification is written before implementation to guide initial development. Once code exists, the spec may or may not be maintained.
@@ -80,6 +78,8 @@ The spec is the only artifact humans edit directly. Code is entirely generated f
 This level requires mature, well-tested code generation tooling. It is not suitable for tasks that need human-in-the-loop intervention (e.g., manual data retrieval from systems the AI cannot access). Automated testing is even more critical here — unit tests, integration tests, and end-to-end tests must all verify that the generated code fulfills the spec.
 
 The payoff is significant: when generation is reliable, the spec becomes the single source of truth and the entire codebase stays deterministic and reproducible.
+
+![3 Levels of SDD](/images/sdd/sdd_levels.svg)
 
 **Choosing the right level:** A higher level doesn't always mean better. Start where your team and tooling are ready, and upgrade incrementally. You cannot jump to spec-as-source if your AI coding tools aren't mature, but steadily moving toward a higher level is a worthwhile investment.
 
