@@ -10,34 +10,34 @@ tags: ["sdd", "ai-coding", "software-development", "specification"]
 
 ## Context
 
-2026, in the AI era, AI coding tools have become essential tools that all developers use in their daily tasks.
+In 2026, AI coding tools have become essential in every developer's daily workflow — from small bug fixes to large features, from greenfield projects to legacy codebases.
 
-From small features to big features, new projects or legacy projects.
+The term "vibe coding" has entered the mainstream: type a prompt, and the AI agent handles the rest. LLMs grow more capable by the day, and can now implement most technical tasks autonomously.
 
-People have gotten used to the vibe coding term, where we just type the prompt and the AI agent takes care of the rest.
-
-LLMs are smarter day by day, and can implement most technical tasks.
+This has fundamentally shifted the developer's role. We spend less time writing code and more time directing, reviewing, and validating AI-generated output. The bottleneck is no longer typing speed — it's clarity of intent. AI is remarkably good at *how* to build something, but it still depends on humans to define *what* to build and *why*.
 
 ## Problem Statement
 
+However, faster output doesn't mean correct output. More code is produced, but quality control hasn't kept up. In practice, several recurring problems emerge when teams rely heavily on AI coding agents.
+
 ### Redundant loop
 
-When using vibe coding, we cannot finish the task in a single prompt. Humans will fall into a loop of refining the requirement to refine the feature.
+Without a clear spec, developers fall into a costly refinement cycle — prompting, reviewing, correcting, and re-prompting. Each iteration burns tokens and time because the AI lacks a precise definition of "done."
 
-Example with the button:
-- prompt: create a button in the center
-- ai: creates it too big with ugly centering
-- prompt: no, I need...
+Example with a button:
+- **prompt:** create a button in the center
+- **ai:** creates it too big with ugly centering
+- **prompt:** no, I need...
+
+This back-and-forth can repeat dozens of times for a single feature. A clear spec upfront eliminates most of these rounds.
 
 ### Token consumption
 
-When implementing a new feature, the AI needs to read the whole code repository just to understand the existing features, but the actual code is usually outdated and not structured well to consume quickly.
-So the AI will read all of the code to understand the existing features before clarifying the new feature.
-This leads to heavy token consumption.
+When implementing a new feature, the AI needs to read the entire repository to understand existing behavior before it can reason about the new requirement. But most codebases are poorly structured for machine consumption — outdated patterns, implicit conventions, and scattered logic force the AI to ingest far more context than necessary. This leads to heavy token consumption with diminishing returns.
 
 ### Code is a liar
 
-Most code does more than what it was designed for (dead code, redundant complexity, unknown behavior,...), so reading the code can make the LLM hallucinate and lead to wrong results.
+Code often does more than what it was designed for — dead code, redundant complexity, and undocumented side effects accumulate over time. When the AI reads this code as its source of truth, it can hallucinate intent, replicate bad patterns, and produce subtly wrong results. A specification, by contrast, captures *intended* behavior rather than *accidental* behavior.
 
 ## SDD Solution
 
@@ -129,6 +129,8 @@ When talking about spec kit in April 2026, we have 4 popular tools: Kiro by AWS,
 | OpenSpec | Existing / brownfield codebases | Low | Lightweight iterative (propose → apply → archive) | Fast and minimal, but less formal structure |
 | Kiro | AWS / Claude-centric teams | Medium | Integrated IDE + built-in spec pipeline | Excellent structure and cloud integration, but vendor (AWS/Bedrock) lock-in |
 
+Most of tools here support different AI coding tool (claude, codex,...). It's eliminated the problem of vendor lock.
+
 ## Applying SDD to the Existing SDLC
 
 SDD can play an important role in significantly speeding up the SDLC.
@@ -136,14 +138,16 @@ Most of the phases from the traditional SDLC will be transformed into a differen
 
 ![SDD](/images/sdd/sdd_general_sdlc.svg)
 
-## Conclusion
-
-- Spec-first for AI-assisted initial development; spec-anchored for long-lived production systems; spec-as-source only when generation tooling is mature and trusted.
-- Traditional design documents are advisory—developers read them, then write code that hopefully matches. SDD specs are enforced—tests fail if code diverges, and in spec-as-source approaches, code is regenerated rather than manually edited.
-
 ## References
 
 - Spec-Driven Development: From Code to Contract in the Age of AI Coding Assistants - Deepak Babu Piskala
 - [Understanding Spec-Driven-Development: Kiro, spec-kit, and Tessl](https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html)
 - Deeplearning AI
 - speckit, openspec and more
+
+## Conclusion
+
+- Spec-first for AI-assisted initial development; spec-anchored for long-lived production systems; spec-as-source only when generation tooling is mature and trusted.
+- Traditional design documents are advisory—developers read them, then write code that hopefully matches. SDD specs are enforced—tests fail if code diverges, and in spec-as-source approaches, code is regenerated rather than manually edited.
+- We will go sustainable with using the SDD tool but adopting a new tool require step by step and deeply understand the workflow and the mindset to respect and gain benefit from it.
+- SDD is like TDD and BDD, when encourage the developer to focus about the end user behavior and initial goal for the coding instead of working around.
