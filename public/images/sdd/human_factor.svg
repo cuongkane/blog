@@ -1,0 +1,74 @@
+<svg width="900" height="260" viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Feature Development Flow — Human Factor</title>
+  <desc>A flow diagram showing Specify → Plan → Implement → Validate with human review gates and a feedback loop for spec refinement.</desc>
+
+  <defs>
+    <marker id="solid-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M2 2L8 5L2 8" fill="#334155" stroke="none"/>
+    </marker>
+    <marker id="dashed-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M2 2L8 5L2 8" fill="#94a3b8" stroke="none"/>
+    </marker>
+    <marker id="review-arrow" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M2 2L5 8L8 2" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="260" fill="#fafaf9" rx="12"/>
+
+  <!-- Human review labels -->
+  <text x="130" y="52" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#3b82f6">Human review</text>
+  <line x1="130" y1="58" x2="130" y2="82" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <circle cx="130" cy="86" r="3" fill="#3b82f6"/>
+
+  <text x="340" y="52" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#7c3aed">Human review</text>
+  <line x1="340" y1="58" x2="340" y2="82" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <circle cx="340" cy="86" r="3" fill="#7c3aed"/>
+
+  <text x="555" y="52" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#059669">Human review</text>
+  <line x1="555" y1="58" x2="555" y2="82" stroke="#059669" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <circle cx="555" cy="86" r="3" fill="#059669"/>
+
+  <text x="765" y="42" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#dc2626">Automated + Human</text>
+  <line x1="765" y1="58" x2="765" y2="82" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <circle cx="765" cy="86" r="3" fill="#dc2626"/>
+
+  <!-- Specify box -->
+  <rect x="50" y="90" width="160" height="70" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="130" y="120" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="18" font-weight="700" fill="#1e3a8a">Specify</text>
+  <text x="130" y="142" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="400" fill="#3b82f6">What to build</text>
+
+  <!-- Arrow Specify → Plan -->
+  <line x1="210" y1="125" x2="255" y2="125" stroke="#334155" stroke-width="2" marker-end="url(#solid-arrow)"/>
+
+  <!-- Plan box -->
+  <rect x="260" y="90" width="160" height="70" rx="10" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="340" y="120" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="18" font-weight="700" fill="#4c1d95">Plan</text>
+  <text x="340" y="142" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="400" fill="#7c3aed">How to build</text>
+
+  <!-- Arrow Plan → Implement -->
+  <line x1="420" y1="125" x2="465" y2="125" stroke="#334155" stroke-width="2" marker-end="url(#solid-arrow)"/>
+
+  <!-- Implement box -->
+  <rect x="470" y="90" width="170" height="70" rx="10" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
+  <text x="555" y="120" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="18" font-weight="700" fill="#064e3b">Implement</text>
+  <text x="555" y="142" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="400" fill="#059669">Build it</text>
+
+  <!-- Arrow Implement → Validate -->
+  <line x1="640" y1="125" x2="685" y2="125" stroke="#334155" stroke-width="2" marker-end="url(#solid-arrow)"/>
+
+  <!-- Validate box -->
+  <rect x="690" y="90" width="160" height="70" rx="10" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+  <text x="770" y="120" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="18" font-weight="700" fill="#7f1d1d">Validate</text>
+  <text x="770" y="142" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="400" fill="#dc2626">Verify it</text>
+
+  <!-- Feedback loop: dashed arrow from Validate back to Specify -->
+  <path d="M770 160 L770 210 L130 210 L130 160"
+        fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 4"
+        marker-end="url(#dashed-arrow)"/>
+
+  <!-- Feedback label -->
+  <text x="450" y="232" text-anchor="middle" font-family="-apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="400" font-style="italic" fill="#64748b">Refine spec if needed</text>
+
+</svg>

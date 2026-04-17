@@ -1,7 +1,7 @@
 ---
-title: "Spec-Driven Development in the AI Era"
+title: "From Vibe Coding to Spec-Driven Development"
 description: "How SDD (Spec-Driven Development) is re-emerging as a critical methodology for AI-assisted software development, and how to adopt it at the right level for your team."
-image: "/images/sdd/workflow.png"
+image: "/images/sdd/intro.webp"
 date: "2026-04-17"
 author: "cuongkane"
 published: true
@@ -57,6 +57,8 @@ There are three levels of SDD adoption, each with different trade-offs.
 
 ### 3 Levels of SDD
 
+![3 Levels of SDD](/images/sdd/sdd_levels.svg)
+
 #### Spec-First
 
 A specification is written before implementation to guide initial development. Once code exists, the spec may or may not be maintained.
@@ -85,7 +87,7 @@ The payoff is significant: when generation is reliable, the spec becomes the sin
 
 There are many variants of SDD workflows, but the one described here is the most common and practical form. It consists of three phases: constitution, feature development, and replanning.
 
-![Pipeline Flow](/images/sdd/workflow.png)
+![Pipeline Flow](/images/sdd/workflow.svg)
 
 ### Constitution
 
@@ -115,9 +117,11 @@ This phase can be triggered automatically by the AI agent, but always requires h
 
 This feedback loop between spec and implementation is also known as harness engineering — one of the most actively discussed topics in AI-assisted development today.
 
-![Human Factor](/images/sdd/human_factor.png)
+![Human Factor](/images/sdd/human_factor.svg)
 
-## Tools
+## Adopting SDD in Practice
+
+### Tools
 
 As of April 2026, four tools have gained traction for spec-driven workflows:
 
@@ -132,7 +136,7 @@ Spec Kit, BMAD, and OpenSpec are agent-agnostic — they work with Claude, Copil
 
 Both Spec Kit and OpenSpec support brownfield codebases — Spec Kit through a structured bootstrap process, OpenSpec through lightweight iterative adoption.
 
-## Applying SDD to the Existing SDLC
+### Applying SDD to the Existing SDLC
 
 SDD doesn't replace the traditional SDLC — it reshapes it. Requirements gathering becomes spec authoring, design becomes planning with AI, implementation becomes AI-driven code generation guided by the spec, and QA shifts toward automated spec-based validation.
 
@@ -151,5 +155,5 @@ The result is a tighter feedback loop where specifications serve as the connecti
 
 - Spec-Driven Development: From Code to Contract in the Age of AI Coding Assistants - Deepak Babu Piskala
 - [Understanding Spec-Driven-Development: Kiro, spec-kit, and Tessl](https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html)
-- Deeplearning AI
-- speckit, openspec and more
+- [Deeplearning AI - AI Agentic Workflows](https://www.deeplearning.ai/)
+- [GitHub Spec Kit](https://github.com/github/spec-kit) | [OpenSpec](https://github.com/Fission-AI/OpenSpec) | [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) | [Kiro](https://kiro.dev/)
