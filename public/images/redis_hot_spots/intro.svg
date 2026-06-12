@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 405" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
+  <defs>
+    <radialGradient id="hotGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fca5a5" stop-opacity="0.8"/>
+      <stop offset="60%" stop-color="#ef4444" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#eef2ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="405" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="360" y="60" text-anchor="middle" font-size="32" font-weight="700" fill="#1e293b">Redis Cluster</text>
+  <text x="360" y="92" text-anchor="middle" font-size="20" font-weight="500" fill="#64748b" letter-spacing="3">HOT SPOTS</text>
+
+  <!-- Cluster ring -->
+  <g transform="translate(360,250)">
+    <!-- connecting lines -->
+    <g stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4" fill="none">
+      <line x1="-140" y1="0"   x2="-70"  y2="-90"/>
+      <line x1="-70"  y1="-90" x2="70"   y2="-90"/>
+      <line x1="70"   y1="-90" x2="140"  y2="0"/>
+      <line x1="140"  y1="0"   x2="70"   y2="90"/>
+      <line x1="70"   y1="90"  x2="-70"  y2="90"/>
+      <line x1="-70"  y1="90"  x2="-140" y2="0"/>
+      <line x1="-140" y1="0"   x2="140"  y2="0"/>
+      <line x1="-70"  y1="-90" x2="70"   y2="90"/>
+      <line x1="70"   y1="-90" x2="-70"  y2="90"/>
+    </g>
+
+    <!-- hot node glows -->
+    <circle cx="-70" cy="-90" r="55" fill="url(#hotGlow)"/>
+    <circle cx="70"  cy="90"  r="55" fill="url(#hotGlow)"/>
+
+    <!-- normal nodes -->
+    <g>
+      <circle cx="-140" cy="0"  r="26" fill="#fff" stroke="#3b82f6" stroke-width="2.5"/>
+      <text  x="-140" y="5"   text-anchor="middle" font-size="11" font-weight="600" fill="#3b82f6">0001</text>
+
+      <circle cx="70"  cy="-90" r="26" fill="#fff" stroke="#3b82f6" stroke-width="2.5"/>
+      <text  x="70"  y="-85" text-anchor="middle" font-size="11" font-weight="600" fill="#3b82f6">0002</text>
+
+      <circle cx="140" cy="0"  r="26" fill="#fff" stroke="#3b82f6" stroke-width="2.5"/>
+      <text  x="140" y="5"  text-anchor="middle" font-size="11" font-weight="600" fill="#3b82f6">0003</text>
+
+      <circle cx="-70" cy="90"  r="26" fill="#fff" stroke="#3b82f6" stroke-width="2.5"/>
+      <text  x="-70" y="95" text-anchor="middle" font-size="11" font-weight="600" fill="#3b82f6">0005</text>
+    </g>
+
+    <!-- hot nodes -->
+    <g>
+      <circle cx="-70" cy="-90" r="28" fill="#fee2e2" stroke="#dc2626" stroke-width="2.5"/>
+      <text  x="-70" y="-85" text-anchor="middle" font-size="11" font-weight="700" fill="#b91c1c">0004</text>
+      <text  x="-70" y="-115" text-anchor="middle" font-size="18">🔥</text>
+
+      <circle cx="70" cy="90" r="28" fill="#fee2e2" stroke="#dc2626" stroke-width="2.5"/>
+      <text  x="70" y="95" text-anchor="middle" font-size="11" font-weight="700" fill="#b91c1c">0006</text>
+      <text  x="70" y="125" text-anchor="middle" font-size="18">🔥</text>
+    </g>
+  </g>
+
+  <!-- Footer note -->
+  <text x="360" y="385" text-anchor="middle" font-size="13" fill="#64748b">Balanced data. Unbalanced load.</text>
+</svg>

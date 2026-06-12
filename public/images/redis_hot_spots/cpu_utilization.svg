@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
+  <rect width="720" height="360" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="40" y="36" font-size="18" font-weight="700" fill="#1e293b">CPU Utilization per Node</text>
+  <text x="40" y="56" font-size="13" fill="#dc2626" font-weight="600">⚠ Unbalanced — two nodes consistently hotter</text>
+
+  <!-- Chart area: x = 80..680, y = 90..290 -->
+  <!-- y-axis grid 0,25,50,75,100 -->
+  <g stroke="#e5e7eb" stroke-width="1">
+    <line x1="80" y1="290" x2="680" y2="290"/>
+    <line x1="80" y1="240" x2="680" y2="240" stroke-dasharray="3 4"/>
+    <line x1="80" y1="190" x2="680" y2="190" stroke-dasharray="3 4"/>
+    <line x1="80" y1="140" x2="680" y2="140" stroke-dasharray="3 4"/>
+    <line x1="80" y1="90"  x2="680" y2="90"  stroke-dasharray="3 4"/>
+  </g>
+  <g font-size="11" fill="#94a3b8" text-anchor="end">
+    <text x="72" y="294">0%</text>
+    <text x="72" y="244">25%</text>
+    <text x="72" y="194">50%</text>
+    <text x="72" y="144">75%</text>
+    <text x="72" y="94">100%</text>
+  </g>
+
+  <!-- Bars: 6 nodes, width 60, gap 40, start at x=110 -->
+  <!-- heights based on values 35, 40, 38, 78, 42, 82 (% of 200px) -->
+  <g>
+    <rect x="110" y="220" width="60" height="70"  fill="#3b82f6" rx="3"/>
+    <rect x="210" y="210" width="60" height="80"  fill="#3b82f6" rx="3"/>
+    <rect x="310" y="214" width="60" height="76"  fill="#3b82f6" rx="3"/>
+    <rect x="410" y="134" width="60" height="156" fill="#dc2626" rx="3"/>
+    <rect x="510" y="206" width="60" height="84"  fill="#3b82f6" rx="3"/>
+    <rect x="610" y="126" width="60" height="164" fill="#dc2626" rx="3"/>
+  </g>
+
+  <!-- Value labels above bars -->
+  <g font-size="11" font-weight="600" text-anchor="middle">
+    <text x="140" y="212" fill="#475569">35%</text>
+    <text x="240" y="202" fill="#475569">40%</text>
+    <text x="340" y="206" fill="#475569">38%</text>
+    <text x="440" y="126" fill="#b91c1c">78%</text>
+    <text x="540" y="198" fill="#475569">42%</text>
+    <text x="640" y="118" fill="#b91c1c">82%</text>
+  </g>
+
+  <!-- x-axis labels -->
+  <g font-size="11" fill="#475569" text-anchor="middle">
+    <text x="140" y="310">node-0001</text>
+    <text x="240" y="310">node-0002</text>
+    <text x="340" y="310">node-0003</text>
+    <text x="440" y="310" font-weight="700" fill="#b91c1c">node-0004</text>
+    <text x="540" y="310">node-0005</text>
+    <text x="640" y="310" font-weight="700" fill="#b91c1c">node-0006</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(40,335)" font-size="11" fill="#475569">
+    <rect x="0"  y="-9" width="12" height="12" fill="#3b82f6" rx="2"/>
+    <text x="18" y="1">Normal</text>
+    <rect x="80" y="-9" width="12" height="12" fill="#dc2626" rx="2"/>
+    <text x="98" y="1">Hot node</text>
+  </g>
+</svg>

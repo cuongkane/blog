@@ -1,0 +1,142 @@
+---
+title: "Redis Cluster: Hot Spots Solutions"
+description: "Four practical approaches to diagnose and resolve hot spot issues in a sharded Redis Cluster — from key scattering and read replicas to cluster splitting and proxy layers."
+image: "/images/redis_hot_spots/intro.svg"
+date: "2023-12-07"
+author: "cuongkane"
+published: true
+tags: ["redis", "caching", "performance", "backend", "infrastructure"]
+---
+
+A few years back, our team ran into an unbalanced load problem in a production Redis Cluster: a couple of nodes were constantly hotter than the rest. After some digging we identified it as a classic **hot spots** issue. This post walks through how we recognized the symptoms and the four solutions we evaluated.
+
+## The Problem
+
+We noticed that CPU utilization across nodes in our Redis Cluster was not balanced — a small subset of master nodes was significantly busier than the others, despite the cluster being properly sharded.
+
+![CPU utilization unbalanced across nodes](/images/redis_hot_spots/cpu_utilization.svg)
+
+Here are the symptoms that told us this was a hot spot problem and not a misconfigured cluster:
+
+### 1. Memory usage is balanced across nodes
+
+Every node held roughly the same amount of data. So it wasn't a sharding/slot distribution issue.
+
+![Memory usage balanced across nodes](/images/redis_hot_spots/memory_usage.svg)
+
+### 2. Key count and hash slots are balanced
+
+The hash slots were evenly distributed and the number of keys per node was comparable. CRC16-based slot assignment was doing its job.
+
+![Keys and hash slots balanced across nodes](/images/redis_hot_spots/keys_and_slots.svg)
+
+### 3. Cache hit count is unbalanced
+
+This was the smoking gun. Some nodes were serving ~5k hits/second while others sat at 2–3k hits/second. The cluster wasn't storing data unevenly — it was *reading* it unevenly. A handful of keys were accessed far more often than others, and those keys happened to live on the same nodes.
+
+![Cache hit rate unbalanced across nodes](/images/redis_hot_spots/cache_hits.svg)
+
+That's the textbook definition of hot spots in a distributed cache.
+
+## Solutions
+
+Below are four approaches we evaluated, along with their trade-offs.
+
+### Solution 1: Scatter hot keys across multiple nodes
+
+The idea is to identify tables/entities whose cached entries are accessed disproportionately often, and then *duplicate* those entries onto multiple nodes by appending a numeric suffix to the cache key. Each suffix routes to a different hash slot — and therefore a different node.
+
+We'd flag specific tables as "hot" via configuration. For example, in a [django-cacheops](https://github.com/Suor/django-cacheops)-style config:
+
+```python
+# settings.py
+CACHEOPS = {
+    'api.SomeFrequentlyReadTable': {
+        'ops': {'get', 'fetch'},
+        'timeout': 60 * 15,
+        'is_hot_table': True,
+    }
+}
+```
+
+When writing to the cache, we'd save the same value under multiple suffixed keys. Each one lands on a different node:
+
+```shell
+127.0.0.1:6379> CLUSTER KEYSLOT q:ca58f49a38548766cbf24ca123084ad9_1
+(integer) 16179   # Node A
+127.0.0.1:6379> CLUSTER KEYSLOT q:ca58f49a38548766cbf24ca123084ad9_2
+(integer) 3920    # Node B
+127.0.0.1:6379> CLUSTER KEYSLOT q:ca58f49a38548766cbf24ca123084ad9_3
+(integer) 8049    # Node C
+127.0.0.1:6379> CLUSTER KEYSLOT q:ca58f49a38548766cbf24ca123084ad9_4
+(integer) 12182   # Node D
+```
+
+[`MSET`](https://redis.io/commands/mset/) can write all the suffixed copies in a single round trip.
+
+When reading, we pick a random suffix so requests are distributed across nodes:
+
+```python
+cached_key = compute_cache_key(query)
+if from_hot_table(query):
+    cached_key += random_suffix(num_nodes)
+value = redis.get(cached_key)
+```
+
+It's also worth switching the eviction policy from **LRU to LFU** for these tables so that genuinely hot entries stay in memory.
+
+**Pros**
+- Directly solves the hot key problem.
+- No need to provision more replicas or infrastructure components.
+
+**Cons**
+- Hot tables have to be identified manually.
+- Adds implementation and maintenance cost in the caching layer.
+- Increases memory usage because each hot entry is duplicated *N* times.
+
+### Solution 2: Add read replicas to hot nodes
+
+Attach read replicas to the master nodes that are getting hammered, and route reads to the replicas to take pressure off the masters serving the hot keys.
+
+**Pros**
+- Pure infrastructure change — no application code to write.
+
+**Cons**
+- Slight increase in write latency since data has to land on both master and replica.
+- Costs more in infrastructure to run the replicas.
+- Doesn't really fix the *imbalance* — it just gives the hot nodes more capacity.
+
+### Solution 3: Split the Redis Cluster by service
+
+If one Redis Cluster is shared across multiple services, splitting it into per-service clusters can reduce the chance that one service's hot keys dominate the picture. Different access patterns get isolated from each other.
+
+**Pros**
+- Minimal effort: spin up new clusters and update environment variables. No application logic changes.
+- Easier to reason about per-service cache behavior, capacity, and monitoring.
+
+**Cons**
+- Each new cluster can still experience hot spots — just with smaller blast radius. The fundamental problem isn't gone, only diluted.
+
+### Solution 4: Introduce a proxy layer in front of Redis
+
+A proxy layer sits between the application and the Redis Cluster. It can analyze recent access patterns in real time, detect keys that are being requested unusually often, and serve them from a **local in-memory cache** without ever touching Redis.
+
+![Proxy layer between application and Redis cluster](/images/redis_hot_spots/proxy_architecture.svg)
+
+For example: if key `A` is requested more than *N* times within a short window (detected via an LFU-style counter), the proxy caches the value locally for a short TTL and answers subsequent reads itself.
+
+An example of such a proxy is [twemproxy](https://github.com/twitter/twemproxy).
+
+**Pros**
+- Genuinely solves the problem at the access-pattern layer — the application doesn't need to know which keys are hot.
+
+**Cons**
+- A new layer to implement, deploy, and maintain. Cache invalidation gets trickier (now there are *two* caches to keep coherent), and you've added another hop that can fail.
+
+## Closing Thoughts
+
+There's no single "right" answer here — the best fit depends on how much application code you're willing to change, how much infrastructure budget you have, and how dynamic your hot key set is.
+
+In our case, **Solution 1 (key scattering)** was the most attractive because it was cheap, didn't require new infrastructure, and worked well when we already knew which tables tended to be hot. **Solution 4 (proxy layer)** is the most elegant if hot keys are unpredictable and change over time, but it's also the heaviest lift.
+
+If you're seeing similar symptoms — balanced memory and key counts but unbalanced CPU and hit counts — chances are you've got a hot spot too. Start with the diagnostics, then pick the trade-off that best fits your team.

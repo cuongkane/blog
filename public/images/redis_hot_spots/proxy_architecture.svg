@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
+  <rect width="720" height="360" fill="#ffffff"/>
+
+  <text x="360" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Proxy Layer Architecture</text>
+  <text x="360" y="54" text-anchor="middle" font-size="12" fill="#64748b">Hot keys absorbed by an in-memory local cache before reaching Redis</text>
+
+  <!-- App box -->
+  <g>
+    <rect x="40" y="120" width="140" height="120" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+    <text x="110" y="155" text-anchor="middle" font-size="14" font-weight="700" fill="#1e3a8a">Application</text>
+    <text x="110" y="180" text-anchor="middle" font-size="11" fill="#475569">redis client</text>
+    <text x="110" y="210" text-anchor="middle" font-size="22">📱</text>
+  </g>
+
+  <!-- Arrows app -> proxy -->
+  <g stroke="#94a3b8" stroke-width="2" fill="none">
+    <path d="M 180 170 L 250 170" marker-end="url(#arrowR)"/>
+    <path d="M 250 200 L 180 200" marker-end="url(#arrowL)"/>
+  </g>
+
+  <!-- Proxy box (taller, contains local cache) -->
+  <g>
+    <rect x="250" y="90" width="220" height="180" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="360" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#92400e">Proxy Layer</text>
+    <text x="360" y="135" text-anchor="middle" font-size="11" fill="#78350f">LFU detector · routing</text>
+
+    <!-- Local cache box inside -->
+    <rect x="275" y="155" width="170" height="90" rx="6" fill="#fff" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="360" y="180" text-anchor="middle" font-size="12" font-weight="700" fill="#92400e">Local Cache</text>
+    <text x="360" y="200" text-anchor="middle" font-size="10" fill="#78350f">hot keys, short TTL</text>
+    <text x="360" y="230" text-anchor="middle" font-size="16">🔥 key A → value</text>
+  </g>
+
+  <!-- Arrows proxy -> redis (only cache miss) -->
+  <g stroke="#94a3b8" stroke-width="2" fill="none">
+    <path d="M 470 170 L 540 170" marker-end="url(#arrowR)"/>
+    <path d="M 540 200 L 470 200" marker-end="url(#arrowL)"/>
+  </g>
+  <text x="505" y="160" text-anchor="middle" font-size="10" fill="#64748b" font-style="italic">cache miss</text>
+
+  <!-- Redis cluster (mini 4-node) -->
+  <g transform="translate(540,120)">
+    <rect x="0" y="0" width="140" height="120" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+    <text x="70" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#7f1d1d">Redis Cluster</text>
+    <g>
+      <circle cx="35"  cy="60" r="14" fill="#fff" stroke="#dc2626" stroke-width="1.5"/>
+      <circle cx="70"  cy="60" r="14" fill="#fff" stroke="#dc2626" stroke-width="1.5"/>
+      <circle cx="105" cy="60" r="14" fill="#fff" stroke="#dc2626" stroke-width="1.5"/>
+      <circle cx="35"  cy="95" r="14" fill="#fff" stroke="#dc2626" stroke-width="1.5"/>
+      <circle cx="70"  cy="95" r="14" fill="#fff" stroke="#dc2626" stroke-width="1.5"/>
+      <circle cx="105" cy="95" r="14" fill="#fff" stroke="#dc2626" stroke-width="1.5"/>
+    </g>
+  </g>
+
+  <!-- Caption -->
+  <text x="360" y="310" text-anchor="middle" font-size="11" fill="#64748b">When a key crosses an access-frequency threshold, the proxy serves subsequent reads locally.</text>
+  <text x="360" y="328" text-anchor="middle" font-size="11" fill="#64748b">Redis stops being the bottleneck for that key.</text>
+
+  <defs>
+    <marker id="arrowR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrowL" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 10 0 L 0 5 L 10 10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+</svg>
