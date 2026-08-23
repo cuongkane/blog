@@ -1,0 +1,76 @@
+---
+title: "Solve the Problem, Not the Symptom"
+description: "Good problem-solving begins with context and a clear understanding of the real problem—not a rushed solution to its symptoms."
+image: ""
+date: "2026-08-23"
+author: "cuongkane"
+published: true
+tags: ["problem-solving", "software-engineering", "decision-making"]
+---
+
+We should solve the problem, not its symptoms or a requirement that we follow blindly.
+
+When I first started writing code, I thought efficient problem-solving meant following all the best practices in a domain—payments, open source, product development—or within a responsibility such as frontend, backend, or DevOps. If the implementation followed those practices, I believed I had solved the problem well.
+
+My thinking has changed. Solving almost any problem is first a journey of investigation. We need to ask whether we have considered everything that matters. Once we truly understand the problem, proposing a solution can be surprisingly quick. In fact, I believe proposing the solution should take only about half of the total time and effort.
+
+The hardest and longest part is understanding the real problem. Sometimes, the problem we receive is not the problem the customer—or the person paying for the work—actually needs us to solve.
+
+I like to work through four phases:
+
+1. Context
+2. Problem setup
+3. Solution
+4. Drawback acknowledgement
+
+## 1. Context
+
+Context sounds simple, but it is important. Start with the overall goal, relevant changes from the last few months, and any direction the product or system will take soon. Begin with the general view and then move into the details. This top-down approach makes each detail easier to understand.
+
+The way we gather context depends on where the problem comes from. If we own the product, infrastructure, or artifact that created the problem, gathering context may be easier. We can inspect what happened, when it started, and what changed.
+
+If the problem comes from another person or team, we need to learn their context before trying to solve it. Who uses the product? How do they use it? How many people are affected? What happened before the issue appeared? What are they trying to achieve?
+
+Asking meaningful questions step by step is not easy. A person or group can become frustrated by a long stream of questions. Before asking, review the available documents, history, logs, and previous discussions. AI can now make this review step faster, but it does not replace talking to the people involved.
+
+Group related questions and ask them in small batches. Write down the answers so that you do not ask the same thing twice. When there are many stakeholders, separate their concerns instead of mixing everything into one conversation.
+
+This phase is often skipped because the deadline feels too tight or because we make assumptions too quickly. That is why timeline management is part of problem-solving. If we leave no time to investigate, we force ourselves to make important decisions in a rush—and rushed decisions are often wrong.
+
+## 2. Problem Setup
+
+After gathering context, describe the problem clearly. Write down what is happening, who is affected, how often it happens, and how serious or urgent it is. Include the scenarios that succeed as well as those that fail. Failure cases often reveal more than the happy path.
+
+Also record unanswered questions, dependencies, and information that may be unreliable. If a question cannot be answered yet, do not hide it behind an assumption. Make the uncertainty visible so that everyone understands what the decision is based on.
+
+At this point, avoid jumping directly into implementation. A requirement may already contain a proposed solution, but that does not mean it describes the underlying problem. Reframe it in terms of the outcome that the customer or stakeholder needs.
+
+A useful problem statement gives the next person enough context to understand the issue without searching through old Slack messages, meetings, and scattered documents. It also gives the team a shared definition of what "solved" means.
+
+## 3. Solution
+
+Only after the problem is clear should we decide how to solve it.
+
+Engineers naturally want to design the perfect system. We think about scalability, maintainability, architecture, patterns, and best practices. These are important, but solving the problem does not mean making every part of the system perfect.
+
+The goal is to choose the most appropriate solution for the current context: the timeline, priority, available people, existing architecture, and the expected lifetime of the product. A technically elegant design can still be the wrong solution if it takes a year to deliver or requires changes far beyond the actual need.
+
+Sometimes a proposal does not follow the best process or the newest pattern, yet it solves the real problem with much less disruption. That can be the better decision. Best practices should guide our thinking, not replace it.
+
+The solution is also limited by the information, skills, and knowledge we have at the time. That is normal. We do not need to be ashamed that a later version may be better. We should document the context and reasoning behind the decision so that maintainers, managers, and future team members can understand why it was made.
+
+There is no permanently perfect solution—only an appropriate solution for the situation we understand today.
+
+## 4. Drawback Acknowledgement
+
+Every solution has drawbacks. It may improve delivery speed while making maintenance harder. It may reduce complexity now but limit scalability later. It may help one group while asking another group to change how they work.
+
+These trade-offs should be stated clearly, not discovered by surprise after implementation. Describe what can fail, who may be affected, what dependencies remain, and which risks the team has accepted. This does not weaken a proposal; it makes the proposal honest and easier to evaluate.
+
+Acknowledging drawbacks also gives us a path forward. We can decide which risks need monitoring and which improvements can happen incrementally—day by day, week by week—as the product and its context evolve.
+
+## Closing Thought
+
+Problem-solving is not about producing the most impressive solution. It is about understanding the context, defining the real problem, choosing an appropriate response, and being honest about its limits.
+
+The solution may be the most interesting part, but understanding what deserves to be solved is the most important one.
