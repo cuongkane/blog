@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 405" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#eef2ff"/>
+    </linearGradient>
+    <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect width="720" height="405" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="360" y="52" text-anchor="middle" font-size="29" font-weight="700" fill="#1e293b">Solve the Problem, Not the Symptom</text>
+  <text x="360" y="80" text-anchor="middle" font-size="11.5" font-weight="500" fill="#64748b" letter-spacing="2.2">THE REQUIREMENT YOU RECEIVE IS NOT ALWAYS THE PROBLEM</text>
+
+  <!-- Phase 1 -->
+  <rect x="40" y="110" width="145" height="115" rx="8" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
+  <circle cx="62" cy="136" r="11" fill="#4f46e5"/>
+  <text x="62" y="140" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">1</text>
+  <text x="81" y="141" font-size="13" font-weight="700" fill="#312e81">Context</text>
+  <g font-size="10.5" fill="#4338ca">
+    <text x="54" y="171">Goal, recent changes,</text>
+    <text x="54" y="186">who is affected,</text>
+    <text x="54" y="201">what came before.</text>
+  </g>
+
+  <!-- Phase 2 -->
+  <rect x="205" y="110" width="145" height="115" rx="8" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
+  <circle cx="227" cy="136" r="11" fill="#4f46e5"/>
+  <text x="227" y="140" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">2</text>
+  <text x="246" y="141" font-size="13" font-weight="700" fill="#312e81">Problem Setup</text>
+  <g font-size="10.5" fill="#4338ca">
+    <text x="219" y="171">What fails, how often,</text>
+    <text x="219" y="186">and what is still</text>
+    <text x="219" y="201">unknown — made visible.</text>
+  </g>
+
+  <!-- Phase 3 -->
+  <rect x="370" y="110" width="145" height="115" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <circle cx="392" cy="136" r="11" fill="#059669"/>
+  <text x="392" y="140" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">3</text>
+  <text x="411" y="141" font-size="13" font-weight="700" fill="#065f46">Solution</text>
+  <g font-size="10.5" fill="#047857">
+    <text x="384" y="171">Appropriate for the</text>
+    <text x="384" y="186">timeline and context —</text>
+    <text x="384" y="201">not the most elegant.</text>
+  </g>
+
+  <!-- Phase 4 -->
+  <rect x="535" y="110" width="145" height="115" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+  <circle cx="557" cy="136" r="11" fill="#d97706"/>
+  <text x="557" y="140" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">4</text>
+  <text x="576" y="141" font-size="13" font-weight="700" fill="#78350f">Drawbacks</text>
+  <g font-size="10.5" fill="#b45309">
+    <text x="549" y="171">What can fail, who</text>
+    <text x="549" y="186">must change, which</text>
+    <text x="549" y="201">risks were accepted.</text>
+  </g>
+
+  <!-- Arrows -->
+  <g stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arw)">
+    <line x1="189" y1="167" x2="200" y2="167"/>
+    <line x1="354" y1="167" x2="365" y2="167"/>
+    <line x1="519" y1="167" x2="530" y2="167"/>
+  </g>
+
+  <!-- Brackets -->
+  <path d="M 40 240 L 40 248 L 350 248 L 350 240" fill="none" stroke="#818cf8" stroke-width="1.5"/>
+  <text x="195" y="268" text-anchor="middle" font-size="12.5" font-weight="700" fill="#4338ca">Understanding the real problem</text>
+  <text x="195" y="285" text-anchor="middle" font-size="11" fill="#6366f1">the hardest and longest part</text>
+
+  <path d="M 370 240 L 370 248 L 515 248 L 515 240" fill="none" stroke="#34d399" stroke-width="1.5"/>
+  <text x="442" y="268" text-anchor="middle" font-size="12.5" font-weight="700" fill="#047857">About half the effort</text>
+  <text x="442" y="285" text-anchor="middle" font-size="11" fill="#10b981">and the quick part</text>
+
+  <path d="M 535 240 L 535 248 L 680 248 L 680 240" fill="none" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="607" y="268" text-anchor="middle" font-size="12.5" font-weight="700" fill="#b45309">Stated upfront</text>
+  <text x="607" y="285" text-anchor="middle" font-size="11" fill="#d97706">not discovered later</text>
+
+  <!-- Footer -->
+  <line x1="120" y1="322" x2="600" y2="322" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="360" y="352" text-anchor="middle" font-size="12.5" fill="#475569">There is no permanently perfect solution — only an appropriate one</text>
+  <text x="360" y="372" text-anchor="middle" font-size="12.5" fill="#475569">for the situation we understand today.</text>
+</svg>
