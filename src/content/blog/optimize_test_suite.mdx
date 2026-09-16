@@ -1,0 +1,147 @@
+---
+title: "Cutting a 55-Minute Test Suite Down to 20"
+description: "Why parallelizing inside the test runner failed twice on a ten-year-old Django monolith, and how moving the isolation boundary out to one CI job per module bought most of the speedup without auditing a single test."
+image: "/images/optimize_test_suite/intro.svg"
+date: "2026-09-16"
+author: "cuongkane"
+published: true
+tags: ["testing", "ci-cd", "python", "django", "developer-experience", "pytest"]
+---
+
+*Module and app names in this post are anonymized; the numbers are real.*
+
+## Context
+
+The system is a ten-year-old Django monolith carrying the product's core workflow:
+roughly **1,500 test files** and **1,070 migrations**.
+
+Its automated tests ran one after another in a single CI job — **~55 minutes** — and
+couldn't be run on a laptop at all. Because the tests talk to real databases and
+search services, one unstable test anywhere meant starting all 55 minutes over.
+
+## The Problem
+
+This wasn't a CI bill problem. It was a delivery problem.
+
+- **Every change waited an hour to be checked** — and again after each unstable
+  re-run. That hour sat directly in the middle of the path from "code written" to
+  "testable on staging", so tickets aged, the release cut-off got tighter, and QA got
+  the build later than planned.
+- **The safety net got skipped.** When the only way to run the tests is an hour-long
+  pipeline you can't run yourself, people push without them. The defect still exists
+  — it just surfaces later, where it's more expensive to find and closer to release.
+- **One person's failure blocked everyone.** A red master meant every colleague who
+  branched off it inherited a broken pipeline and spent time debugging a failure that
+  wasn't theirs.
+
+It compounds: slow suite → skipped → red → more re-runs → slower still.
+
+## The Previous Attempt
+
+`pytest-xdist` was tried. Twice, over the years. It splits the tests across several
+worker processes on the same machine — but they all still share one database, one
+filesystem, one set of globals.
+
+That's the whole problem. It went wrong in four ways:
+
+- **Slower, not faster.** Even a 3–5% subset took longer than running it serially;
+  worker startup dominated.
+- **Database connections failed** unexpectedly.
+- **Our Kafka mock stopped taking effect.**
+- **Coverage stopped working** correctly.
+
+Nobody diagnosed the last three; the attempt was abandoned first. The Kafka one is
+typical though: the mock is one line in the root `conftest.py`, applied at import
+time, so it survives on luck about import order — and extra processes are exactly
+what disturbs that.
+
+`xdist` only pays off if no test can disturb another, and thousands here quietly can.
+Auditing them all is a rewrite, not an optimization. Which is why it kept getting
+deprioritized.
+
+## The Solution
+
+Keep the parallelism, move the isolation boundary outward: **one CI job per module**,
+each with its own database and services. Nothing is shared, so nothing has to be
+audited first.
+
+### 1. Split by module, not by test count
+
+Five jobs run at the same time: `reporting`, `orders_api`, `orders_core`, `platform`,
+and a catch-all `others`. A group is a whole app; only `orders` is split, along its
+own `tests/views` line — those API tests are 59.4% of the app and the most expensive
+slice in the suite.
+
+Whole apps because several `reporting` tests only pass if earlier files ran first.
+Keeping apps intact *contains* that coupling instead of paying to remove it, and a
+red job names a directory.
+
+`others` is defined by `--ignore`, so a new app lands somewhere automatically. Mind
+the edge: `--ignore` beats an explicit path underneath it, so a path named inside a
+directory you also ignore runs in **no job** — and the only symptom is the coverage
+gate failing at the end of the pipeline.
+
+### 2. Combine the coverage, keep the gate
+
+Each job writes its own `.coverage.<group>`. A final job waits for all five, merges
+them, and enforces the existing 100%. The gate never moved.
+
+### 3. Right-size what the split frees
+
+One 10Gi/4-CPU job becomes five 4Gi/1-CPU jobs. Elasticsearch runs in `others` only
+(37 tests, 4 files — the rest fake it), request cut 5Gi → 2Gi. Postgres runs
+`fsync=off`, `synchronous_commit=off`, `full_page_writes=off`; durability is
+worthless in a throwaway DB.
+
+### 4. Make a fresh database cheap
+
+Otherwise none of the above is affordable. Rebuilding one by replaying ~1,070
+migrations cost ~200s *per group*. Now each job restores a committed ~120 KB schema
+snapshot and applies only the migrations added since: **~5 seconds**.
+
+The same two scripts back a `make test-all` on a laptop, so there's no CI-only copy
+to drift — and the suite finally runs locally.
+
+---
+
+Clean databases came with a bonus: a handful of tests had only been passing because
+earlier tests left the right state behind. They started failing honestly, and we
+fixed them. Green means more now than it used to.
+
+## The Result
+
+| | Before | After |
+|---|---|---|
+| CI pipeline (MR) | ~55+ min | **~20 min** |
+| Full suite locally | impossible | **~7 min** (M4, 4-CPU Docker VM) |
+| Fresh test DB | ~200 s | **~5 s** |
+| Retry after a flake | whole suite | **one group** |
+| Runner request | 1 × 10Gi / 4 CPU | 5 × 4Gi / 1 CPU |
+
+Two MR labels now skip the test jobs entirely — `Data Migration`, and
+`Tests Passed Locally` after a green local run.
+
+*Caveats: the 20 min is observed post-rollout, not averaged across runner contention;
+local timings are single-machine.*
+
+## Conclusion
+
+The instinct on a slow suite is to parallelize inside the test runner. On a
+ten-year-old codebase that's the expensive path — it demands a cleanliness the code
+never had, which is exactly why `xdist` died here twice. Pushing the boundary outward
+instead buys most of the speedup and fences the mess rather than clearing it.
+
+The impact isn't the 35 minutes saved. It's that checking your work moved from *after*
+you push to *before* you commit, a failure now names one module instead of the whole
+suite, and a green pipeline means something again. Tickets stop aging in a queue
+nobody could shorten.
+
+Two things next:
+
+- **Rebalance the groups by measured time.** Total time is whichever group is slowest,
+  and `orders_api` is the long pole. Pure headroom, no design change.
+- **Run only what a change can affect.** The next order of magnitude, and the harder
+  one — it needs a reliable map from changed code to the tests that cover it.
+
+The old mess is still in there. It's fenced, documented, and cheap to work around —
+and the tests get run.
